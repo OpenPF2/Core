@@ -13,10 +13,6 @@
 #include "PF2TagLibrary.generated.h"
 
 // =====================================================================================================================
-// Forward Declarations (to minimize header dependencies)
-// =====================================================================================================================
-
-// =====================================================================================================================
 // Normal Declarations
 // =====================================================================================================================
 /**
@@ -48,4 +44,55 @@ public:
 	static FGameplayTag FindChildTag(const FGameplayTagContainer& AllTags,
 	                                 const FGameplayTag&          ParentTag,
 	                                 bool&                        bMatchFound);
+
+	/**
+	 * Finds the condition trait tag having the specified parent tag and parses the condition level into an integer.
+	 *
+	 * For example, given a container with the following tags and a parent tag of "Condition.Dying", this would parse
+	 * and return a value of "3":
+	 * - CreatureSize.Medium
+	 * - CreatureAlignment.Neutral.Good
+	 * - KeyAbility.Intelligence
+	 * - Trait.Condition.Dying.3
+	 * - Trait.Condition.Wounded.1
+	 *
+	 * If there are multiple tags in the container that are children or grandchildren of the given tag, only the first
+	 * one gets parsed.
+	 *
+	 * @param AllTags
+	 *	The container of tags within which to locate the condition trait tag.
+	 * @param ParentTag
+	 *	The tag immediately above the tags that contain the integer condition level.
+	 *
+	 * @return
+	 *	Either the value parsed out of the suffix; or, INDEX_NONE if either a condition trait tag could not be found or
+	 *	the tag that was found did not have a suffix tag that could be parsed.
+	 */
+	UFUNCTION(
+		BlueprintCallable,
+		BlueprintPure,
+		meta=(AutoCreateRefTerm="ParentTag"),
+		Category="OpenPF2|Gameplay Tags"
+	)
+	static uint8 FindAndParseConditionLevel(const FGameplayTagContainer& AllTags,
+	                                        const FGameplayTag&          ParentTag);
+
+	/**
+	 * Parses the condition level suffix from a condition trait tag into an integer.
+	 *
+	 * For example, this parses tags like "Trait.Condition.Dying.4" and "Trait.Condition.Wounded.3" into the values
+	 * "4" and "3", respectively.
+	 *
+	 * @param Tag
+	 *	The tag from which to extract and parse the condition level.
+	 * @param ParentTag
+	 *	The tag immediately above the tags that contain the integer condition level.
+	 *
+	 * @return
+	 *	Either the value parsed out of the suffix; or, INDEX_NONE if the tag did not have a condition level that could
+	 *	be parsed.
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, meta=(AutoCreateRefTerm="ParentTag"), Category="OpenPF2|Gameplay Tags")
+	static uint8 ParseConditionLevel(const FGameplayTag& Tag,
+	                                 const FGameplayTag& ParentTag);
 };

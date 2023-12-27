@@ -35,3 +35,34 @@ FGameplayTag UPF2TagLibrary::FindChildTag(const FGameplayTagContainer& AllTags,
 
 	return Result;
 }
+
+uint8 UPF2TagLibrary::FindAndParseConditionLevel(const FGameplayTagContainer& AllTags, const FGameplayTag& ParentTag)
+{
+	uint8              Result      = INDEX_NONE;
+	bool               bMatchFound = false;
+	const FGameplayTag ChildTag    = FindChildTag(AllTags, ParentTag, bMatchFound);
+
+	if (bMatchFound)
+	{
+		Result = ParseConditionLevel(ChildTag, ParentTag);
+	}
+
+	return Result;
+}
+
+uint8 UPF2TagLibrary::ParseConditionLevel(const FGameplayTag& Tag, const FGameplayTag& ParentTag)
+{
+	uint8 Result = INDEX_NONE;
+
+	if (Tag.RequestDirectParent().MatchesTagExact(ParentTag))
+	{
+		// If ParentTag is "Condition.Dying" and the tag is "Condition.Dying.3", then starting at ParentTag.Len() + 1
+		// in the tag should give us "3".
+		const FString ParentTagString = ParentTag.ToString(),
+		              SuffixString    = Tag.ToString().Mid(ParentTagString.Len() + 1);
+
+		Result = FCString::Atoi(*SuffixString);
+	}
+
+	return Result;
+}
