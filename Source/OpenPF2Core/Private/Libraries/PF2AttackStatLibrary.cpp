@@ -144,7 +144,7 @@ float UPF2AttackStatLibrary::CalculateRangePenalty(const float WeaponRangeIncrem
 	// Attack rolls beyond a weapon’s range increment take a –2 penalty for each additional multiple of that increment
 	// between you and the target."
 	//
-	// From the Pathfinder 2E Core Rulebook, page 446, "Range":
+	// From the Pathfinder 2E Core Rulebook, Chapter 9, page 446, "Range Penalty":
 	// "Ranged and thrown weapons each have a listed range increment, and attacks with them grow less accurate against
 	// targets farther away [...] As long as your target is at or within the listed range increment, also called the
 	// first range increment, you take no penalty to the attack roll. If you’re attacking beyond that range increment,

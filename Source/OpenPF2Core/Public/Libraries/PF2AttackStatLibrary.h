@@ -42,7 +42,7 @@ protected:
 	/**
 	 * The maximum multiple of the range of a ranged weapon within which the weapon still has a chance to hit a target.
 	 *
-	 * From the Pathfinder 2E Core Rulebook, page 279, "Range":
+	 * From the Pathfinder 2E Core Rulebook, Chapter 6, page 279, "Range":
 	 * "Attacks beyond the sixth range increment are impossible."
 	 */
 	static constexpr float MaxRangeIncrement = 6.0f;
@@ -289,12 +289,12 @@ public:
 	/**
 	 * Calculates the penalty at the specified distance from a target for a weapon that has the given range increment.
 	 *
-	 * From the Pathfinder 2E Core Rulebook, page 279, "Range":
+	 * From the Pathfinder 2E Core Rulebook, Chapter 6, page 279, "Range":
 	 * "Ranged and thrown weapons have a range increment. Attacks with these weapons work normally up to that distance.
 	 * Attack rolls beyond a weapon’s range increment take a –2 penalty for each additional multiple of that increment
 	 * between you and the target. Attacks beyond the sixth range increment are impossible."
 	 *
-	 * From the Pathfinder 2E Core Rulebook, page 446, "Range":
+	 * From the Pathfinder 2E Core Rulebook, Chapter 9, page 446, "Range Penalty":
 	 * "Ranged and thrown weapons each have a listed range increment, and attacks with them grow less accurate against
 	 * targets farther away [...] As long as your target is at or within the listed range increment, also called the
 	 * first range increment, you take no penalty to the attack roll. If you’re attacking beyond that range increment,
@@ -322,12 +322,12 @@ public:
 	/**
 	 * Calculates the maximum range of a weapon that has the given range increment.
 	 *
-	 * From the Pathfinder 2E Core Rulebook, page 279, "Range":
+	 * From the Pathfinder 2E Core Rulebook, Chapter 6, page 279, "Range":
 	 * "Ranged and thrown weapons have a range increment. Attacks with these weapons work normally up to that distance.
 	 * Attack rolls beyond a weapon’s range increment take a –2 penalty for each additional multiple of that increment
 	 * between you and the target. Attacks beyond the sixth range increment are impossible."
 	 *
-	 * From the Pathfinder 2E Core Rulebook, page 446, "Range":
+	 * From the Pathfinder 2E Core Rulebook, Chapter 9, page 446, "Range":
 	 * "Ranged and thrown weapons each have a listed range increment, and attacks with them grow less accurate against
 	 * targets farther away [...] As long as your target is at or within the listed range increment, also called the
 	 * first range increment, you take no penalty to the attack roll. If you’re attacking beyond that range increment,
@@ -350,12 +350,12 @@ public:
 	/**
 	 * Determines if the specified distance is within range of the weapon having the given range increment.
 	 *
-	 * From the Pathfinder 2E Core Rulebook, page 279, "Range":
+	 * From the Pathfinder 2E Core Rulebook, Chapter 6, page 279, "Range":
 	 * "Ranged and thrown weapons have a range increment. Attacks with these weapons work normally up to that distance.
 	 * Attack rolls beyond a weapon’s range increment take a –2 penalty for each additional multiple of that increment
 	 * between you and the target. Attacks beyond the sixth range increment are impossible."
 	 *
-	 * From the Pathfinder 2E Core Rulebook, page 446, "Range":
+	 * From the Pathfinder 2E Core Rulebook, Chapter 9, page 446, "Range":
 	 * "Ranged and thrown weapons each have a listed range increment, and attacks with them grow less accurate against
 	 * targets farther away [...] As long as your target is at or within the listed range increment, also called the
 	 * first range increment, you take no penalty to the attack roll. If you’re attacking beyond that range increment,
