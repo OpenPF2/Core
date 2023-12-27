@@ -50,7 +50,7 @@ protected:
 	 * The character who would be issued this command.
 	 */
 	UPROPERTY(Replicated)
-	AActor* TargetCharacter;
+	AActor* OwningCharacter;
 
 	/**
 	 * The handle of the ability that this command will trigger when it is executed.
@@ -169,7 +169,7 @@ public:
 	 *
 	 * This method is necessary because actors cannot be passed parameters through a constructor at spawn time.
 	 *
-	 * @param CharacterActor
+	 * @param OwningCharacterActor
 	 *	The character (as an actor) who would be issued the command.
 	 * @param AbilitySpecHandle
 	 *	The handle of the ability that the command will trigger when it is executed.
@@ -183,7 +183,7 @@ public:
 	 *	The new command.
 	 */
 	static IPF2CharacterCommandInterface* Create(
-		AActor*                          CharacterActor,
+		AActor*                          OwningCharacterActor,
 		const FGameplayAbilitySpecHandle AbilitySpecHandle,
 		const FGameplayEventData&        AbilityPayload          = FGameplayEventData(),
 		const EPF2CommandQueuePosition   QueuePositionPreference = EPF2CommandQueuePosition::EndOfQueue);
@@ -193,7 +193,7 @@ protected:
 	// Protected Constructors
 	// =================================================================================================================
 	explicit APF2CharacterCommand() :
-		TargetCharacter(nullptr),
+		OwningCharacter(nullptr),
 		QueuePositionPreference(EPF2CommandQueuePosition::EndOfQueue),
 		CachedAbility(nullptr)
 	{
@@ -209,7 +209,7 @@ public:
 	// =================================================================================================================
 	// Public Methods - IPF2CharacterCommandInterface Implementation
 	// =================================================================================================================
-	virtual TScriptInterface<IPF2CharacterInterface> GetTargetCharacter() const override;
+	virtual TScriptInterface<IPF2CharacterInterface> GetOwningCharacter() const override;
 
 	virtual UTexture2D* GetCommandIcon() const override;
 
@@ -307,7 +307,7 @@ protected:
 	 *
 	 * This can only be called during spawning and must not be called after the command has already been spawned.
 	 *
-	 * @param InTargetCharacter
+	 * @param InOwningCharacter
 	 *	The character who would be issued this command.
 	 * @param InAbilitySpecHandle
 	 *	The handle of the ability that this command will trigger when it is executed.
@@ -316,7 +316,7 @@ protected:
 	 * @param InQueuePositionPreference
 	 *	The preference for where in a command queue this command should be placed, if this command gets queued.
 	 */
-	void FinalizeConstruction(AActor*                          InTargetCharacter,
+	void FinalizeConstruction(AActor*                          InOwningCharacter,
 	                          const FGameplayAbilitySpecHandle InAbilitySpecHandle,
 	                          const FGameplayEventData&        InAbilityPayload,
 	                          const EPF2CommandQueuePosition   InQueuePositionPreference);

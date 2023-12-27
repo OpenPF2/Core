@@ -48,7 +48,7 @@ public:
 	 *	The character that is the target of this command.
 	 */
 	UFUNCTION(BlueprintCallable, Category="OpenPF2|Character Commands")
-	virtual TScriptInterface<IPF2CharacterInterface> GetTargetCharacter() const = 0;
+	virtual TScriptInterface<IPF2CharacterInterface> GetOwningCharacter() const = 0;
 
 	/**
 	 * Gets an icon to represent this command, for whenever it is displayed to players/users.

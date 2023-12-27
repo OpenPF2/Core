@@ -388,7 +388,7 @@ bool APF2PlayerControllerBase::Server_CancelCharacterCommand_Validate(AInfo* Com
 	}
 	else
 	{
-		const TScriptInterface<IPF2CharacterInterface> TargetCharacter = CommandIntf->GetTargetCharacter();
+		const TScriptInterface<IPF2CharacterInterface> TargetCharacter = CommandIntf->GetOwningCharacter();
 
 		if (TargetCharacter.GetInterface() == nullptr)
 		{

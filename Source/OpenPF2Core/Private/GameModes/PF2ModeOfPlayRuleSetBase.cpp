@@ -159,7 +159,7 @@ void APF2ModeOfPlayRuleSetBase::AttemptToCancelCommand_Implementation(
 		return;
 	}
 
-	Character = Command->GetTargetCharacter();
+	Character = Command->GetOwningCharacter();
 
 	if (Character.GetInterface() == nullptr)
 	{
