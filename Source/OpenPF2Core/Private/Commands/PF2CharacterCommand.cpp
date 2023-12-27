@@ -174,7 +174,21 @@ EPF2CommandExecuteImmediatelyResult APF2CharacterCommand::AttemptExecuteImmediat
 			*(this->GetIdForLogs())
 		);
 
-		if (AscIntf->TriggerAbilityWithPayload(this->GetAbilitySpecHandle(), this->GetAbilityPayload()))
+		FGameplayEventData Payload = this->GetAbilityPayload();
+
+		// Ensure there is a source for the attack if none was supplied by the command itself.
+		if (!IsValid(Payload.Instigator))
+		{
+			const TScriptInterface<IPF2CharacterInterface> InstigatorCharacter = this->GetOwningCharacter();
+			FGameplayTagContainer                          InstigatorTags;
+
+			InstigatorCharacter->GetAbilitySystemComponent()->GetOwnedGameplayTags(InstigatorTags);
+
+			Payload.Instigator = InstigatorCharacter->ToActor();
+			Payload.InstigatorTags.AppendTags(InstigatorTags);
+		}
+
+		if (AscIntf->TriggerAbilityWithPayload(this->GetAbilitySpecHandle(), Payload))
 		{
 			Result = EPF2CommandExecuteImmediatelyResult::Activated;
 		}
