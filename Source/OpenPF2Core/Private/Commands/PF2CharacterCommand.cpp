@@ -350,7 +350,7 @@ FGameplayAbilitySpec* APF2CharacterCommand::GetAbilitySpec() const
 
 	if (AscIntf != nullptr)
 	{
-		UAbilitySystemComponent*         Asc          = AscIntf->ToAbilitySystemComponent();
+		const UAbilitySystemComponent*   Asc          = AscIntf->ToAbilitySystemComponent();
 		const FGameplayAbilitySpecHandle TargetHandle = this->GetAbilitySpecHandle();
 		const FString                    HostNetId    = PF2LogUtilities::GetHostNetId(this->GetWorld()),
 		                                 AscId        = GetFullNameSafe(Asc),
