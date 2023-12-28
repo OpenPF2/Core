@@ -5,7 +5,10 @@
 
 #pragma once
 
+#include <Math/RandomStream.h>
+
 #include "Internationalization/Regex.h"
+
 #include "Kismet/BlueprintFunctionLibrary.h"
 
 #include "PF2DiceLibrary.generated.h"
@@ -36,6 +39,16 @@ protected:
 	 * Regular expression pattern used to parse dice rolling expressions.
 	 */
 	static const FRegexPattern DiceRollPattern;
+
+	// =================================================================================================================
+	// Protected Static Fields
+	// =================================================================================================================
+	/**
+	 * The random number generator (RNG) used for dice rolls.
+	 *
+	 * This is a random stream so that dice rolls can be seeded deterministically during tests.
+	 */
+	static FRandomStream DiceRng;
 
 public:
 	// =================================================================================================================
@@ -147,4 +160,44 @@ public:
 	static UPARAM(DisplayName="Was Parsed") bool ParseRollExpression(const FName RollExpression,
 	                                                                 int32&      RollCount,
 	                                                                 int32&      DieSize);
+
+	/**
+	 * Gets the random seed of the random number generator (RNG) being used to generate dice rolls.
+	 *
+	 * @return
+	 *	The current random seed.
+	 */
+	UFUNCTION(BlueprintPure, Category="OpenPF2|Dice")
+	static int32 GetRandomSeed();
+
+	/**
+	 * Sets the random seed of the random number generator (RNG) being used to generate dice rolls.
+	 *
+	 * This is intended for tests to use to manipulate dice rolls to create reproducible test cases. As such, you only
+	 * need to call this method if you intend to manipulate the random seed; otherwise, the dice library will
+	 * automatically generate a random seed based on the current system time during the first dice roll of the current
+	 * session.
+	 *
+	 * @param Seed
+	 *	The random seed to set.
+	 */
+	UFUNCTION(BlueprintPure=false, Category="OpenPF2|Dice")
+	static void SetRandomSeed(const int32 Seed);
+
+protected:
+	// =================================================================================================================
+	// Protected Static Methods
+	// =================================================================================================================
+	/**
+	 * Returns a reference to the RNG for dice rolls.
+	 *
+	 * @return
+	 *	The pre-initialized RNG for dice rolls.
+	 */
+	[[nodiscard]] FORCEINLINE static FRandomStream& GetDiceRng()
+	{
+		check(DiceRng.GetInitialSeed() != 0);
+
+		return DiceRng;
+	}
 };

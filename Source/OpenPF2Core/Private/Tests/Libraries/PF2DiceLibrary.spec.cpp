@@ -411,4 +411,56 @@ void FPF2DiceLibrarySpec::Define()
 			});
 		}
 	});
+
+	Describe(TEXT("SetRandomSeed"), [=, this]
+	{
+		Describe(TEXT("when given '8675309'"), [=, this]
+		{
+			static const TArray ExpectedFirstRollResult  = {17, 6, 2, 15, 9, 7, 20, 8, 7, 12},
+			                    ExpectedSecondRollResult = {12, 8, 3, 11, 18, 12, 8, 20, 18, 16};
+
+			It(TEXT("sets the initial random seed to '8675309'"), [=, this]
+			{
+				UPF2DiceLibrary::SetRandomSeed(8675309);
+
+				// Perform 10 rolls to ensure we impacted the *initial seed* rather than the *current seed*.
+				UPF2DiceLibrary::RollSum(10, 20);
+
+				TestEqual(
+					"GetRandomSeed()",
+					UPF2DiceLibrary::GetRandomSeed(),
+					8675309
+				);
+			});
+
+			It(FString::Format(TEXT("ensures that rolling a 10d20 once is: {0}"), {ArrayToString(ExpectedFirstRollResult)}), [=, this]
+			{
+				TArray<int32> ActualFirstRollResult;
+
+				UPF2DiceLibrary::SetRandomSeed(8675309);
+
+				ActualFirstRollResult = UPF2DiceLibrary::Roll(10, 20);
+
+				TestArrayEquals("Roll(10, 20)", ActualFirstRollResult, ExpectedFirstRollResult);
+			});
+
+			It(FString::Format(TEXT("ensures that rolling a 10d20 a second time is: {0}"), {ArrayToString(ExpectedSecondRollResult)}), [=, this]
+			{
+				TArray<int32> ActualFirstRollResult,
+				              ActualSecondRollResult;
+
+				UPF2DiceLibrary::SetRandomSeed(8675309);
+
+				// Roll once.
+				ActualFirstRollResult = UPF2DiceLibrary::Roll(10, 20);
+
+				// Perform a second roll to confirm that the seed is persistent between invocations rather than getting
+				// reset each time.
+				ActualSecondRollResult = UPF2DiceLibrary::Roll(10, 20);
+
+				TestArrayNotEquals("Roll(10, 20)[1] == Roll(10, 20)[2]", ActualFirstRollResult, ActualSecondRollResult);
+				TestArrayEquals("Roll(10, 20)", ActualSecondRollResult, ExpectedSecondRollResult);
+			});
+		});
+	});
 }

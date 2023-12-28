@@ -9,6 +9,9 @@
 
 const FRegexPattern UPF2DiceLibrary::DiceRollPattern = FRegexPattern(TEXT("^(\\d{1,})d(\\d{1,})$"));
 
+// NAME_None forces the RNG to initialize itself with a random seed.
+FRandomStream UPF2DiceLibrary::DiceRng = FRandomStream(NAME_None);
+
 int32 UPF2DiceLibrary::RollStringSum(const FName RollExpression)
 {
 	return PF2ArrayUtilities::Reduce(
@@ -61,7 +64,7 @@ TArray<int32> UPF2DiceLibrary::Roll(const int32 RollCount, const int32 DieSize)
 		}
 		else
 		{
-			Roll = FMath::RandRange(1, DieSize);
+			Roll = GetDiceRng().RandRange(1, DieSize);
 		}
 
 		Rolls.Add(Roll);
@@ -125,4 +128,14 @@ bool UPF2DiceLibrary::ParseRollExpression(const FName RollExpression, int32& Rol
 	}
 
 	return bResult;
+}
+
+int32 UPF2DiceLibrary::GetRandomSeed()
+{
+	return DiceRng.GetInitialSeed();
+}
+
+void UPF2DiceLibrary::SetRandomSeed(const int32 Seed)
+{
+	DiceRng.Initialize(Seed);
 }
