@@ -7,6 +7,8 @@
 
 #include <Misc/DataValidation.h>
 
+#include <Net/UnrealNetwork.h>
+
 #include "Items/PF2EquipableItemSlot.h"
 
 #include "Utilities/PF2ArrayUtilities.h"
@@ -59,6 +61,9 @@ EDataValidationResult UPF2EquippedItemsComponent::IsDataValid(FDataValidationCon
 void UPF2EquippedItemsComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(UPF2EquippedItemsComponent, SupportedSlots);
+	DOREPLIFETIME(UPF2EquippedItemsComponent, EquippedItems);
 }
 
 UObject* UPF2EquippedItemsComponent::GetGenericEventsObject() const

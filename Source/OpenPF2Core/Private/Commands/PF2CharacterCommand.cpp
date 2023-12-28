@@ -46,6 +46,7 @@ void APF2CharacterCommand::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 	DOREPLIFETIME(APF2CharacterCommand, OwningCharacter);
 	DOREPLIFETIME(APF2CharacterCommand, AbilitySpecHandle);
 	DOREPLIFETIME(APF2CharacterCommand, AbilityPayload);
+	DOREPLIFETIME(APF2CharacterCommand, QueuePositionPreference);
 }
 
 TScriptInterface<IPF2CharacterInterface> APF2CharacterCommand::GetOwningCharacter() const
