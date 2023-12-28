@@ -596,10 +596,18 @@ void UPF2CharacterAttributeSet::EmitGameplayEvent(const FGameplayTag&           
 	FGameplayEventData       EventPayload;
 
 	EventPayload.EventMagnitude = EventMagnitude;
-	EventPayload.Instigator     = Instigator->ToActor();
-	EventPayload.Target         = TargetCharacter->ToActor();
 	EventPayload.OptionalObject = DamageSource;
 	EventPayload.ContextHandle  = Context;
+
+	if (Instigator != nullptr)
+	{
+		EventPayload.Instigator = Instigator->ToActor();
+	}
+
+	if (TargetCharacter != nullptr)
+	{
+		EventPayload.Target = TargetCharacter->ToActor();
+	}
 
 	OwningAsc->HandleGameplayEvent(EventTag, &EventPayload);
 }
