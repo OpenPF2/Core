@@ -14,9 +14,17 @@ END_DEFINE_PF_SPEC(FPF2DiceLibrarySpec)
 
 void FPF2DiceLibrarySpec::Define()
 {
+	struct FDiceRollStringSumTestTuple
+	{
+		FString RollString;
+		int MinSum;
+		int MaxSum;
+	};
+
 	struct FDiceRollStringTestTuple
 	{
 		FString RollString;
+		int RollCount;
 		int MinRoll;
 		int MaxRoll;
 	};
@@ -25,8 +33,8 @@ void FPF2DiceLibrarySpec::Define()
 	{
 		int RollCount;
 		int DieSize;
-		int MinRoll;
-		int MaxRoll;
+		int MinSum;
+		int MaxSum;
 	};
 
 	struct FParseRollExpressionTestTuple
@@ -39,26 +47,27 @@ void FPF2DiceLibrarySpec::Define()
 
 	Describe(TEXT("RollStringSum"), [=, this]
 	{
-		TArray<FDiceRollStringTestTuple> ExpectedRanges =
+		TArray<FDiceRollStringSumTestTuple> ExpectedRanges =
 		{
-			{ "0d5", 0,  0 },
-			{ "1d0", 0,  0 },
-			{ "BAD", 0,  0 },
-			{ "1d6", 1,  6 },
-			{ "2d6", 1, 12 },
-			{ "1d2", 1,  2 },
-			{ "3d5", 1, 15 },
+			// String, Min Sum, Max Sum
+			{   "0d5",       0,       0 },
+			{   "1d0",       0,       0 },
+			{   "BAD",       0,       0 },
+			{   "1d6",       1,       6 },
+			{   "2d6",       1,      12 },
+			{   "1d2",       1,       2 },
+			{   "3d5",       1,      15 },
 		};
 
-		for (const auto& [RollExpression, MinRoll, MaxRoll] : ExpectedRanges)
+		for (const auto& [RollExpression, MinSum, MaxSum] : ExpectedRanges)
 		{
 			Describe(FString::Format(TEXT("when given '{0}'"), {RollExpression}), [=, this]
 			{
-				It(FString::Format(TEXT("returns a number greater than or equal to '{0}' over 10 rolls"), {FString::FormatAsNumber(MinRoll)}), [=, this]
+				It(FString::Format(TEXT("returns a sum greater than or equal to '{0}' over 100 rolls"), {FString::FormatAsNumber(MinSum)}), [=, this]
 				{
 					float MinRollSeen = 9999;
 
-					for (int RollIndex = 0; RollIndex < 10; ++RollIndex)
+					for (int RollIndex = 0; RollIndex < 100; ++RollIndex)
 					{
 						const float RollSum = UPF2DiceLibrary::RollStringSum(FName(RollExpression));
 
@@ -70,18 +79,18 @@ void FPF2DiceLibrarySpec::Define()
 							TEXT("{0} >= {1}"),
 							{
 								FString::FormatAsNumber(MinRollSeen),
-								FString::FormatAsNumber(MinRoll),
+								FString::FormatAsNumber(MinSum),
 							}
 						),
-						MinRollSeen >= MinRoll
+						MinRollSeen >= MinSum
 					);
 				});
 
-				It(FString::Format(TEXT("returns a number less than or equal to '{0}' over 10 rolls"), {FString::FormatAsNumber(MaxRoll)}), [=, this]
+				It(FString::Format(TEXT("returns a sum less than or equal to '{0}' over 100 rolls"), {FString::FormatAsNumber(MaxSum)}), [=, this]
 				{
 					float MaxRollSeen = -1;
 
-					for (int RollIndex = 0; RollIndex < 10; ++RollIndex)
+					for (int RollIndex = 0; RollIndex < 100; ++RollIndex)
 					{
 						const float RollSum = UPF2DiceLibrary::RollStringSum(FName(RollExpression));
 
@@ -93,9 +102,9 @@ void FPF2DiceLibrarySpec::Define()
 							TEXT("{0} <= {1}"),
 							{
 								FString::FormatAsNumber(MaxRollSeen),
-								FString::FormatAsNumber(MaxRoll)
+								FString::FormatAsNumber(MaxSum)
 							}),
-						MaxRollSeen <= MaxRoll
+						MaxRollSeen <= MaxSum
 					);
 				});
 			});
@@ -106,23 +115,24 @@ void FPF2DiceLibrarySpec::Define()
 	{
 		TArray<FDiceRollTestTuple> ExpectedRanges =
 		{
-			{ 0, 5, 0,  0 },
-			{ 1, 0, 0,  0 },
-			{ 1, 6, 1,  6 },
-			{ 2, 6, 1, 12 },
-			{ 1, 2, 1,  2 },
-			{ 3, 5, 1, 15 },
+			// Roll Count, Die Size, Min Sum, Max Sum
+			{           0,        5,       0,       0 },
+			{           1,        0,       0,       0 },
+			{           1,        6,       1,       6 },
+			{           2,        6,       1,      12 },
+			{           1,        2,       1,       2 },
+			{           3,        5,       1,      15 },
 		};
 
-		for (const auto& [RollCount, DieSize, MinRoll, MaxRoll] : ExpectedRanges)
+		for (const auto& [RollCount, DieSize, MinSum, MaxSum] : ExpectedRanges)
 		{
 			Describe(FString::Format(TEXT("when given '{0}d{1}'"), {FString::FormatAsNumber(RollCount), FString::FormatAsNumber(DieSize)}), [=, this]
 			{
-				It(FString::Format(TEXT("returns a number greater than or equal to '{0}' over 10 rolls"), {FString::FormatAsNumber(MinRoll)}), [=, this]
+				It(FString::Format(TEXT("returns a sum greater than or equal to '{0}' over 100 rolls"), {FString::FormatAsNumber(MinSum)}), [=, this]
 				{
 					float MinRollSeen = 9999;
 
-					for (int RollIndex = 0; RollIndex < 10; ++RollIndex)
+					for (int RollIndex = 0; RollIndex < 100; ++RollIndex)
 					{
 						const float RollSum = UPF2DiceLibrary::RollSum(RollCount, DieSize);
 
@@ -134,18 +144,18 @@ void FPF2DiceLibrarySpec::Define()
 							TEXT("{0} >= {1}"),
 							{
 								FString::FormatAsNumber(MinRollSeen),
-								FString::FormatAsNumber(MinRoll),
+								FString::FormatAsNumber(MinSum),
 							}
 						),
-						MinRollSeen >= MinRoll
+						MinRollSeen >= MinSum
 					);
 				});
 
-				It(FString::Format(TEXT("returns a number less than or equal to '{0}' over 10 rolls"), {FString::FormatAsNumber(MaxRoll)}), [=, this]
+				It(FString::Format(TEXT("returns a sum less than or equal to '{0}' over 100 rolls"), {FString::FormatAsNumber(MaxSum)}), [=, this]
 				{
 					float MaxRollSeen = -1;
 
-					for (int RollIndex = 0; RollIndex < 10; ++RollIndex)
+					for (int RollIndex = 0; RollIndex < 100; ++RollIndex)
 					{
 						const float RollSum = UPF2DiceLibrary::RollSum(RollCount, DieSize);
 
@@ -157,9 +167,9 @@ void FPF2DiceLibrarySpec::Define()
 							TEXT("{0} <= {1}"),
 							{
 								FString::FormatAsNumber(MaxRollSeen),
-								FString::FormatAsNumber(MaxRoll)
+								FString::FormatAsNumber(MaxSum)
 							}),
-						MaxRollSeen <= MaxRoll
+						MaxRollSeen <= MaxSum
 					);
 				});
 			});
@@ -170,28 +180,43 @@ void FPF2DiceLibrarySpec::Define()
 	{
 		TArray<FDiceRollStringTestTuple> ExpectedRanges =
 		{
-			{ "0d5", 0,  0 },
-			{ "1d0", 0,  0 },
-			{ "BAD", 0,  0 },
-			{ "1d6", 1,  6 },
-			{ "2d6", 1,  6 },
-			{ "1d2", 1,  2 },
-			{ "3d5", 1,  5 },
+			// String, Roll Count, Min Roll, Max Roll
+			{   "0d5",          0,        0,        0 },
+			{   "1d0",          1,        0,        0 },
+			{   "BAD",          0,        0,        0 },
+			{   "1d6",          1,        1,        6 },
+			{   "2d6",          2,        1,        6 },
+			{   "1d2",          1,        1,        2 },
+			{   "3d5",          3,        1,        5 },
 		};
 
-		for (const auto& [RollString, MinRoll, MaxRoll] : ExpectedRanges)
+		for (const auto& [RollString, RollCount, MinRoll, MaxRoll] : ExpectedRanges)
 		{
 			Describe(FString::Format(TEXT("when given '{0}'"), {RollString}), [=, this]
 			{
-				It(FString::Format(TEXT("returns a number greater than or equal to '{0}' over 10 rolls"), {FString::FormatAsNumber(MinRoll)}), [=, this]
+				It(FString::Format(TEXT("returns an array that contains {0} results"), {FString::FormatAsNumber(RollCount)}), [=, this]
+				{
+					const TArray<int32> Rolls = UPF2DiceLibrary::RollString(FName(RollString));
+
+					TestEqual(
+						FString::Format(TEXT("RollString({0}).Num()"), {RollString, FString::FormatAsNumber(RollCount)}),
+						Rolls.Num(),
+						RollCount
+					);
+				});
+
+				It(FString::Format(TEXT("returns rolls greater than or equal to '{0}' over 100 rolls"), {FString::FormatAsNumber(MinRoll)}), [=, this]
 				{
 					float MinRollSeen = 9999;
 
-					const TArray<int32> Rolls = UPF2DiceLibrary::RollString(FName(RollString));
-
-					for (const int& Roll : Rolls)
+					for (int RollIndex = 0; RollIndex < 100; ++RollIndex)
 					{
-						MinRollSeen = FMath::Min(MinRollSeen, static_cast<float>(Roll));
+						const TArray<int32> Rolls = UPF2DiceLibrary::RollString(FName(RollString));
+
+						for (const int& Roll : Rolls)
+						{
+							MinRollSeen = FMath::Min(MinRollSeen, static_cast<float>(Roll));
+						}
 					}
 
 					TestTrue(
@@ -206,15 +231,18 @@ void FPF2DiceLibrarySpec::Define()
 					);
 				});
 
-				It(FString::Format(TEXT("returns a number less than or equal to '{0}' over 10 rolls"), {FString::FormatAsNumber(MaxRoll)}), [=, this]
+				It(FString::Format(TEXT("returns rolls less than or equal to '{0}' over 100 rolls"), {FString::FormatAsNumber(MaxRoll)}), [=, this]
 				{
 					float MaxRollSeen = -1;
 
-					const TArray<int32> Rolls = UPF2DiceLibrary::RollString(FName(RollString));
-
-					for (const int& Roll : Rolls)
+					for (int RollIndex = 0; RollIndex < 100; ++RollIndex)
 					{
-						MaxRollSeen = FMath::Max(MaxRollSeen, static_cast<float>(Roll));
+						const TArray<int32> Rolls = UPF2DiceLibrary::RollString(FName(RollString));
+
+						for (const int& Roll : Rolls)
+						{
+							MaxRollSeen = FMath::Max(MaxRollSeen, static_cast<float>(Roll));
+						}
 					}
 
 					TestTrue(
@@ -240,22 +268,22 @@ void FPF2DiceLibrarySpec::Define()
 				It(TEXT("returns an array that contains one result for each roll"), [=, this]
 				{
 					TestEqual(
-						FString::Format(TEXT("Roll(3, {0}).Num() == 3"), {DieSize}),
+						FString::Format(TEXT("Roll(3, {0}).Num()"), {DieSize}),
 						UPF2DiceLibrary::Roll(3, DieSize).Num(),
 						3
 					);
 
 					TestEqual(
-						FString::Format(TEXT("Roll(10, {0}).Num() == 10"), {DieSize}),
+						FString::Format(TEXT("Roll(10, {0}).Num()"), {DieSize}),
 						UPF2DiceLibrary::Roll(10, DieSize).Num(),
 						10
 					);
 				});
 
-				It(TEXT("returns a number greater than or equal to '1' over 10 rolls"), [=, this]
+				It(TEXT("returns rolls greater than or equal to '1' over 100 rolls"), [=, this]
 				{
 					float               MinRollSeen = 9999;
-					const TArray<int32> Rolls       = UPF2DiceLibrary::Roll(10, DieSize);
+					const TArray<int32> Rolls       = UPF2DiceLibrary::Roll(100, DieSize);
 
 					for (const int& Roll : Rolls)
 					{
@@ -268,10 +296,10 @@ void FPF2DiceLibrarySpec::Define()
 					);
 				});
 
-				It(FString::Format(TEXT("returns a number less than or equal to '{0}' over 10 rolls"), {FString::FormatAsNumber(DieSize)}), [=, this]
+				It(FString::Format(TEXT("returns rolls less than or equal to '{0}' over 100 rolls"), {FString::FormatAsNumber(DieSize)}), [=, this]
 				{
 					float               MaxRollSeen = -1;
-					const TArray<int32> Rolls       = UPF2DiceLibrary::Roll(10, DieSize);
+					const TArray<int32> Rolls       = UPF2DiceLibrary::Roll(100, DieSize);
 
 					for (const int& Roll : Rolls)
 					{
