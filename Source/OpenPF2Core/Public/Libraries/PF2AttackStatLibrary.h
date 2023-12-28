@@ -76,6 +76,9 @@ public:
 	/**
 	 * Calculates the attack roll, which determines if an attack was successful (it hit its target).
 	 *
+	 * The returned result is based on a random dice roll, so there is no guarantee of getting the same return value
+	 * given the same combination of character level, character tags, and attack ability modifier.
+	 *
 	 * "When making an attack roll, determine the result by rolling 1d20 and adding your attack modifier for the weapon
 	 * or unarmed attack you’re using. Modifiers for melee and ranged attacks are calculated differently.
 	 *
@@ -112,6 +115,9 @@ public:
 	 * @param RollSize
 	 *	An optional override on the size of each die to use in the attack roll. Defaults to 20, according to standard
 	 *	Pathfinder 2e rules.
+	 *
+	 * @return
+	 *	The calculated, random attack roll.
 	 */
 	UFUNCTION(BlueprintCallable, Category="OpenPF2|Attack Stats")
 	static EPF2DegreeOfSuccess CalculateAttackRoll(const int32                  CharacterLevel,
@@ -126,6 +132,8 @@ public:
 	/**
 	 * Performs a check of a value against a Difficulty Class (DC).
 	 *
+	 * Given the same combination of value and DC, the returned value is always the same.
+	 *
 	 * @see EPF2DegreeOfSuccess
 	 *
 	 * @param Value
@@ -134,7 +142,7 @@ public:
 	 *	The difficulty class to check the value against.
 	 *
 	 * @return
-	 *	The result of the check.
+	 *	The calculated result of the check.
 	 */
 	UFUNCTION(BlueprintPure, Category="OpenPF2|Attack Stats")
 	static EPF2DegreeOfSuccess CheckAgainstDifficultyClass(const float Value, const float DifficultyClass);
@@ -245,6 +253,9 @@ public:
 	/**
 	 * Calculates the damage roll, which determines how much of an effect an attack has on the target.
 	 *
+	 * The returned result is based on a random dice roll, so there is no guarantee of getting the same return value
+	 * given the same combination of damage die and damage ability modifier.
+	 *
 	 * "When the result of your attack roll with a weapon or unarmed attack equals or exceeds your target’s AC, you hit
 	 * your target! Roll the weapon or unarmed attack’s damage die and add the relevant modifiers, bonuses, and
 	 * penalties to determine the amount of damage you deal. Calculate a damage roll as follows.
@@ -258,6 +269,9 @@ public:
 	 *	The damage die of the weapon or unarmed attack.
 	 * @param DamageAbilityModifier
 	 *	The modifier for the type of damage (e.g., Strength modifier or Strength modifier for thrown weapons).
+	 *
+	 * @return
+	 *	The calculated, random damage roll value.
 	 */
 	UFUNCTION(BlueprintCallable, Category="OpenPF2|Attack Stats")
 	static float CalculateDamageRoll(const FName DamageDie,
@@ -265,6 +279,9 @@ public:
 
 	/**
 	 * Calculates the damage roll, which determines how much of an effect an attack has on the target.
+	 *
+	 * The returned result is based on a random dice roll, so there is no guarantee of getting the same return value
+	 * given the same combination of roll count, roll size, and damage ability modifier.
 	 *
 	 * "When the result of your attack roll with a weapon or unarmed attack equals or exceeds your target’s AC, you hit
 	 * your target! Roll the weapon or unarmed attack’s damage die and add the relevant modifiers, bonuses, and
@@ -281,6 +298,9 @@ public:
 	 *	The size of each die to use in the damage roll, as specified by the statistics of the weapon or unarmed attack.
 	 * @param DamageAbilityModifier
 	 *	The modifier for the type of damage (e.g., Strength modifier or Strength modifier for thrown weapons).
+	 *
+	 * @return
+	 *	The calculated, random damage roll value.
 	 */
 	static float CalculateDamageRoll(const int   RollCount,
 	                                 const int   RollSize,
@@ -288,6 +308,8 @@ public:
 
 	/**
 	 * Calculates the penalty at the specified distance from a target for a weapon that has the given range increment.
+	 *
+	 * Given the same combination of weapon range increment and distance, the returned value is always the same.
 	 *
 	 * From the Pathfinder 2E Core Rulebook, Chapter 6, page 279, "Range":
 	 * "Ranged and thrown weapons have a range increment. Attacks with these weapons work normally up to that distance.
@@ -321,6 +343,8 @@ public:
 
 	/**
 	 * Calculates the maximum range of a weapon that has the given range increment.
+	 *
+	 * Given the same weapon range increment, the returned value is always the same.
 	 *
 	 * From the Pathfinder 2E Core Rulebook, Chapter 6, page 279, "Range":
 	 * "Ranged and thrown weapons have a range increment. Attacks with these weapons work normally up to that distance.
