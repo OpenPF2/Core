@@ -136,6 +136,55 @@ float UPF2AttackStatLibrary::CalculateDamageRoll(const int RollCount,
 	return DamageRoll;
 }
 
+int32 UPF2AttackStatLibrary::CalculateRecoveryCheck(const uint8 DyingConditionLevel)
+{
+	// "... DC equal to 10 + your current dying value ..."
+	//
+	// Source: Pathfinder 2E Core Rulebook, Chapter 9, page 459, "Recovery Checks".
+	int8                      Result;
+	const int32               DieRoll     = UPF2DiceLibrary::RollSum(1, 20),
+	                          TargetDC    = 10 + DyingConditionLevel;
+	const EPF2DegreeOfSuccess CheckResult = CheckAgainstDifficultyClass(DieRoll, TargetDC);
+
+	UE_LOG(
+		LogPf2CoreStats,
+		VeryVerbose,
+		TEXT("Recovery Check Die Roll (1d20) = %d vs. DC %d: %s."),
+		DieRoll,
+		TargetDC,
+		*(PF2EnumUtilities::ToString(CheckResult))
+	);
+
+	// "The effects of this check are as follows.
+	// - Critical Success: Your dying value is reduced by 2.
+	// - Success: Your dying value is reduced by 1.
+	// - Failure: Your dying value increases by 1.
+	// - Critical Failure: Your dying value increases by 2."
+	//
+	// Source: Pathfinder 2E Core Rulebook, Chapter 9, page 459, "Recovery Checks".
+	switch (CheckResult)
+	{
+		case EPF2DegreeOfSuccess::CriticalSuccess:
+			Result = -2;
+			break;
+
+		case EPF2DegreeOfSuccess::Success:
+			Result = -1;
+			break;
+
+		default:
+		case EPF2DegreeOfSuccess::Failure:
+			Result = +1;
+			break;
+
+		case EPF2DegreeOfSuccess::CriticalFailure:
+			Result = +2;
+			break;
+	}
+
+	return Result;
+}
+
 float UPF2AttackStatLibrary::CalculateRangePenalty(const float WeaponRangeIncrementCentimeters,
                                                    const float DistanceCentimeters)
 {

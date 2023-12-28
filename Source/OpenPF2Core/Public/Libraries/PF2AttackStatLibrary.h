@@ -307,6 +307,36 @@ public:
 	                                 const float DamageAbilityModifier);
 
 	/**
+	 * Performs a recovery flat check and returns the result.
+	 *
+	 * The returned result is based on a random dice roll, so there is no guarantee of getting the same return value
+	 * given the same dying condition level.
+	 *
+	 * From the Pathfinder 2E Core Rulebook, Chapter 9, page 450, "Flat Checks":
+	 * "When the chance something will happen or fail to happen is based purely on chance, you’ll attempt a flat check.
+	 * A flat check never includes any modifiers, bonuses, or penalties—you just roll a d20 and compare the result on
+	 * the die to the DC."
+	 *
+	 * From the Pathfinder 2E Core Rulebook, Chapter 9, page 459, "Recovery Checks":
+	 * "When you’re dying, at the start of each of your turns, you must attempt a flat check with a DC equal to
+	 * 10 + your current dying value to see if you get better or worse. This is called a recovery check. The effects of
+	 * this check are as follows.
+	 * - Critical Success: Your dying value is reduced by 2.
+	 * - Success: Your dying value is reduced by 1.
+	 * - Failure: Your dying value increases by 1.
+	 * - Critical Failure: Your dying value increases by 2."
+	 *
+	 * @param DyingConditionLevel
+	 *	The current level of the dying condition trait.
+	 *
+	 * @return
+	 *	An integer offset representing the effect on the dying value, as a value in the range of -2 (inclusive) to
+	 *	2 (inclusive). This is the calculated, random result of performing the recovery check.
+	 */
+	UFUNCTION(BlueprintCallable, Category="OpenPF2|Attack Stats")
+	static int32 CalculateRecoveryCheck(const uint8 DyingConditionLevel);
+
+	/**
 	 * Calculates the penalty at the specified distance from a target for a weapon that has the given range increment.
 	 *
 	 * Given the same combination of weapon range increment and distance, the returned value is always the same.
