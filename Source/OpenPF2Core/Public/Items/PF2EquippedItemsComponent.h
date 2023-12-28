@@ -135,8 +135,6 @@ protected:
 	 * The equipment that the owning character has equipped within each slot.
 	 *
 	 * Each slot must correspond to a slot defined in the Slots property.
-	 *
-	 * @todo Validate this.
 	 */
 	UPROPERTY(
 		BlueprintReadOnly,
