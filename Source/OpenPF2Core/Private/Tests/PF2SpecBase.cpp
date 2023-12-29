@@ -5,10 +5,15 @@
 
 #include "Tests/PF2SpecBase.h"
 
+#include <AbilitySystemBlueprintLibrary.h>
+
 #include <Engine/Engine.h>
 
 #include "Abilities/PF2CharacterAttributeSet.h"
 
+#include "Libraries/PF2AbilitySystemLibrary.h"
+
+#include "Tests/PF2TestAbility.h"
 #include "Tests/PF2TestCharacter.h"
 
 #include "Utilities/PF2GameplayAbilityUtilities.h"
@@ -120,6 +125,91 @@ FAttributeCapture FPF2SpecBase::CaptureSpellAttributes(const UPF2CharacterAttrib
 	};
 
 	return Capture;
+}
+
+
+FGameplayAbilitySpecHandle FPF2SpecBase::GrantCharacterFakeAbility(
+	const TScriptInterface<IPF2CharacterInterface> Character)
+{
+	return GrantCharacterAbility(Character, TSubclassOf<UPF2TestAbility>(UPF2TestAbility::StaticClass()));
+}
+
+FGameplayAbilitySpecHandle FPF2SpecBase::GrantCharacterAbility(
+	const TScriptInterface<IPF2CharacterInterface> Character,
+	const TSubclassOf<UGameplayAbility>            AbilityClass)
+{
+	UAbilitySystemComponent*   CharacterAsc = Character->GetAbilitySystemComponent();
+	const FGameplayAbilitySpec AbilitySpec  = FGameplayAbilitySpec(AbilityClass);
+
+	return CharacterAsc->GiveAbility(AbilitySpec);
+}
+
+FGameplayEffectSpecHandle FPF2SpecBase::BuildEffectSpec(
+	const TSubclassOf<UGameplayEffect> EffectClass,
+	TMap<FName, float>                 SetByCallerMagnitudesMap) const
+{
+	FGameplayEffectSpecHandle EffectSpec;
+
+	EffectSpec = this->TestCharacterAsc->MakeOutgoingSpec(EffectClass, 1.0, FGameplayEffectContextHandle());
+
+	for (const auto& [ParameterTag, ParameterValue] : SetByCallerMagnitudesMap)
+	{
+		EffectSpec = UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(
+			EffectSpec,
+			FGameplayTag::RequestGameplayTag(ParameterTag),
+			ParameterValue
+		);
+	}
+
+	return EffectSpec;
+}
+
+FGameplayEffectSpecHandle FPF2SpecBase::BuildEffectSpec(
+	const TSubclassOf<UGameplayEffect>             EffectClass,
+	const TScriptInterface<IPF2CharacterInterface> Instigator,
+	const FGameplayAbilitySpecHandle               InvokingAbilityHandle,
+	const TMap<FName, float>&                      SetByCallerMagnitudesMap)
+{
+	return BuildEffectSpec(
+		EffectClass,
+		Instigator,
+		InvokingAbilityHandle,
+		Instigator->ToActor(),
+		SetByCallerMagnitudesMap
+	);
+}
+
+FGameplayEffectSpecHandle FPF2SpecBase::BuildEffectSpec(
+	const TSubclassOf<UGameplayEffect>             EffectClass,
+	const TScriptInterface<IPF2CharacterInterface> Instigator,
+	const FGameplayAbilitySpecHandle               InvokingAbilityHandle,
+	AActor*                                        EffectCauser,
+	const TMap<FName, float>&                      SetByCallerMagnitudesMap)
+{
+	FGameplayEffectSpecHandle      EffectSpec;
+	AActor*                        InstigatorActor = Instigator->ToActor();
+	const UAbilitySystemComponent* InstigatorAsc   = Instigator->GetAbilitySystemComponent();
+
+	EffectSpec =
+		UPF2AbilitySystemLibrary::MakeGameplayEffectSpecForInstigatorAndCauser(
+			InvokingAbilityHandle,
+			*InstigatorAsc->AbilityActorInfo.Get(),
+			EffectClass,
+			InstigatorActor,
+			EffectCauser,
+			1.0
+		);
+
+	for (const auto& [ParameterTag, ParameterValue] : SetByCallerMagnitudesMap)
+	{
+		EffectSpec = UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(
+			EffectSpec,
+			FGameplayTag::RequestGameplayTag(ParameterTag),
+			ParameterValue
+		);
+	}
+
+	return EffectSpec;
 }
 
 void FPF2SpecBase::SetupWorld()

@@ -285,6 +285,92 @@ protected:
 	static FAttributeCapture CaptureSpellAttributes(const UPF2CharacterAttributeSet* AttributeSet);
 
 	/**
+	 * Grants the specified character a "fake" Gameplay Ability and returns its handle.
+	 *
+	 * @param Character
+	 *	The character to which the ability will be granted.
+	 *
+	 * @return
+	 *	The server-side handle of the granted ability.
+	 */
+	static FGameplayAbilitySpecHandle GrantCharacterFakeAbility(TScriptInterface<IPF2CharacterInterface> Character);
+
+	/**
+	 * Grants the specified character the specified Gameplay Ability and returns its handle.
+	 *
+	 * @param Character
+	 *	The character to which the ability will be granted.
+	 * @param AbilityClass
+	 *	The type of ability to grant.
+	 *
+	 * @return
+	 *	The server-side handle of the granted ability.
+	 */
+	static FGameplayAbilitySpecHandle GrantCharacterAbility(TScriptInterface<IPF2CharacterInterface> Character,
+	                                                        TSubclassOf<UGameplayAbility>            AbilityClass);
+
+	/**
+	 * Builds a Gameplay Effect (GE) specification for the given type of GE.
+	 *
+	 * @param EffectClass
+	 *	The type of GE for which a spec is desired.
+	 * @param SetByCallerMagnitudesMap
+	 *	An optional map of set-by-caller-magnitudes/parameters to parameters, to pass into the GE.
+	 *
+	 * @return
+	 *	The server-side handle of the GE specification.
+	 */
+	FGameplayEffectSpecHandle BuildEffectSpec(
+		const TSubclassOf<UGameplayEffect> EffectClass,
+		TMap<FName, float>                 SetByCallerMagnitudesMap = {}) const;
+
+	/**
+	 * Builds a Gameplay Effect (GE) specification for the given GE type, instigated by the given ability and character.
+	 *
+	 * @param EffectClass
+	 *	The type of GE for which a spec is desired.
+	 * @param Instigator
+	 *	The character to spoof as being responsible for the effect (e.g., the source of damage).
+	 * @param InvokingAbilityHandle
+	 *	The handle of the ability to spoof as having initiated the effect (e.g., the attack ability).
+	 * @param SetByCallerMagnitudesMap
+	 *	An optional map of set-by-caller-magnitudes/parameters to parameters, to pass into the GE.
+	 *
+	 * @return
+	 *	The server-side handle of the GE specification.
+	 */
+	static FGameplayEffectSpecHandle BuildEffectSpec(
+		const TSubclassOf<UGameplayEffect>             EffectClass,
+		const TScriptInterface<IPF2CharacterInterface> Instigator,
+		const FGameplayAbilitySpecHandle               InvokingAbilityHandle,
+		const TMap<FName, float>&                      SetByCallerMagnitudesMap = {});
+
+
+	/**
+	 * Builds a Gameplay Effect (GE) specification for the given GE type, instigated by the given ability and character.
+	 *
+	 * @param EffectClass
+	 *	The type of GE for which a spec is desired.
+	 * @param Instigator
+	 *	The character to spoof as being responsible for the effect (e.g., the source of damage).
+	 * @param InvokingAbilityHandle
+	 *	The handle of the ability to spoof as having initiated the effect (e.g., the attack ability).
+	 * @param EffectCauser
+	 *	The actor inflicting damage on the target (e.g., a projectile or melee weapon).
+	 * @param SetByCallerMagnitudesMap
+	 *	An optional map of set-by-caller-magnitudes/parameters to parameters, to pass into the GE.
+	 *
+	 * @return
+	 *	The server-side handle of the GE specification.
+	 */
+	static FGameplayEffectSpecHandle BuildEffectSpec(
+		const TSubclassOf<UGameplayEffect>             EffectClass,
+		const TScriptInterface<IPF2CharacterInterface> Instigator,
+		const FGameplayAbilitySpecHandle               InvokingAbilityHandle,
+		AActor*                                        EffectCauser,
+		const TMap<FName, float>&                      SetByCallerMagnitudesMap = {});
+
+	/**
 	 * Creates the throwaway world for use in tests.
 	 */
 	void SetupWorld();
