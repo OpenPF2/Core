@@ -56,14 +56,14 @@ void FPF2AncestryFeatCapCalculationSpec::Define()
 	BeforeEach([=, this]()
 	{
 		this->SetupWorld();
-		this->SetupPawn();
+		this->SetupTestPawn();
 
 		this->BeginPlay();
 	});
 
 	AfterEach([=, this]()
 	{
-		this->DestroyPawn();
+		this->DestroyTestPawn();
 		this->DestroyWorld();
 	});
 

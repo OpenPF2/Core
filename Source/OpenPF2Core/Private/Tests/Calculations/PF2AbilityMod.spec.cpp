@@ -106,7 +106,7 @@ void FPF2AbilityModSpec::Define()
 		BeforeEach([=, this]()
 		{
 			this->SetupWorld();
-			this->SetupPawn();
+			this->SetupTestPawn();
 
 			this->LoadGEs();
 			this->LoadAbModMappings();
@@ -116,7 +116,7 @@ void FPF2AbilityModSpec::Define()
 
 		AfterEach([=, this]()
 		{
-			this->DestroyPawn();
+			this->DestroyTestPawn();
 			this->DestroyWorld();
 
 			this->AbModGEs.Empty();
@@ -145,8 +145,8 @@ void FPF2AbilityModSpec::Define()
 						);
 
 						// Workaround: Without this, Ability scores from one test iteration seem to affect the next.
-						this->DestroyPawn();
-						this->SetupPawn();
+						this->DestroyTestPawn();
+						this->SetupTestPawn();
 					}
 				});
 
@@ -187,8 +187,8 @@ void FPF2AbilityModSpec::Define()
 						);
 
 						// Workaround: Without this, Ability scores from one test iteration seem to affect the next.
-						this->DestroyPawn();
-						this->SetupPawn();
+						this->DestroyTestPawn();
+						this->SetupTestPawn();
 					}
 				});
 
@@ -229,8 +229,8 @@ void FPF2AbilityModSpec::Define()
 						);
 
 						// Workaround: Without this, Ability scores from one test iteration seem to affect the next.
-						this->DestroyPawn();
-						this->SetupPawn();
+						this->DestroyTestPawn();
+						this->SetupTestPawn();
 					}
 				});
 
@@ -271,8 +271,8 @@ void FPF2AbilityModSpec::Define()
 						);
 
 						// Workaround: Without this, Ability scores from one test iteration seem to affect the next.
-						this->DestroyPawn();
-						this->SetupPawn();
+						this->DestroyTestPawn();
+						this->SetupTestPawn();
 					}
 				});
 
@@ -313,8 +313,8 @@ void FPF2AbilityModSpec::Define()
 						);
 
 						// Workaround: Without this, Ability scores from one test iteration seem to affect the next.
-						this->DestroyPawn();
-						this->SetupPawn();
+						this->DestroyTestPawn();
+						this->SetupTestPawn();
 					}
 				});
 
@@ -355,8 +355,8 @@ void FPF2AbilityModSpec::Define()
 						);
 
 						// Workaround: Without this, Ability scores from one test iteration seem to affect the next.
-						this->DestroyPawn();
-						this->SetupPawn();
+						this->DestroyTestPawn();
+						this->SetupTestPawn();
 					}
 				});
 

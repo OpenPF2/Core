@@ -23,14 +23,14 @@ void FPF2CharacterInitiativeQueueComponentSpec::Define()
 	BeforeEach([=, this]
 	{
 		this->SetupWorld();
-		this->SetupPawn();
+		this->SetupTestPawn();
 
 		this->Component = SpawnActorComponent<UPF2CharacterInitiativeQueueComponent>();
 	});
 
 	AfterEach([=, this]
 	{
-		this->DestroyPawn();
+		this->DestroyTestPawn();
 		this->DestroyWorld();
 	});
 

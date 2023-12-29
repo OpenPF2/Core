@@ -66,14 +66,14 @@ void FPF2SavingThrowModifierCalculationSpec::Define()
 	BeforeEach([=, this]()
 	{
 		this->SetupWorld();
-		this->SetupPawn();
+		this->SetupTestPawn();
 
 		this->BeginPlay();
 	});
 
 	AfterEach([=, this]()
 	{
-		this->DestroyPawn();
+		this->DestroyTestPawn();
 		this->DestroyWorld();
 	});
 

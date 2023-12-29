@@ -44,7 +44,7 @@ void FPF2SpellDifficultyClassCalculationsSpec::Define()
 	BeforeEach([=, this]()
 	{
 		this->SetupWorld();
-		this->SetupPawn();
+		this->SetupTestPawn();
 
 		this->BeginPlay();
 	});
@@ -65,7 +65,7 @@ void FPF2SpellDifficultyClassCalculationsSpec::Define()
 
 	AfterEach([=, this]()
 	{
-		this->DestroyPawn();
+		this->DestroyTestPawn();
 		this->DestroyWorld();
 	});
 

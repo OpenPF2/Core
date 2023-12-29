@@ -47,14 +47,14 @@ void FPF2ArmorClassCalculationSpec::Define()
 	BeforeEach([=, this]()
 	{
 		this->SetupWorld();
-		this->SetupPawn();
+		this->SetupTestPawn();
 
 		this->BeginPlay();
 	});
 
 	AfterEach([=, this]()
 	{
-		this->DestroyPawn();
+		this->DestroyTestPawn();
 		this->DestroyWorld();
 	});
 

@@ -4,18 +4,21 @@
 
 #pragma once
 
+#include <GameplayEffect.h>
+
 #include <Containers/Array.h>
 
 #include <Engine/World.h>
 
 #include <Misc/AutomationTest.h>
 
-#include "Abilities/PF2CharacterAttributeSet.h"
-
 #include "Tests/PF2TestPawn.h"
 
 #include "Utilities/PF2ArrayUtilities.h"
 
+// =====================================================================================================================
+// Macro Declarations
+// =====================================================================================================================
 #define DEFINE_PF_SPEC_PRIVATE(TClass, PrettyName, TFlags, FileName, LineNumber) \
 	class TClass : public FPF2SpecBase \
 	{ \
@@ -98,6 +101,16 @@
 
 #endif
 
+// =====================================================================================================================
+// Forward Declarations (to minimize header dependencies)
+// =====================================================================================================================
+class APF2TestCharacter;
+class IPF2CharacterInterface;
+class UPF2CharacterAttributeSet;
+
+// =====================================================================================================================
+// Normal Declarations
+// =====================================================================================================================
 using FAttributeCapture = TMap<FString, FGameplayAttributeData*>;
 
 /**
@@ -116,13 +129,43 @@ protected:
 
 	/**
 	 * A simple pawn that has an ability system component, for use in ASC tests.
+	 *
+	 * This is initialized by SetupTestPawn() and torn down by DestroyTestPawn().
+	 *
+	 * @see PF2SpecBase::SetupTestPawn()
+	 * @see PF2SpecBase::DestroyTestPawn()
 	 */
 	APF2TestPawn* TestPawn;
 
 	/**
 	 * The ASC of the test pawn.
+	 *
+	 * This is initialized by SetupTestPawn() and torn down by DestroyTestPawn().
+	 *
+	 * @see PF2SpecBase::SetupTestPawn()
+	 * @see PF2SpecBase::DestroyTestPawn()
 	 */
 	UAbilitySystemComponent* TestPawnAsc;
+
+	/**
+	 * A simple pawn that has an ability system component, for use in ASC tests.
+	 *
+	 * This is initialized by SetupTestCharacter() and torn down by DestroyTestCharacter().
+	 *
+	 * @see PF2SpecBase::SetupTestCharacter()
+	 * @see PF2SpecBase::DestroyTestCharacter()
+	 */
+	TScriptInterface<IPF2CharacterInterface> TestCharacter;
+
+	/**
+	 * The ASC of the test character.
+	 *
+	 * This is initialized by SetupTestCharacter() and torn down by DestroyTestCharacter().
+	 *
+	 * @see PF2SpecBase::SetupTestCharacter()
+	 * @see PF2SpecBase::DestroyTestCharacter()
+	 */
+	UAbilitySystemComponent* TestCharacterAsc;
 
 public:
 	// =================================================================================================================
@@ -138,7 +181,9 @@ public:
 		FAutomationSpecBase(InName, false),
 		World(nullptr),
 		TestPawn(nullptr),
-		TestPawnAsc(nullptr)
+		TestPawnAsc(nullptr),
+		TestCharacter(nullptr),
+		TestCharacterAsc(nullptr)
 	{
 	}
 
@@ -255,14 +300,24 @@ protected:
 	void DestroyWorld() const;
 
 	/**
-	 * Initializes a simple pawn that has an ability system component, for use in ASC tests.
+	 * Initializes this test with a simple pawn in this->TestPawn that has an ability system component.
 	 */
-	void SetupPawn();
+	void SetupTestPawn();
 
 	/**
-	 * Tears down the simple pawn that has an ability system component, for use in ASC tests.
+	 * Tears down the simple pawn.
 	 */
-	void DestroyPawn();
+	void DestroyTestPawn();
+
+	/**
+	 * Initializes this test with OpenPF2-compatible character in this->TestCharacter.
+	 */
+	void SetupTestCharacter();
+
+	/**
+	 * Tears down the OpenPF2-compatible character.
+	 */
+	void DestroyTestCharacter();
 
 	/**
 	 * Spawns an actor component on the test pawn and returns it.
@@ -285,7 +340,15 @@ protected:
 	}
 
 	/**
-	 * Spawns a test character and returns it.
+	 * Spawns a lightweight test pawn with an ability system component and then returns it.
+	 *
+	 * @return
+	 *	The new character instance.
+	 */
+	APF2TestPawn* SpawnPawn() const;
+
+	/**
+	 * Spawns an OpenPF2-compatible test character and returns it.
 	 *
 	 * @return
 	 *	The new character instance.

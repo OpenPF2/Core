@@ -104,7 +104,7 @@ void FPF2AbilityBoostSpec::Define()
 		BeforeEach([=, this]()
 		{
 			this->SetupWorld();
-			this->SetupPawn();
+			this->SetupTestPawn();
 
 			this->LoadGEs();
 
@@ -113,7 +113,7 @@ void FPF2AbilityBoostSpec::Define()
 
 		AfterEach([=, this]()
 		{
-			this->DestroyPawn();
+			this->DestroyTestPawn();
 			this->DestroyWorld();
 
 			this->BoostGEs.Empty();

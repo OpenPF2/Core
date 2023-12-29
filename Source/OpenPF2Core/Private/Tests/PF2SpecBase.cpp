@@ -12,6 +12,7 @@
 #include "Tests/PF2TestCharacter.h"
 
 #include "Utilities/PF2GameplayAbilityUtilities.h"
+#include "Utilities/PF2InterfaceUtilities.h"
 
 FAttributeCapture FPF2SpecBase::CaptureAttributes(const UPF2CharacterAttributeSet* AttributeSet)
 {
@@ -149,20 +150,41 @@ void FPF2SpecBase::DestroyWorld() const
 	GEngine->ForceGarbageCollection(true);
 }
 
-void FPF2SpecBase::SetupPawn()
+void FPF2SpecBase::SetupTestPawn()
 {
-	this->TestPawn    = this->World->SpawnActor<APF2TestPawn>();
+	this->TestPawn    = this->SpawnPawn();
 	this->TestPawnAsc = this->TestPawn->GetAbilitySystemComponent();
 }
 
-void FPF2SpecBase::DestroyPawn()
+void FPF2SpecBase::DestroyTestPawn()
 {
-	if (this->TestPawn)
+	if (this->TestPawn != nullptr)
 	{
 		this->World->EditorDestroyActor(this->TestPawn, false);
 	}
 
 	this->TestPawn = nullptr;
+}
+
+void FPF2SpecBase::SetupTestCharacter()
+{
+	this->TestCharacter    = PF2InterfaceUtilities::ToScriptInterface(this->SpawnCharacter());
+	this->TestCharacterAsc = this->TestCharacter->GetAbilitySystemComponent();
+}
+
+void FPF2SpecBase::DestroyTestCharacter()
+{
+	if (this->TestCharacter != nullptr)
+	{
+		this->World->EditorDestroyActor(this->TestCharacter->ToActor(), false);
+	}
+
+	this->TestCharacter = TScriptInterface<IPF2CharacterInterface>(nullptr);
+}
+
+APF2TestPawn* FPF2SpecBase::SpawnPawn() const
+{
+	return this->World->SpawnActor<APF2TestPawn>();
 }
 
 IPF2CharacterInterface* FPF2SpecBase::SpawnCharacter() const
