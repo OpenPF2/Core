@@ -31,7 +31,7 @@ void FPF2AttackAttributeSetSpec::Define()
 	{
 		It("has default values for all defined attributes", [this]()
 		{
-			const UPF2AttackAttributeSet* AttributeSet = this->PawnAbilityComponent->GetSet<UPF2AttackAttributeSet>();
+			const UPF2AttackAttributeSet* AttributeSet = this->TestPawnAsc->GetSet<UPF2AttackAttributeSet>();
 
 			TestEqual(TEXT("TmpAttackRollCount"),            AttributeSet->GetTmpAttackRollCount(),            1.0f);
 			TestEqual(TEXT("TmpAttackRollSize"),             AttributeSet->GetTmpAttackRollSize(),            20.0f);

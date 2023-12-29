@@ -171,7 +171,7 @@ void FPF2SavingThrowModifierCalculationSpec::VerifySavingThrowModifier(const FSt
                                                                        const FString& ProficiencyLevel,
                                                                        const float    ExpectedSavingMod)
 {
-	const UPF2CharacterAttributeSet*    AttributeSet    = this->PawnAbilityComponent->GetSet<UPF2CharacterAttributeSet>();
+	const UPF2CharacterAttributeSet*    AttributeSet    = this->TestPawnAsc->GetSet<UPF2CharacterAttributeSet>();
 	FAttributeCapture                   Attributes      = CaptureAttributes(AttributeSet);
 	FGameplayAttributeData*             AbModAttribute  = Attributes[AbModAttributeName];
 	const FGameplayAttributeData*       SavingAttribute = Attributes[SavingModAttributeName];

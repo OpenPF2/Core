@@ -438,7 +438,7 @@ void FPF2AbilityModSpec::VerifyModifier(const FString& TargetAbilityAttributeNam
 
 	if (IsValid(EffectBP))
 	{
-		const UPF2CharacterAttributeSet  *AttributeSet            = this->PawnAbilityComponent->GetSet<UPF2CharacterAttributeSet>();
+		const UPF2CharacterAttributeSet  *AttributeSet            = this->TestPawnAsc->GetSet<UPF2CharacterAttributeSet>();
 		FAttributeCapture                Attributes               = CaptureAttributes(AttributeSet);
 		FGameplayAttributeData           *TargetAbilityAttribute  = Attributes[TargetAbilityAttributeName],
 		                                 *TargetModifierAttribute = Attributes[TargetModifierAttributeName];
@@ -480,7 +480,7 @@ void FPF2AbilityModSpec::VerifyCorrectAbilityAffected(const FString& TargetAbili
 
 	if (IsValid(EffectBP))
 	{
-		const UPF2CharacterAttributeSet* AttributeSet           = this->PawnAbilityComponent->GetSet<UPF2CharacterAttributeSet>();
+		const UPF2CharacterAttributeSet* AttributeSet           = this->TestPawnAsc->GetSet<UPF2CharacterAttributeSet>();
 		FAttributeCapture                AbilityAttributes      = CaptureAbilityAttributes(AttributeSet),
 		                                 ModifierAttributes     = CaptureAbilityModifierAttributes(AttributeSet);
 		FGameplayAttributeData*          TargetAbilityAttribute = AbilityAttributes[TargetAbilityAttributeName];
@@ -598,7 +598,7 @@ void FPF2AbilityModSpec::VerifyModifierRemoved(const FString& TargetAbilityAttri
 
 	if (IsValid(EffectBP))
 	{
-		const UPF2CharacterAttributeSet* AttributeSet            = this->PawnAbilityComponent->GetSet<UPF2CharacterAttributeSet>();
+		const UPF2CharacterAttributeSet* AttributeSet            = this->TestPawnAsc->GetSet<UPF2CharacterAttributeSet>();
 		FAttributeCapture                Attributes              = CaptureAttributes(AttributeSet);
 		FGameplayAttributeData*          TargetAbilityAttribute  = Attributes[TargetAbilityAttributeName];
 		const FGameplayAttributeData*    TargetModifierAttribute = Attributes[TargetModifierAttributeName];
@@ -609,7 +609,7 @@ void FPF2AbilityModSpec::VerifyModifierRemoved(const FString& TargetAbilityAttri
 		// Sanity check test logic.
 		TestNotEqual("Captured at least one attribute", Attributes.Num(), 0);
 
-		this->PawnAbilityComponent->RemoveActiveGameplayEffect(EffectHandle);
+		this->TestPawnAsc->RemoveActiveGameplayEffect(EffectHandle);
 
 		// Target Ability upon which modifier is based will not be reset because we set it manually in
 		// InitializeAttributeAndApplyEffect().

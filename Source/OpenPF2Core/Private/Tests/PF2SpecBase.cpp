@@ -151,8 +151,8 @@ void FPF2SpecBase::DestroyWorld() const
 
 void FPF2SpecBase::SetupPawn()
 {
-	this->TestPawn             = this->World->SpawnActor<APF2TestPawn>();
-	this->PawnAbilityComponent = this->TestPawn->GetAbilitySystemComponent();
+	this->TestPawn    = this->World->SpawnActor<APF2TestPawn>();
+	this->TestPawnAsc = this->TestPawn->GetAbilitySystemComponent();
 }
 
 void FPF2SpecBase::DestroyPawn()
@@ -180,9 +180,9 @@ FActiveGameplayEffectHandle FPF2SpecBase::InitializeAttributeAndApplyEffect(
 
 	Attribute = StartingValue;
 
-	const FActiveGameplayEffectHandle EffectHandle = this->PawnAbilityComponent->ApplyGameplayEffectToTarget(
+	const FActiveGameplayEffectHandle EffectHandle = this->TestPawnAsc->ApplyGameplayEffectToTarget(
 		GameplayEffect,
-		this->PawnAbilityComponent,
+		this->TestPawnAsc,
 		CharacterLevel
 	);
 
@@ -191,10 +191,10 @@ FActiveGameplayEffectHandle FPF2SpecBase::InitializeAttributeAndApplyEffect(
 
 void FPF2SpecBase::ApplyUnreplicatedTag(const FString& TagName) const
 {
-	this->PawnAbilityComponent->AddLooseGameplayTag(PF2GameplayAbilityUtilities::GetTag(TagName));
+	this->TestPawnAsc->AddLooseGameplayTag(PF2GameplayAbilityUtilities::GetTag(TagName));
 }
 
 void FPF2SpecBase::RemoveUnreplicatedTag(const FString& TagName) const
 {
-	this->PawnAbilityComponent->RemoveLooseGameplayTag(PF2GameplayAbilityUtilities::GetTag(TagName));
+	this->TestPawnAsc->RemoveLooseGameplayTag(PF2GameplayAbilityUtilities::GetTag(TagName));
 }

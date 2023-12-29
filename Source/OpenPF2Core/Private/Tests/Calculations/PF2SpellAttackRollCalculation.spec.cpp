@@ -51,7 +51,7 @@ void FPF2SpellAttackRollCalculationsSpec::Define()
 
 	BeforeEach([=, this]()
 	{
-		const UPF2CharacterAttributeSet* AttributeSet = this->PawnAbilityComponent->GetSet<UPF2CharacterAttributeSet>();
+		const UPF2CharacterAttributeSet* AttributeSet = this->TestPawnAsc->GetSet<UPF2CharacterAttributeSet>();
 		FAttributeCapture                Attributes   = CaptureAbilityModifierAttributes(AttributeSet);
 
 		// Zero out all attributes so that only the "boosted" attribute has an effect.
@@ -90,7 +90,7 @@ void FPF2SpellAttackRollCalculationsSpec::Define()
 				{
 					BeforeEach([=, this]()
 					{
-						const UPF2CharacterAttributeSet* AttributeSet = this->PawnAbilityComponent->GetSet<UPF2CharacterAttributeSet>();
+						const UPF2CharacterAttributeSet* AttributeSet = this->TestPawnAsc->GetSet<UPF2CharacterAttributeSet>();
 						FAttributeCapture                Attributes   = CaptureAbilityModifierAttributes(AttributeSet);
 
 						*(Attributes[BoostedAbilityAttribute]) = 5.0f;
@@ -121,7 +121,7 @@ void FPF2SpellAttackRollCalculationsSpec::Define()
 
 							It(FString::Format(TEXT("calculates a Spell Attack Roll Modifier of '{0}'"), {FString::FormatAsNumber(ExpectedSpellAttackRollMod)}), [=, this]()
 							{
-								const UPF2CharacterAttributeSet*    AttributeSet             = this->PawnAbilityComponent->GetSet<UPF2CharacterAttributeSet>();
+								const UPF2CharacterAttributeSet*    AttributeSet             = this->TestPawnAsc->GetSet<UPF2CharacterAttributeSet>();
 								FAttributeCapture                   Attributes               = CaptureSpellAttributes(AttributeSet);
 								FGameplayAttributeData*             SpellAttackRollAttribute = Attributes[this->SpellAttackRollAttributeName];
 								const TSubclassOf<UGameplayEffect>& EffectBP                 = this->LoadGE();

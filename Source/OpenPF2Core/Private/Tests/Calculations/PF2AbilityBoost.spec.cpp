@@ -770,7 +770,7 @@ void FPF2AbilityBoostSpec::VerifyBoostApplied(const FString& GameEffectName,
 
 	if (IsValid(EffectBP))
 	{
-		const UPF2CharacterAttributeSet* AttributeSet    = this->PawnAbilityComponent->GetSet<UPF2CharacterAttributeSet>();
+		const UPF2CharacterAttributeSet* AttributeSet    = this->TestPawnAsc->GetSet<UPF2CharacterAttributeSet>();
 		FAttributeCapture                Attributes      = CaptureAbilityAttributes(AttributeSet);
 		FGameplayAttributeData*          TargetAttribute = Attributes[TargetAttributeName];
 
@@ -804,7 +804,7 @@ void FPF2AbilityBoostSpec::VerifyOtherBoostsUnaffected(const FString& GameEffect
 
 	if (IsValid(EffectBP))
 	{
-		const UPF2CharacterAttributeSet* AttributeSet    = this->PawnAbilityComponent->GetSet<UPF2CharacterAttributeSet>();
+		const UPF2CharacterAttributeSet* AttributeSet    = this->TestPawnAsc->GetSet<UPF2CharacterAttributeSet>();
 		FAttributeCapture                Attributes      = CaptureAbilityAttributes(AttributeSet);
 		FGameplayAttributeData*          TargetAttribute = Attributes[TargetAttributeName];
 
@@ -869,7 +869,7 @@ void FPF2AbilityBoostSpec::VerifyBoostCounter(const FString& GameEffectName,
 
 	if (IsValid(EffectBP))
 	{
-		const UPF2CharacterAttributeSet  *AttributeSet        = this->PawnAbilityComponent->GetSet<UPF2CharacterAttributeSet>();
+		const UPF2CharacterAttributeSet  *AttributeSet        = this->TestPawnAsc->GetSet<UPF2CharacterAttributeSet>();
 		FAttributeCapture                Attributes           = CaptureAttributes(AttributeSet);
 		const FString                    CountAttributeName   = "AbBoostCount";
 		FGameplayAttributeData           *TargetAttribute     = Attributes[TargetAttributeName],
@@ -911,7 +911,7 @@ void FPF2AbilityBoostSpec::VerifyBoostRemoved(const FString& GameEffectName,
 
 	if (IsValid(EffectBP))
 	{
-		const UPF2CharacterAttributeSet* AttributeSet    = this->PawnAbilityComponent->GetSet<UPF2CharacterAttributeSet>();
+		const UPF2CharacterAttributeSet* AttributeSet    = this->TestPawnAsc->GetSet<UPF2CharacterAttributeSet>();
 		FAttributeCapture                Attributes      = CaptureAbilityAttributes(AttributeSet);
 		FGameplayAttributeData*          TargetAttribute = Attributes[TargetAttributeName];
 
@@ -921,7 +921,7 @@ void FPF2AbilityBoostSpec::VerifyBoostRemoved(const FString& GameEffectName,
 		// Sanity check test logic.
 		TestNotEqual("Captured at least one ability attribute", Attributes.Num(), 0);
 
-		this->PawnAbilityComponent->RemoveActiveGameplayEffect(EffectHandle);
+		this->TestPawnAsc->RemoveActiveGameplayEffect(EffectHandle);
 
 		TestEqual(
 			TargetAttributeName + ".BaseValue",

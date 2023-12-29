@@ -107,7 +107,7 @@ void FPF2PerceptionModifierCalculationSpec::VerifyPerceptionModifier(const float
                                                                      const FString& ProficiencyLevel,
                                                                      const float    ExpectedPcpMod)
 {
-	const UPF2CharacterAttributeSet*    AttributeSet   = this->PawnAbilityComponent->GetSet<UPF2CharacterAttributeSet>();
+	const UPF2CharacterAttributeSet*    AttributeSet   = this->TestPawnAsc->GetSet<UPF2CharacterAttributeSet>();
 	FAttributeCapture                   Attributes     = CaptureAttributes(AttributeSet);
 	FGameplayAttributeData*             AbModAttribute = Attributes[this->AbModAttributeName];
 	const FGameplayAttributeData*       PcpAttribute   = Attributes[this->PcpModAttributeName];

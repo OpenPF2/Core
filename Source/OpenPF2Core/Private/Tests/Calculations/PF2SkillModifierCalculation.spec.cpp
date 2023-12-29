@@ -396,7 +396,7 @@ void FPF2SkillModifierCalculationSpec::VerifySkillModifier(const FString& AbModA
                                                            const FString& ProficiencyLevel,
                                                            const float    ExpectedSkillMod)
 {
-	const UPF2CharacterAttributeSet*    AttributeSet   = this->PawnAbilityComponent->GetSet<UPF2CharacterAttributeSet>();
+	const UPF2CharacterAttributeSet*    AttributeSet   = this->TestPawnAsc->GetSet<UPF2CharacterAttributeSet>();
 	FAttributeCapture                   Attributes     = CaptureAttributes(AttributeSet);
 	FGameplayAttributeData*             AbModAttribute = Attributes[AbModAttributeName];
 	const FGameplayAttributeData*       SkillAttribute = Attributes[SkillModAttributeName];

@@ -122,7 +122,7 @@ protected:
 	/**
 	 * The ASC of the test pawn.
 	 */
-	UAbilitySystemComponent* PawnAbilityComponent;
+	UAbilitySystemComponent* TestPawnAsc;
 
 public:
 	// =================================================================================================================
@@ -138,7 +138,7 @@ public:
 		FAutomationSpecBase(InName, false),
 		World(nullptr),
 		TestPawn(nullptr),
-		PawnAbilityComponent(nullptr)
+		TestPawnAsc(nullptr)
 	{
 	}
 

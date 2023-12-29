@@ -51,7 +51,7 @@ void FPF2SpellDifficultyClassCalculationsSpec::Define()
 
 	BeforeEach([=, this]()
 	{
-		const UPF2CharacterAttributeSet* AttributeSet = this->PawnAbilityComponent->GetSet<UPF2CharacterAttributeSet>();
+		const UPF2CharacterAttributeSet* AttributeSet = this->TestPawnAsc->GetSet<UPF2CharacterAttributeSet>();
 		FAttributeCapture                Attributes   = CaptureAbilityModifierAttributes(AttributeSet);
 
 		// Zero out all attributes so that only the "boosted" attribute has an effect.
@@ -90,7 +90,7 @@ void FPF2SpellDifficultyClassCalculationsSpec::Define()
 				{
 					BeforeEach([=, this]()
 					{
-						const UPF2CharacterAttributeSet* AttributeSet = this->PawnAbilityComponent->GetSet<UPF2CharacterAttributeSet>();
+						const UPF2CharacterAttributeSet* AttributeSet = this->TestPawnAsc->GetSet<UPF2CharacterAttributeSet>();
 						FAttributeCapture                Attributes   = CaptureAbilityModifierAttributes(AttributeSet);
 
 						*(Attributes[BoostedAbilityAttribute]) = 5.0f;
@@ -121,7 +121,7 @@ void FPF2SpellDifficultyClassCalculationsSpec::Define()
 
 							It(FString::Format(TEXT("calculates a Spell Difficulty Class Modifier of '{0}'"), {FString::FormatAsNumber(ExpectedSpellDifficultyClassMod)}), [=, this]()
 							{
-								const UPF2CharacterAttributeSet*    AttributeSet                  = this->PawnAbilityComponent->GetSet<UPF2CharacterAttributeSet>();
+								const UPF2CharacterAttributeSet*    AttributeSet                  = this->TestPawnAsc->GetSet<UPF2CharacterAttributeSet>();
 								FAttributeCapture                   Attributes                    = CaptureSpellAttributes(AttributeSet);
 								FGameplayAttributeData*             SpellDifficultyClassAttribute = Attributes[this->SpellDifficultyClassAttributeName];
 								const TSubclassOf<UGameplayEffect>& EffectBP                      = this->LoadGE();

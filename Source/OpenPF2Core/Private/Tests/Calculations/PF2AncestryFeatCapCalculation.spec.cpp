@@ -76,7 +76,7 @@ void FPF2AncestryFeatCapCalculationSpec::Define()
 		{
 			It(FString::Format(TEXT("returns an Ancestry Feat Cap of '{0}'"), {FString::FormatAsNumber(ExpectedFeatLimit)}), [=, this]()
 			{
-				const UPF2CharacterAttributeSet*    AttributeSet = this->PawnAbilityComponent->GetSet<UPF2CharacterAttributeSet>();
+				const UPF2CharacterAttributeSet*    AttributeSet = this->TestPawnAsc->GetSet<UPF2CharacterAttributeSet>();
 				FAttributeCapture                   Attributes   = CaptureAttributes(AttributeSet);
 				FGameplayAttributeData*             CapAttribute = Attributes[this->AncestryFeatCapAttributeName];
 				const TSubclassOf<UGameplayEffect>& EffectBP     = this->LoadGE();

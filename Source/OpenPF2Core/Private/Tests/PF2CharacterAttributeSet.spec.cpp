@@ -31,7 +31,7 @@ void FPF2CharacterAttributeSetSpec::Define()
 	{
 		It("has default values for all defined attributes", [this]()
 		{
-			const UPF2CharacterAttributeSet* AttributeSet = this->PawnAbilityComponent->GetSet<UPF2CharacterAttributeSet>();
+			const UPF2CharacterAttributeSet* AttributeSet = this->TestPawnAsc->GetSet<UPF2CharacterAttributeSet>();
 
 			TestEqual(TEXT("Experience"),                           AttributeSet->GetExperience(),                  0.0f);
 			TestEqual(TEXT("AbBoostCount"),                         AttributeSet->GetAbBoostCount(),                0.0f);
