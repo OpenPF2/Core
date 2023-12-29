@@ -254,16 +254,9 @@ void UPF2CharacterInitiativeQueueComponent::RebuildCharacterSequence()
 				}
 				else if (bIsCharacterAPlayable == bIsCharacterBPlayable)
 				{
-					// Characters of the same type get randomized.
-					// We use the IDs of the objects so that any given pair sorts the same way in future rebuilds.
-					if (A.ToActor()->GetUniqueID() < B.ToActor()->GetUniqueID())
-					{
-						bCharacterAComesFirst = true;
-					}
-					else
-					{
-						bCharacterAComesFirst = false;
-					}
+					// Characters of the same type (either both NPCs or both PCs) retain their positions based on
+					// insertion order.
+					bCharacterAComesFirst = false;
 				}
 				else if (!bIsCharacterAPlayable && bIsCharacterBPlayable)
 				{
