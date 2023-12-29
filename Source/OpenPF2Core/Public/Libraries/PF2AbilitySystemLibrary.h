@@ -48,7 +48,14 @@ public:
 	static void GetCapturedSourceTags(const FGameplayEffectSpec& GameplayEffectSpec, FGameplayTagContainer& SourceTags);
 
 	/**
-	 * Creates an outgoing gameplay effect spec for damage from a weapon.
+	 * Creates an outgoing gameplay effect (GE) spec for damage from a weapon.
+	 *
+	 * This method differs from methods like MakeEffectContextForCauser() and MakeEffectContextForInstigatorAndCauser()
+	 * in that it returns the server handle for a GE *specification* rather than for a GE *context*. The former is a
+	 * higher-level struct that *includes* the GE context along with other information about which effect is about to be
+	 * applied and its state; meanwhile, the latter only tracks the context of the effect activation (including the
+	 * instigator, effect causer, ability, and level). In short, this method is intended to assemble all the required
+	 * information to apply a GE to a target.
 	 *
 	 * @param AbilityHandle
 	 *	The handle for the current gameplay ability activation, which is generating the outgoing gameplay effect spec.
@@ -65,7 +72,7 @@ public:
 	 *	The new gameplay effect specification handle.
 	 */
 	UFUNCTION(BlueprintCallable, Category="OpenPF2|Gameplay Abilities")
-	static FGameplayEffectSpecHandle MakeOutgoingGameplayEffectSpecForWeapon(
+	static FGameplayEffectSpecHandle MakeGameplayEffectSpecForWeapon(
 		const FGameplayAbilitySpecHandle&            AbilityHandle,
 		const FGameplayAbilityActorInfo&             AbilityOwnerInfo,
 		const TSubclassOf<UGameplayEffect>           GameplayEffectClass,
@@ -73,11 +80,18 @@ public:
 		const float                                  Level = 1.0f);
 
 	/**
-	 * Creates an outgoing gameplay effect spec that has a custom effect causer.
+	 * Creates an outgoing gameplay effect (GE) spec that has a custom effect causer.
 	 *
-	 * This is similar to MakeOutgoingGameplayEffectSpec() except that the effect causer can be set rather than it being
-	 * set equal to the "avatar actor" which, in many games, is identical to the "owner actor" that is used as the
-	 * instigator, the actor/character who owns the Ability System Component (ASC).
+	 * This is similar to MakeOutgoingGameplayEffectSpec() in GAS except that the effect causer can be set rather than
+	 * it being set equal to the "avatar actor" which, in many games, is identical to the "owner actor" that is used as
+	 * the instigator, the actor/character who owns the Ability System Component (ASC).
+	 *
+	 * This method differs from methods like MakeEffectContextForCauser() and MakeEffectContextForInstigatorAndCauser()
+	 * in that it returns the server handle for a GE *specification* rather than for a GE *context*. The former is a
+	 * higher-level struct that *includes* the GE context along with other information about which effect is about to be
+	 * applied and its state; meanwhile, the latter only tracks the context of the effect activation (including the
+	 * instigator, effect causer, ability, and level). In short, this method is intended to assemble all the required
+	 * information to apply a GE to a target.
 	 *
 	 * @param AbilityHandle
 	 *	The handle for the current gameplay ability activation, which is generating the outgoing gameplay effect spec.
@@ -96,14 +110,14 @@ public:
 	 *	The new gameplay effect specification handle.
 	 */
 	UFUNCTION(BlueprintCallable, Category="OpenPF2|Gameplay Abilities")
-	static FORCEINLINE FGameplayEffectSpecHandle MakeOutgoingGameplayEffectSpecForCauser(
+	static FORCEINLINE FGameplayEffectSpecHandle MakeGameplayEffectSpecForCauser(
 		const FGameplayAbilitySpecHandle&  AbilityHandle,
 		const FGameplayAbilityActorInfo&   AbilityOwnerInfo,
 		const TSubclassOf<UGameplayEffect> GameplayEffectClass,
 		AActor*                            EffectCauser,
 		const float                        Level = 1.0f)
 	{
-		return MakeOutgoingGameplayEffectSpecForInstigatorAndCauser(
+		return MakeGameplayEffectSpecForInstigatorAndCauser(
 			AbilityHandle,
 			AbilityOwnerInfo,
 			GameplayEffectClass,
@@ -114,11 +128,18 @@ public:
 	}
 
 	/**
-	 * Creates an outgoing gameplay effect spec that has a custom instigator and effect causer.
+	 * Creates an outgoing gameplay effect (GE) spec that has a custom instigator and effect causer.
 	 *
-	 * This is similar to MakeOutgoingGameplayEffectSpec() except that the instigator and effect causer can both be set
-	 * rather than them being based on the "avatar actor" which, in many games, is identical to the "owner actor", the
-	 * actor/character who owns the Ability System Component (ASC).
+	 * This is similar to MakeOutgoingGameplayEffectSpec() in GAS except that the instigator and effect causer can both
+	 * be set rather than them being based on the "avatar actor" which, in many games, is identical to the
+	 * "owner actor", the actor/character who owns the Ability System Component (ASC).
+	 *
+	 * This method differs from methods like MakeEffectContextForCauser() and MakeEffectContextForInstigatorAndCauser()
+	 * in that it returns the server handle for a GE *specification* rather than for a GE *context*. The former is a
+	 * higher-level struct that *includes* the GE context along with other information about which effect is about to be
+	 * applied and its state; meanwhile, the latter only tracks the context of the effect activation (including the
+	 * instigator, effect causer, ability, and level). In short, this method is intended to assemble all the required
+	 * information to apply a GE to a target.
 	 *
 	 * @param AbilityHandle
 	 *	The handle for the current gameplay ability activation, which is generating the outgoing gameplay effect spec.
@@ -139,7 +160,7 @@ public:
 	 *	The new gameplay effect specification handle.
 	 */
 	UFUNCTION(BlueprintCallable, Category="OpenPF2|Gameplay Abilities")
-	static FGameplayEffectSpecHandle MakeOutgoingGameplayEffectSpecForInstigatorAndCauser(
+	static FGameplayEffectSpecHandle MakeGameplayEffectSpecForInstigatorAndCauser(
 		const FGameplayAbilitySpecHandle&  AbilityHandle,
 		const FGameplayAbilityActorInfo&   AbilityOwnerInfo,
 		const TSubclassOf<UGameplayEffect> GameplayEffectClass,
@@ -149,6 +170,14 @@ public:
 
 	/**
 	 * Builds context for a gameplay effect activation triggered by the specified ability, owner, and effect causer.
+	 *
+	 * This method differs from methods like MakeGameplayEffectSpecForWeapon(), MakeGameplayEffectSpecForCauser(), and
+	 * MakeGameplayEffectSpecForInstigatorAndCauser() in that it returns the server handle for a gameplay effect (GE)
+	 * *context* rather than for a GE *specification*. The former is a lower-level struct that tracks the context of the
+	 * effect activation (including the instigator, effect causer, ability, and level); meanwhile, the latter is a
+	 * higher-level struct that *includes* the GE context along with other information about which effect is about to be
+	 * applied and its state. In short, this method only assembles the information about the ability and actor that is
+	 * invoking a GE, without enough information to know which GE to invoke or how to invoke it.
 	 *
 	 * @param AbilityHandle
 	 *	The handle for the current gameplay ability activation, which is generating the outgoing gameplay effect spec.
@@ -179,6 +208,14 @@ public:
 
 	/**
 	 * Builds context for a gameplay effect activation triggered by the specified ability, instigator, and causer.
+	 *
+	 * This method differs from methods like MakeGameplayEffectSpecForWeapon(), MakeGameplayEffectSpecForCauser(), and
+	 * MakeGameplayEffectSpecForInstigatorAndCauser() in that it returns the server handle for a gameplay effect (GE)
+	 * *context* rather than for a GE *specification*. The former is a lower-level struct that tracks the context of the
+	 * effect activation (including the instigator, effect causer, ability, and level); meanwhile, the latter is a
+	 * higher-level struct that *includes* the GE context along with other information about which effect is about to be
+	 * applied and its state. In short, this method only assembles the information about the ability and actor that is
+	 * invoking a GE, without enough information to know which GE to invoke or how to invoke it.
 	 *
 	 * @param AbilityHandle
 	 *	The handle for the current gameplay ability activation, which is generating the outgoing gameplay effect spec.

@@ -19,14 +19,14 @@ void UPF2AbilitySystemLibrary::GetCapturedSourceTags(const FGameplayEffectSpec& 
 	SourceTags.AppendTags(*GameplayEffectSpec.CapturedSourceTags.GetAggregatedTags());
 }
 
-FGameplayEffectSpecHandle UPF2AbilitySystemLibrary::MakeOutgoingGameplayEffectSpecForWeapon(
+FGameplayEffectSpecHandle UPF2AbilitySystemLibrary::MakeGameplayEffectSpecForWeapon(
 	const FGameplayAbilitySpecHandle&            AbilityHandle,
 	const FGameplayAbilityActorInfo&             AbilityOwnerInfo,
 	const TSubclassOf<UGameplayEffect>           GameplayEffectClass,
 	const TScriptInterface<IPF2WeaponInterface>& Weapon,
 	const float                                  Level)
 {
-	return MakeOutgoingGameplayEffectSpecForCauser(
+	return MakeGameplayEffectSpecForCauser(
 		AbilityHandle,
 		AbilityOwnerInfo,
 		GameplayEffectClass,
@@ -35,7 +35,7 @@ FGameplayEffectSpecHandle UPF2AbilitySystemLibrary::MakeOutgoingGameplayEffectSp
 	);
 }
 
-FGameplayEffectSpecHandle UPF2AbilitySystemLibrary::MakeOutgoingGameplayEffectSpecForInstigatorAndCauser(
+FGameplayEffectSpecHandle UPF2AbilitySystemLibrary::MakeGameplayEffectSpecForInstigatorAndCauser(
 	const FGameplayAbilitySpecHandle&  AbilityHandle,
 	const FGameplayAbilityActorInfo&   AbilityOwnerInfo,
 	const TSubclassOf<UGameplayEffect> GameplayEffectClass,

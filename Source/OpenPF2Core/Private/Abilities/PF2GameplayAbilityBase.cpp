@@ -254,7 +254,7 @@ FGameplayEffectSpecHandle UPF2GameplayAbilityBase::MakeOutgoingGameplayEffectSpe
 	check(this->CurrentActorInfo != nullptr);
 	check(this->CurrentActorInfo->AbilitySystemComponent.IsValid());
 
-	return UPF2AbilitySystemLibrary::MakeOutgoingGameplayEffectSpecForWeapon(
+	return UPF2AbilitySystemLibrary::MakeGameplayEffectSpecForWeapon(
 		this->CurrentSpecHandle,
 		*(this->CurrentActorInfo),
 		GameplayEffectClass,
@@ -271,7 +271,7 @@ FGameplayEffectSpecHandle UPF2GameplayAbilityBase::MakeOutgoingGameplayEffectSpe
 	check(this->CurrentActorInfo != nullptr);
 	check(this->CurrentActorInfo->AbilitySystemComponent.IsValid());
 
-	return UPF2AbilitySystemLibrary::MakeOutgoingGameplayEffectSpecForCauser(
+	return UPF2AbilitySystemLibrary::MakeGameplayEffectSpecForCauser(
 		this->CurrentSpecHandle,
 		*(this->CurrentActorInfo),
 		GameplayEffectClass,
@@ -289,7 +289,7 @@ FGameplayEffectSpecHandle UPF2GameplayAbilityBase::MakeOutgoingGameplayEffectSpe
 	check(this->CurrentActorInfo != nullptr);
 	check(this->CurrentActorInfo->AbilitySystemComponent.IsValid());
 
-	return UPF2AbilitySystemLibrary::MakeOutgoingGameplayEffectSpecForInstigatorAndCauser(
+	return UPF2AbilitySystemLibrary::MakeGameplayEffectSpecForInstigatorAndCauser(
 		this->CurrentSpecHandle,
 		*(this->CurrentActorInfo),
 		GameplayEffectClass,
