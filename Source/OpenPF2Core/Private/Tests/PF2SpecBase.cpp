@@ -9,6 +9,8 @@
 
 #include <Engine/Engine.h>
 
+#include "PF2TestState.h"
+
 #include "Abilities/PF2CharacterAttributeSet.h"
 
 #include "Libraries/PF2AbilitySystemLibrary.h"
@@ -19,11 +21,26 @@
 #include "Utilities/PF2GameplayAbilityUtilities.h"
 #include "Utilities/PF2InterfaceUtilities.h"
 
+FPF2SpecBase::FPF2SpecBase(const FString& InName):
+	FAutomationSpecBaseEx(InName, false),
+	World(nullptr),
+	TestPawn(nullptr),
+	TestPawnAsc(nullptr),
+	TestCharacter(nullptr),
+	TestCharacterAsc(nullptr)
+{
+}
+
 bool FPF2SpecBase::RunTest(const FString& InParameters)
 {
 	FAutomationTestFramework& AutomationTestFramework = FAutomationTestFramework::GetInstance();
 
 	this->EnsureDefinitionsEx();
+
+	if (!this->TestState.IsValid())
+	{
+		this->TestState = MakeShareable(new FPF2TestState());
+	}
 
 	if (InParameters.IsEmpty())
 	{
@@ -60,18 +77,15 @@ void FPF2SpecBase::GetTests(TArray<FString>& OutBeautifiedNames, TArray<FString>
 {
 	this->EnsureDefinitionsEx();
 
-	FAutomationSpecBase::GetTests(OutBeautifiedNames, OutTestCommands);
+	FAutomationSpecBaseEx::GetTests(OutBeautifiedNames, OutTestCommands);
 }
 
-void FPF2SpecBase::Describe(const FString& InDescription, const uint8 SpecVersion, const TFunction<void()>& DoWork)
+void FPF2SpecBase::Describe(const FString& InDescription, const TFunction<void()>& DoWork)
 {
 	LLM_SCOPE_BYNAME(TEXT("AutomationTest/Framework"));
-	const TSharedRef<FSpecDefinitionScope> ParentScope = DefinitionScopeStack.Last();
+	const TSharedRef<FSpecDefinitionScopeEx> ParentScope = DefinitionScopeStack.Last();
 	// --- Start OpenPF2 Differences from <Misc/AutomationTest.h>
-	const TSharedRef<FSpecDefinitionScope> NewScope =
-		MakeShareable(
-			(SpecVersion == 2) ? new FSpecDefinitionScopeEx() : new FSpecDefinitionScope()
-		);
+	const TSharedRef<FSpecDefinitionScopeEx> NewScope = MakeShareable(new FSpecDefinitionScopeEx());
 	// --- End OpenPF2 Differences from <Misc/AutomationTest.h>
 	NewScope->Description = InDescription;
 	ParentScope->Children.Push(NewScope);
@@ -86,6 +100,118 @@ void FPF2SpecBase::Describe(const FString& InDescription, const uint8 SpecVersio
 	{
 		ParentScope->Children.Remove(NewScope);
 	}
+}
+
+void FPF2SpecBase::BeforeAll(const TFunction<void()>& DoWork)
+{
+	const TSharedRef<FSpecDefinitionScopeEx> CurrentScope = this->GetCurrentScope();
+	const FPF2SpecBlockHandle                BlockHandle;
+	const TFunction<void()>&                 RunWorkOnce = CreateRunWorkOnceWrapper(BlockHandle, DoWork);
+
+	CurrentScope->BeforeAll.Push(
+		MakeShareable(new FSingleExecuteLatentCommand(this, RunWorkOnce, this->bEnableSkipIfError))
+	);
+}
+
+void FPF2SpecBase::BeforeAll(const EAsyncExecution Execution, const TFunction<void()>& DoWork)
+{
+	const TSharedRef<FSpecDefinitionScopeEx> CurrentScope = this->GetCurrentScope();
+	const FPF2SpecBlockHandle                BlockHandle;
+	const TFunction<void()>&                 RunWorkOnce = CreateRunWorkOnceWrapper(BlockHandle, DoWork);
+
+	CurrentScope->BeforeAll.Push(
+		MakeShareable(new FAsyncLatentCommand(this, Execution, RunWorkOnce, DefaultTimeout, this->bEnableSkipIfError))
+	);
+}
+
+void FPF2SpecBase::BeforeAll(const EAsyncExecution Execution, const FTimespan& Timeout, const TFunction<void()>& DoWork)
+{
+	const TSharedRef<FSpecDefinitionScopeEx> CurrentScope = this->GetCurrentScope();
+	const FPF2SpecBlockHandle                BlockHandle;
+	const TFunction<void()>&                 RunWorkOnce = CreateRunWorkOnceWrapper(BlockHandle, DoWork);
+
+	CurrentScope->BeforeAll.Push(
+		MakeShareable(new FAsyncLatentCommand(this, Execution, RunWorkOnce, Timeout, this->bEnableSkipIfError))
+	);
+}
+
+void FPF2SpecBase::LatentBeforeAll(const TFunction<void(const FDoneDelegate&)>& DoWork)
+{
+	const TSharedRef<FSpecDefinitionScopeEx>     CurrentScope = this->GetCurrentScope();
+	const FPF2SpecBlockHandle                    BlockHandle;
+	const TFunction<void(const FDoneDelegate&)>& RunWorkOnce = CreateRunWorkOnceWrapper(BlockHandle, DoWork);
+
+	CurrentScope->BeforeAll.Push(
+		MakeShareable(new FUntilDoneLatentCommand(this, RunWorkOnce, DefaultTimeout, this->bEnableSkipIfError))
+	);
+}
+
+void FPF2SpecBase::LatentBeforeAll(const FTimespan& Timeout, const TFunction<void(const FDoneDelegate&)>& DoWork)
+{
+	const TSharedRef<FSpecDefinitionScopeEx>     CurrentScope = this->GetCurrentScope();
+	const FPF2SpecBlockHandle                    BlockHandle;
+	const TFunction<void(const FDoneDelegate&)>& RunWorkOnce = CreateRunWorkOnceWrapper(BlockHandle, DoWork);
+
+	CurrentScope->BeforeAll.Push(
+		MakeShareable(new FUntilDoneLatentCommand(this, RunWorkOnce, Timeout, this->bEnableSkipIfError))
+	);
+}
+
+void FPF2SpecBase::LatentBeforeAll(const EAsyncExecution Execution, const TFunction<void(const FDoneDelegate&)>& DoWork)
+{
+	const TSharedRef<FSpecDefinitionScopeEx>     CurrentScope = this->GetCurrentScope();
+	const FPF2SpecBlockHandle                    BlockHandle;
+	const TFunction<void(const FDoneDelegate&)>& RunWorkOnce = CreateRunWorkOnceWrapper(BlockHandle, DoWork);
+
+	CurrentScope->BeforeAll.Push(
+		MakeShareable(
+			new FAsyncUntilDoneLatentCommand(this, Execution, RunWorkOnce, DefaultTimeout, this->bEnableSkipIfError)
+		)
+	);
+}
+
+void FPF2SpecBase::LatentBeforeAll(const EAsyncExecution                        Execution,
+                                   const FTimespan&                             Timeout,
+                                   const TFunction<void(const FDoneDelegate&)>& DoWork)
+{
+	const TSharedRef<FSpecDefinitionScopeEx>     CurrentScope = this->GetCurrentScope();
+	const FPF2SpecBlockHandle                    BlockHandle;
+	const TFunction<void(const FDoneDelegate&)>& RunWorkOnce = CreateRunWorkOnceWrapper(BlockHandle, DoWork);
+
+	CurrentScope->BeforeAll.Push(
+		MakeShareable(new FAsyncUntilDoneLatentCommand(this, Execution, RunWorkOnce, Timeout, this->bEnableSkipIfError))
+	);
+}
+
+TFunction<void()> FPF2SpecBase::CreateRunWorkOnceWrapper(const FPF2SpecBlockHandle& BlockHandle,
+                                                         const TFunction<void()>&   DoWork) const
+{
+	return [=, this]
+	{
+		// Only allow this block to run once per test session per runner.
+		if (!this->TestState->HasBlockRun(BlockHandle))
+		{
+			DoWork();
+
+			this->TestState->MarkBlockAsRun(BlockHandle);
+		}
+	};
+}
+
+TFunction<void(const FDoneDelegate&)> FPF2SpecBase::CreateRunWorkOnceWrapper(
+	const FPF2SpecBlockHandle&                   BlockHandle,
+	const TFunction<void(const FDoneDelegate&)>& DoWork) const
+{
+	return [=, this](const FDoneDelegate& DoneDelegate)
+	{
+		// Only allow this block to run once per test session per runner.
+		if (!this->TestState->HasBlockRun(BlockHandle))
+		{
+			DoWork(DoneDelegate);
+
+			this->TestState->MarkBlockAsRun(BlockHandle);
+		}
+	};
 }
 
 FAttributeCapture FPF2SpecBase::CaptureAttributes(const UPF2CharacterAttributeSet* AttributeSet)
@@ -391,7 +517,7 @@ void FPF2SpecBase::EnsureDefinitionsEx() const
 
 void FPF2SpecBase::PostDefineEx()
 {
-	TArray<TSharedRef<FSpecDefinitionScope>> Stack;
+	TArray<TSharedRef<FSpecDefinitionScopeEx>> Stack;
 	Stack.Push(RootDefinitionScope.ToSharedRef());
 
 	TArray<TSharedRef<IAutomationLatentCommand>> BeforeAll,
@@ -401,16 +527,9 @@ void FPF2SpecBase::PostDefineEx()
 
 	while (Stack.Num() > 0)
 	{
-		const TSharedRef<FSpecDefinitionScope> Scope = Stack.Last();
+		const TSharedRef<FSpecDefinitionScopeEx> Scope = Stack.Last();
 
-		if (Scope->SpecDefinitionVersion == 2)
-		{
-			const TSharedRef<FSpecDefinitionScopeEx> ScopeV2 = this->GetCurrentV2Scope();
-
-			BeforeAll.Append(ScopeV2->BeforeAll);
-			BeforeAll.Append(ScopeV2->AfterAll);
-		}
-
+		BeforeAll.Append(Scope->BeforeAll);
 		BeforeEach.Append(Scope->BeforeEach);
 		AfterEach.Append(Scope->AfterEach);
 
@@ -454,9 +573,10 @@ void FPF2SpecBase::PostDefineEx()
 		{
 			while (Stack.Num() > 0 && Stack.Last()->Children.Num() == 0 && Stack.Last()->It.Num() == 0)
 			{
-				const TSharedRef<FSpecDefinitionScope> PoppedScope        = Stack.Pop();
-				const int32                            NumBeforeEachAdded = PoppedScope->BeforeEach.Num(),
-				                                       NumAfterEachAdded  = PoppedScope->AfterEach.Num();
+				const TSharedRef<FSpecDefinitionScopeEx> PoppedScope        = Stack.Pop();
+				const int32                              NumBeforeEachAdded = PoppedScope->BeforeEach.Num(),
+				                                         NumAfterEachAdded  = PoppedScope->AfterEach.Num(),
+				                                         NumBeforeAllAdded  = PoppedScope->BeforeAll.Num();
 
 				if (NumBeforeEachAdded > 0)
 				{
@@ -468,23 +588,9 @@ void FPF2SpecBase::PostDefineEx()
 					AfterEach.RemoveAt(AfterEach.Num() - NumAfterEachAdded, NumAfterEachAdded);
 				}
 
-				if (PoppedScope->SpecDefinitionVersion == 2)
+				if (NumBeforeAllAdded > 0)
 				{
-					const TSharedRef<FSpecDefinitionScopeEx> PoppedScopeV2 =
-						StaticCastSharedRef<FSpecDefinitionScopeEx>(PoppedScope);
-
-					const int32 NumBeforeAllAdded = PoppedScopeV2->BeforeAll.Num(),
-					            NumAfterAllAdded  = PoppedScopeV2->AfterAll.Num();
-
-					if (NumBeforeAllAdded > 0)
-					{
-						BeforeAll.RemoveAt(BeforeAll.Num() - NumBeforeAllAdded, NumBeforeAllAdded);
-					}
-
-					if (NumAfterAllAdded > 0)
-					{
-						AfterAll.RemoveAt(AfterAll.Num() - NumAfterAllAdded, NumAfterAllAdded);
-					}
+					BeforeAll.RemoveAt(BeforeAll.Num() - NumBeforeAllAdded, NumBeforeAllAdded);
 				}
 			}
 		}
