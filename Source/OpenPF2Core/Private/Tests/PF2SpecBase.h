@@ -1,6 +1,7 @@
-﻿// Copyright 2021-2023 Guy Elsmore-Paddock. All Rights Reserved.
-// Adapted from content that is Copyright Epic Games, Inc. (Action RPG Sample).
-// Licensed only for use with Unreal Engine.
+﻿// OpenPF2 for UE Game Logic, Copyright 2021-2023, Guy Elsmore-Paddock. All Rights Reserved.
+//
+// This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+// distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 #pragma once
 
@@ -10,8 +11,7 @@
 
 #include <Engine/World.h>
 
-#include <Misc/AutomationTest.h>
-
+#include "Tests/PF2AutomationTest.h"
 #include "Tests/PF2TestPawn.h"
 
 #include "Utilities/PF2ArrayUtilities.h"
@@ -120,6 +120,15 @@ class OPENPF2CORE_API FPF2SpecBase : public FAutomationSpecBase
 {
 protected:
 	// =================================================================================================================
+	// Protected Types
+	// =================================================================================================================
+	struct FSpecDefinitionScopeEx : FSpecDefinitionScope
+	{
+		TArray<TSharedRef<IAutomationLatentCommand>> BeforeAll;
+		TArray<TSharedRef<IAutomationLatentCommand>> AfterAll;
+	};
+
+	// =================================================================================================================
 	// Protected Fields
 	// =================================================================================================================
 	/**
@@ -189,9 +198,661 @@ public:
 
 protected:
 	// =================================================================================================================
+	// Protected Methods - FAutomationSpecBase Overrides
+	// =================================================================================================================
+	virtual bool RunTest(const FString& InParameters) override;
+	virtual void GetTests(TArray<FString>& OutBeautifiedNames, TArray<FString>& OutTestCommands) const override;
+
+	// Needed to avoid our overload hiding the base class implementation.
+	FORCEINLINE void Describe(const FString& InDescription, const TFunction<void()>& DoWork)
+	{
+		FAutomationSpecBase::Describe(InDescription, DoWork);
+	}
+
+	// Needed to avoid our overload hiding the base class implementation.
+	// ReSharper disable once CppUE4CodingStandardNamingViolationWarning
+	FORCEINLINE void xDescribe(const FString& InDescription, const TFunction<void()>& DoWork)
+	{
+		FAutomationSpecBase::xDescribe(InDescription, DoWork);
+	}
+
+	virtual void Define() override = 0;
+
+	// =================================================================================================================
 	// Protected Methods
 	// =================================================================================================================
-	virtual void Define() override = 0;
+	/**
+	 * Gets the current spec definition scope, including all the fields defined by version 2 of the scope structure.
+	 *
+	 * @return
+	 *	The current, version 2 spec definition scope.
+	 */
+	TSharedRef<FSpecDefinitionScopeEx> GetCurrentV2Scope()
+	{
+		const TSharedRef<FSpecDefinitionScope> BaseScope = DefinitionScopeStack.Last();
+
+		checkf(
+			BaseScope->SpecDefinitionVersion == 2,
+			TEXT("This function can only be used with a Describe() block that has opted for version 2 of the spec definition structure.")
+		);
+
+		return StaticCastSharedRef<FSpecDefinitionScopeEx>(BaseScope);
+	}
+
+	/**
+	 * Defines a new scope for expectations, such that they are more readable and DRYer.
+	 *
+	 * Describe() is used as a way to scope complicated expectations. Using Describe() makes your code DRYer based on
+	 * the interaction it has with other supporting functions such as BeforeEach(), BeforeAll(), AfterEach(), and
+	 * AfterAll().
+	 *
+	 * You can cascade Describe() by putting a Describe() in another Describe().
+	 *
+	 * Keep in mind that Describe() is not a test and is not executed during an actual test run. They are only executed
+	 * once when first defining the expectations (or tests) within the Spec.
+	 *
+	 * @param InDescription
+	 *	A string that describes the scope of the expectations within it.
+	 * @param SpecVersion
+	 *	The version of the spec definition structure to use for the new scope. "2" is recommended, especially if you
+	 *	will be using BeforeAll() blocks.
+	 * @param DoWork
+	 *	A lambda that defines the expectations within this scope.
+	 */
+	void Describe(const FString& InDescription, const uint8 SpecVersion, const TFunction<void()>& DoWork);
+
+	// ReSharper disable once CppMemberFunctionMayBeStatic
+	// ReSharper disable once CppUE4CodingStandardNamingViolationWarning
+	/**
+	 * Disabled/skipped version of Describe().
+	 *
+	 * @see FPF2SpecBase::Describe(const FString&, const uint8, const TFunction<void()>&)
+	 *
+	 * @param InDescription
+	 *	A string that describes the scope of the expectations within it.
+	 * @param SpecVersion
+	 *	The version of the spec definition structure to use for the new scope. "2" is recommended, especially if you
+	 *	will be using BeforeAll() blocks.
+	 * @param DoWork
+	 *	A lambda that defines the expectations within this scope.
+	 */
+	void xDescribe(const FString& InDescription, const uint8 SpecVersion, const TFunction<void()>& DoWork)
+	{
+		// Disabled.
+	}
+
+	/**
+	 * Defines code that must run before the first It() block of the current scope.
+	 *
+	 * Each code block is executed from top to bottom. If a scope contains both BeforeAll() and BeforeEach() blocks, the
+	 * BeforeAll() blocks will be evaluated before any BeforeEach() blocks are executed, including those inherited from
+	 * outer scopes.
+	 *
+	 * BeforeAll() affects only the Describe() scope in which it is defined. Each BeforeAll() block will only execute
+	 * before the first It() block of the scope in which it has been defined.
+	 *
+	 * @param DoWork
+	 *	A lambda that defines the code to execute before the first It() block within the enclosing scope.
+	 */
+	void BeforeAll(const TFunction<void()>& DoWork)
+	{
+		const TSharedRef<FSpecDefinitionScopeEx> CurrentScope = this->GetCurrentV2Scope();
+
+		CurrentScope->BeforeAll.Push(
+			MakeShareable(new FSingleExecuteLatentCommand(this, DoWork, this->bEnableSkipIfError))
+		);
+	}
+
+	// ReSharper disable once CppMemberFunctionMayBeStatic
+	// ReSharper disable once CppUE4CodingStandardNamingViolationWarning
+	/**
+	 * Disabled/skipped version of BeforeAll().
+	 *
+	 * @see FPF2SpecBase::BeforeAll(const TFunction<void()>&)
+	 *
+	 * @param DoWork
+	 *	A lambda that defines the code to execute before the first It() block within the enclosing scope.
+	 */
+	void xBeforeAll(const TFunction<void()>& DoWork)
+	{
+		// Disabled.
+	}
+
+	/**
+	 * Defines code that must run asynchronous before the first It() block of the current scope.
+	 *
+	 * Each code block is executed from top to bottom. If a scope contains both BeforeAll() and BeforeEach() blocks, the
+	 * BeforeAll() blocks will be evaluated before any BeforeEach() blocks are executed, including those inherited from
+	 * outer scopes.
+	 *
+	 * BeforeAll() affects only the Describe() scope in which it is defined. Each BeforeAll() block will only execute
+	 * before the first It() block of the scope in which it has been defined.
+	 *
+	 * @param Execution
+	 *	How the code in this block should be executed (task graph, thread pool, dedicated thread, etc.).
+	 * @param DoWork
+	 *	A lambda that defines the code to execute before the first It() block within the enclosing scope.
+	 */
+	void BeforeAll(const EAsyncExecution Execution, const TFunction<void()>& DoWork)
+	{
+		const TSharedRef<FSpecDefinitionScopeEx> CurrentScope = this->GetCurrentV2Scope();
+
+		CurrentScope->BeforeAll.Push(
+			MakeShareable(new FAsyncLatentCommand(this, Execution, DoWork, DefaultTimeout, this->bEnableSkipIfError))
+		);
+	}
+
+	// ReSharper disable once CppMemberFunctionMayBeStatic
+	// ReSharper disable once CppUE4CodingStandardNamingViolationWarning
+	/**
+	 * Disabled/skipped version of BeforeAll().
+	 *
+	 * @see FPF2SpecBase::BeforeAll(const EAsyncExecution, const TFunction<void()>&)
+	 *
+	 * @param Execution
+	 *	How the code in this block should be executed (task graph, thread pool, dedicated thread, etc.).
+	 * @param DoWork
+	 *	A lambda that defines the code to execute before the first It() block within the enclosing scope.
+	 */
+	void xBeforeAll(const EAsyncExecution Execution, const TFunction<void()>& DoWork)
+	{
+		// Disabled.
+	}
+
+	/**
+	 * Defines code that must run asynchronously before the first It() block of the current scope, with a timeout.
+	 *
+	 * Each code block is executed from top to bottom. If a scope contains both BeforeAll() and BeforeEach() blocks, the
+	 * BeforeAll() blocks will be evaluated before any BeforeEach() blocks are executed, including those inherited from
+	 * outer scopes.
+	 *
+	 * BeforeAll() affects only the Describe() scope in which it is defined. Each BeforeAll() block will only execute
+	 * before the first It() block of the scope in which it has been defined.
+	 *
+	 * @param Execution
+	 *	How the code in this block should be executed (task graph, thread pool, dedicated thread, etc.).
+	 * @param Timeout
+	 *	The maximum amount of time to wait for the code in this block to execute before failing the test.
+	 * @param DoWork
+	 *	A lambda that defines the code to execute before the first It() block within the enclosing scope.
+	 */
+	void BeforeAll(const EAsyncExecution Execution, const FTimespan& Timeout, const TFunction<void()>& DoWork)
+	{
+		const TSharedRef<FSpecDefinitionScopeEx> CurrentScope = this->GetCurrentV2Scope();
+
+		CurrentScope->BeforeAll.Push(
+			MakeShareable(new FAsyncLatentCommand(this, Execution, DoWork, Timeout, this->bEnableSkipIfError))
+		);
+	}
+
+	// ReSharper disable once CppMemberFunctionMayBeStatic
+	// ReSharper disable once CppUE4CodingStandardNamingViolationWarning
+	/**
+	 * Disabled/skipped version of BeforeAll().
+	 *
+	 * @see FPF2SpecBase::BeforeAll(const EAsyncExecution, const FTimespan&, const TFunction<void()>&)
+	 *
+	 * @param Execution
+	 *	How the code in this block should be executed (task graph, thread pool, dedicated thread, etc.).
+	 * @param Timeout
+	 *	The maximum amount of time to wait for the code in this block to execute before failing the test.
+	 * @param DoWork
+	 *	A lambda that defines the code to execute before the first It() block within the enclosing scope.
+	 */
+	void xBeforeAll(const EAsyncExecution Execution, const FTimespan& Timeout, const TFunction<void()>& DoWork)
+	{
+		// Disabled.
+	}
+
+	/**
+	 * Defines code over multiple frames that must run before the first It() block of the current scope.
+	 *
+	 * Each code block is executed from top to bottom. If a scope contains both BeforeAll() and BeforeEach() blocks, the
+	 * BeforeAll() blocks will be evaluated before any BeforeEach() blocks are executed, including those inherited from
+	 * outer scopes.
+	 *
+	 * BeforeAll() affects only the Describe() scope in which it is defined. Each BeforeAll() block will only execute
+	 * before the first It() block of the scope in which it has been defined.
+	 *
+	 * @param DoWork
+	 *	A lambda that defines the code to execute before the first It() block within the enclosing scope.
+	 */
+	void LatentBeforeAll(const TFunction<void(const FDoneDelegate&)>& DoWork)
+	{
+		const TSharedRef<FSpecDefinitionScopeEx> CurrentScope = this->GetCurrentV2Scope();
+
+		CurrentScope->BeforeAll.Push(
+			MakeShareable(new FUntilDoneLatentCommand(this, DoWork, DefaultTimeout, this->bEnableSkipIfError))
+		);
+	}
+
+	// ReSharper disable once CppMemberFunctionMayBeStatic
+	// ReSharper disable once CppUE4CodingStandardNamingViolationWarning
+	/**
+	 * Disabled/skipped version of LatentBeforeAll().
+	 *
+	 * @see FPF2SpecBase::LatentBeforeAll(const TFunction<void(const FDoneDelegate&)>&)
+	 *
+	 * @param DoWork
+	 *	A lambda that defines the code to execute before the first It() block within the enclosing scope.
+	 */
+	void xLatentBeforeAll(const TFunction<void(const FDoneDelegate&)>& DoWork)
+	{
+		// Disabled.
+	}
+
+	/**
+	 * Defines code over multiple frames that must run before the first It() block of the current scope, with a timeout.
+	 *
+	 * Each code block is executed from top to bottom. If a scope contains both BeforeAll() and BeforeEach() blocks, the
+	 * BeforeAll() blocks will be evaluated before any BeforeEach() blocks are executed, including those inherited from
+	 * outer scopes.
+	 *
+	 * BeforeAll() affects only the Describe() scope in which it is defined. Each BeforeAll() block will only execute
+	 * before the first It() block of the scope in which it has been defined.
+	 *
+	 * @param Timeout
+	 *	The maximum amount of time to wait for the code in this block to execute before failing the test.
+	 * @param DoWork
+	 *	A lambda that defines the code to execute before the first It() block within the enclosing scope.
+	 */
+	void LatentBeforeAll(const FTimespan& Timeout, const TFunction<void(const FDoneDelegate&)>& DoWork)
+	{
+		const TSharedRef<FSpecDefinitionScopeEx> CurrentScope = this->GetCurrentV2Scope();
+
+		CurrentScope->BeforeAll.Push(
+			MakeShareable(new FUntilDoneLatentCommand(this, DoWork, Timeout, this->bEnableSkipIfError))
+		);
+	}
+
+	// ReSharper disable once CppMemberFunctionMayBeStatic
+	// ReSharper disable once CppUE4CodingStandardNamingViolationWarning
+	/**
+	 * Disabled/skipped version of LatentBeforeAll().
+	 *
+	 * @see FPF2SpecBase::LatentBeforeAll(const FTimespan&, const TFunction<void(const FDoneDelegate&)>&)
+	 *
+	 * @param Timeout
+	 *	The maximum amount of time to wait for the code in this block to execute before failing the test.
+	 * @param DoWork
+	 *	A lambda that defines the code to execute before the first It() block within the enclosing scope.
+	 */
+	void xLatentBeforeAll(const FTimespan& Timeout, const TFunction<void(const FDoneDelegate&)>& DoWork)
+	{
+		// Disabled.
+	}
+
+	/**
+	 * Defines async. code over multiple frames that must run before the first It() block of the current scope.
+	 *
+	 * Each code block is executed from top to bottom. If a scope contains both BeforeAll() and BeforeEach() blocks, the
+	 * BeforeAll() blocks will be evaluated before any BeforeEach() blocks are executed, including those inherited from
+	 * outer scopes.
+	 *
+	 * BeforeAll() affects only the Describe() scope in which it is defined. Each BeforeAll() block will only execute
+	 * before the first It() block of the scope in which it has been defined.
+	 *
+	 * @param Execution
+	 *	How the code in this block should be executed (task graph, thread pool, dedicated thread, etc.).
+	 * @param DoWork
+	 *	A lambda that defines the code to execute before the first It() block within the enclosing scope.
+	 */
+	void LatentBeforeAll(const EAsyncExecution Execution, const TFunction<void(const FDoneDelegate&)>& DoWork)
+	{
+		const TSharedRef<FSpecDefinitionScopeEx> CurrentScope = this->GetCurrentV2Scope();
+
+		CurrentScope->BeforeAll.Push(
+			MakeShareable(
+				new FAsyncUntilDoneLatentCommand(this, Execution, DoWork, DefaultTimeout, this->bEnableSkipIfError)
+			)
+		);
+	}
+
+	// ReSharper disable once CppMemberFunctionMayBeStatic
+	// ReSharper disable once CppUE4CodingStandardNamingViolationWarning
+	/**
+	 * Disabled/skipped version of LatentBeforeAll().
+	 *
+	 * @see FPF2SpecBase::LatentBeforeAll(const EAsyncExecution, const TFunction<void(const FDoneDelegate&)>&)
+	 *
+	 * @param Execution
+	 *	How the code in this block should be executed (task graph, thread pool, dedicated thread, etc.).
+	 * @param DoWork
+	 *	A lambda that defines the code to execute before the first It() block within the enclosing scope.
+	 */
+	void xLatentBeforeAll(const EAsyncExecution Execution, const TFunction<void(const FDoneDelegate&)>& DoWork)
+	{
+		// Disabled.
+	}
+
+	/**
+	 * Defines async. code over multiple frames that must run before the first It() block of the current scope, with a
+	 * timeout.
+	 *
+	 * Each code block is executed from top to bottom. If a scope contains both BeforeAll() and BeforeEach() blocks, the
+	 * BeforeAll() blocks will be evaluated before any BeforeEach() blocks are executed, including those inherited from
+	 * outer scopes.
+	 *
+	 * BeforeAll() affects only the Describe() scope in which it is defined. Each BeforeAll() block will only execute
+	 * before the first It() block of the scope in which it has been defined.
+	 *
+	 * @param Execution
+	 *	How the code in this block should be executed (task graph, thread pool, dedicated thread, etc.).
+	 * @param Timeout
+	 *	The maximum amount of time to wait for the code in this block to execute before failing the test.
+	 * @param DoWork
+	 *	A lambda that defines the code to execute before the first It() block within the enclosing scope.
+	 */
+	void LatentBeforeAll(const EAsyncExecution                        Execution,
+	                     const FTimespan&                             Timeout,
+	                     const TFunction<void(const FDoneDelegate&)>& DoWork)
+	{
+		const TSharedRef<FSpecDefinitionScopeEx> CurrentScope = this->GetCurrentV2Scope();
+
+		CurrentScope->BeforeAll.Push(
+			MakeShareable(new FAsyncUntilDoneLatentCommand(this, Execution, DoWork, Timeout, this->bEnableSkipIfError))
+		);
+	}
+
+	// ReSharper disable once CppMemberFunctionMayBeStatic
+	// ReSharper disable once CppUE4CodingStandardNamingViolationWarning
+	/**
+	 * Disabled/skipped version of LatentBeforeAll().
+	 *
+	 * @see FPF2SpecBase::LatentBeforeAll(const EAsyncExecution, const FTimespan&, const TFunction<void(const FDoneDelegate&)>&)
+	 *
+	 * @param Execution
+	 *	How the code in this block should be executed (task graph, thread pool, dedicated thread, etc.).
+	 * @param Timeout
+	 *	The maximum amount of time to wait for the code in this block to execute before failing the test.
+	 * @param DoWork
+	 *	A lambda that defines the code to execute before the first It() block within the enclosing scope.
+	 */
+	void xLatentBeforeAll(const EAsyncExecution                        Execution,
+	                      const FTimespan&                             Timeout,
+	                      const TFunction<void(const FDoneDelegate&)>& DoWork)
+	{
+		// Disabled.
+	}
+
+	/**
+	 * Defines code that must run after the last It() block of the current scope.
+	 *
+	 * Each code block is executed from top to bottom. If a scope contains both AfterAll() and AfterEach() blocks, the
+	 * BeforeAll() blocks will be evaluated after any BeforeEach() blocks are executed, including those inherited from
+	 * outer scopes.
+	 *
+	 * AfterAll() only affects the Describe() scope in which it is defined. Each AfterAll() block will only execute
+	 * after the last It() block of the scope in which it has been defined.
+	 *
+	 * @param DoWork
+	 *	A lambda that defines the code to execute after the last It() block within the enclosing scope.
+	 */
+	void AfterAll(const TFunction<void()>& DoWork)
+	{
+		const TSharedRef<FSpecDefinitionScopeEx> CurrentScope = this->GetCurrentV2Scope();
+
+		CurrentScope->AfterAll.Push(MakeShareable(new FSingleExecuteLatentCommand(this, DoWork)));
+	}
+
+	// ReSharper disable once CppMemberFunctionMayBeStatic
+	// ReSharper disable once CppUE4CodingStandardNamingViolationWarning
+	/**
+	 * Disabled/skipped version of AfterAll().
+	 *
+	 * @see PF2SpecBase::AfterAll(const TFunction<void()>&)
+	 *
+	 * @param DoWork
+	 *	A lambda that defines the code to execute after the last It() block within the enclosing scope.
+	 */
+	void xAfterAll(const TFunction<void()>& DoWork)
+	{
+		// Disabled.
+	}
+
+	/**
+	 * Defines code that must run after the last It() block of the current scope.
+	 *
+	 * Each code block is executed from top to bottom. If a scope contains both AfterAll() and AfterEach() blocks, the
+	 * BeforeAll() blocks will be evaluated after any BeforeEach() blocks are executed, including those inherited from
+	 * outer scopes.
+	 *
+	 * AfterAll() only affects the Describe() scope in which it is defined. Each AfterAll() block will only execute
+	 * after the last It() block of the scope in which it has been defined.
+	 *
+	 * @param Execution
+	 *	How the code in this block should be executed (task graph, thread pool, dedicated thread, etc.).
+	 * @param DoWork
+	 *	A lambda that defines the code to execute after the last It() block within the enclosing scope.
+	 */
+	void AfterAll(const EAsyncExecution Execution, const TFunction<void()>& DoWork)
+	{
+		const TSharedRef<FSpecDefinitionScopeEx> CurrentScope = this->GetCurrentV2Scope();
+
+		CurrentScope->AfterAll.Push(MakeShareable(new FAsyncLatentCommand(this, Execution, DoWork, DefaultTimeout)));
+	}
+
+	// ReSharper disable once CppMemberFunctionMayBeStatic
+	// ReSharper disable once CppUE4CodingStandardNamingViolationWarning
+	/**
+	 * Disabled/skipped version of AfterAll().
+	 *
+	 * @see FPF2SpecBase::AfterAll(const EAsyncExecution, const TFunction<void()>&)
+	 *
+	 * @param Execution
+	 *	How the code in this block should be executed (task graph, thread pool, dedicated thread, etc.).
+	 * @param DoWork
+	 *	A lambda that defines the code to execute after the last It() block within the enclosing scope.
+	 */
+	void xAfterAll(const EAsyncExecution Execution, const TFunction<void()>& DoWork)
+	{
+		// Disabled.
+	}
+
+	/**
+	 * Defines code that must run after the last It() block of the current scope.
+	 *
+	 * Each code block is executed from top to bottom. If a scope contains both AfterAll() and AfterEach() blocks, the
+	 * BeforeAll() blocks will be evaluated after any BeforeEach() blocks are executed, including those inherited from
+	 * outer scopes.
+	 *
+	 * AfterAll() only affects the Describe() scope in which it is defined. Each AfterAll() block will only execute
+	 * after the last It() block of the scope in which it has been defined.
+	 *
+	 * @param Execution
+	 *	How the code in this block should be executed (task graph, thread pool, dedicated thread, etc.).
+	 * @param Timeout
+	 *	The maximum amount of time to wait for the code in this block to execute before failing the test.
+	 * @param DoWork
+	 *	A lambda that defines the code to execute after the last It() block within the enclosing scope.
+	 */
+	void AfterAll(const EAsyncExecution Execution, const FTimespan& Timeout, const TFunction<void()>& DoWork)
+	{
+		const TSharedRef<FSpecDefinitionScopeEx> CurrentScope = this->GetCurrentV2Scope();
+
+		CurrentScope->AfterAll.Push(MakeShareable(new FAsyncLatentCommand(this, Execution, DoWork, Timeout)));
+	}
+
+	// ReSharper disable once CppMemberFunctionMayBeStatic
+	// ReSharper disable once CppUE4CodingStandardNamingViolationWarning
+	/**
+	 * Disabled/skipped version of AfterAll().
+	 *
+	 * @see FPF2SpecBase::AfterAll(const EAsyncExecution, const FTimespan&, const TFunction<void()>&)
+	 *
+	 * @param Execution
+	 *	How the code in this block should be executed (task graph, thread pool, dedicated thread, etc.).
+	 * @param Timeout
+	 *	The maximum amount of time to wait for the code in this block to execute before failing the test.
+	 * @param DoWork
+	 *	A lambda that defines the code to execute after the last It() block within the enclosing scope.
+	 */
+	void xAfterAll(const EAsyncExecution Execution, const FTimespan& Timeout, const TFunction<void()>& DoWork)
+	{
+		// Disabled.
+	}
+
+	/**
+	 * Defines code that must run after the last It() block of the current scope.
+	 *
+	 * Each code block is executed from top to bottom. If a scope contains both AfterAll() and AfterEach() blocks, the
+	 * BeforeAll() blocks will be evaluated after any BeforeEach() blocks are executed, including those inherited from
+	 * outer scopes.
+	 *
+	 * AfterAll() only affects the Describe() scope in which it is defined. Each AfterAll() block will only execute
+	 * after the last It() block of the scope in which it has been defined.
+	 *
+	 * @param DoWork
+	 *	A lambda that defines the code to execute after the last It() block within the enclosing scope.
+	 */
+	void LatentAfterAll(const TFunction<void(const FDoneDelegate&)>& DoWork)
+	{
+		const TSharedRef<FSpecDefinitionScopeEx> CurrentScope = this->GetCurrentV2Scope();
+
+		CurrentScope->AfterAll.Push(MakeShareable(new FUntilDoneLatentCommand(this, DoWork, DefaultTimeout)));
+	}
+
+	// ReSharper disable once CppMemberFunctionMayBeStatic
+	// ReSharper disable once CppUE4CodingStandardNamingViolationWarning
+	/**
+	 * Disabled/skipped version of LatentAfterAll().
+	 *
+	 * @see FPF2SpecBase::LatentAfterAll(const TFunction<void(const FDoneDelegate&)>&)
+	 *
+	 * @param DoWork
+	 *	A lambda that defines the code to execute after the last It() block within the enclosing scope.
+	 */
+	void xLatentAfterAll(const TFunction<void(const FDoneDelegate&)>& DoWork)
+	{
+		// Disabled.
+	}
+
+	/**
+	 * Defines code that must run after the last It() block of the current scope.
+	 *
+	 * Each code block is executed from top to bottom. If a scope contains both AfterAll() and AfterEach() blocks, the
+	 * BeforeAll() blocks will be evaluated after any BeforeEach() blocks are executed, including those inherited from
+	 * outer scopes.
+	 *
+	 * AfterAll() only affects the Describe() scope in which it is defined. Each AfterAll() block will only execute
+	 * after the last It() block of the scope in which it has been defined.
+	 *
+	 * @param Timeout
+	 *	The maximum amount of time to wait for the code in this block to execute before failing the test.
+	 * @param DoWork
+	 *	A lambda that defines the code to execute after the last It() block within the enclosing scope.
+	 */
+	void LatentAfterAll(const FTimespan& Timeout, const TFunction<void(const FDoneDelegate&)>& DoWork)
+	{
+		const TSharedRef<FSpecDefinitionScopeEx> CurrentScope = this->GetCurrentV2Scope();
+
+		CurrentScope->AfterAll.Push(MakeShareable(new FUntilDoneLatentCommand(this, DoWork, Timeout)));
+	}
+
+	// ReSharper disable once CppMemberFunctionMayBeStatic
+	// ReSharper disable once CppUE4CodingStandardNamingViolationWarning
+	/**
+	 * Disabled/skipped version of LatentAfterAll().
+	 *
+	 * @see FPF2SpecBase::LatentAfterAll(const FTimespan&, const TFunction<void(const FDoneDelegate&)>&)
+	 *
+	 * @param Timeout
+	 *	The maximum amount of time to wait for the code in this block to execute before failing the test.
+	 * @param DoWork
+	 *	A lambda that defines the code to execute after the last It() block within the enclosing scope.
+	 */
+	void xLatentAfterAll(const FTimespan& Timeout, const TFunction<void(const FDoneDelegate&)>& DoWork)
+	{
+		// Disabled.
+	}
+
+	/**
+	 * Defines code that must run after the last It() block of the current scope.
+	 *
+	 * Each code block is executed from top to bottom. If a scope contains both AfterAll() and AfterEach() blocks, the
+	 * BeforeAll() blocks will be evaluated after any BeforeEach() blocks are executed, including those inherited from
+	 * outer scopes.
+	 *
+	 * AfterAll() only affects the Describe() scope in which it is defined. Each AfterAll() block will only execute
+	 * after the last It() block of the scope in which it has been defined.
+	 *
+	 * @param Execution
+	 *	How the code in this block should be executed (task graph, thread pool, dedicated thread, etc.).
+	 * @param DoWork
+	 *	A lambda that defines the code to execute after the last It() block within the enclosing scope.
+	 */
+	void LatentAfterAll(const EAsyncExecution Execution, const TFunction<void(const FDoneDelegate&)>& DoWork)
+	{
+		const TSharedRef<FSpecDefinitionScopeEx> CurrentScope = this->GetCurrentV2Scope();
+
+		CurrentScope->AfterAll.Push(
+			MakeShareable(new FAsyncUntilDoneLatentCommand(this, Execution, DoWork, DefaultTimeout))
+		);
+	}
+
+	// ReSharper disable once CppMemberFunctionMayBeStatic
+	// ReSharper disable once CppUE4CodingStandardNamingViolationWarning
+	/**
+	 * Disabled/skipped version of LatentAfterAll().
+	 *
+	 * @see FPF2SpecBase::LatentAfterAll(const EAsyncExecution, const TFunction<void(const FDoneDelegate&)>&)
+	 *
+	 * @param Execution
+	 *	How the code in this block should be executed (task graph, thread pool, dedicated thread, etc.).
+	 * @param DoWork
+	 *	A lambda that defines the code to execute after the last It() block within the enclosing scope.
+	 */
+	void xLatentAfterAll(const EAsyncExecution Execution, const TFunction<void(const FDoneDelegate&)>& DoWork)
+	{
+		// Disabled.
+	}
+
+	/**
+	 * Defines code that must run after the last It() block of the current scope.
+	 *
+	 * Each code block is executed from top to bottom. If a scope contains both AfterAll() and AfterEach() blocks, the
+	 * BeforeAll() blocks will be evaluated after any BeforeEach() blocks are executed, including those inherited from
+	 * outer scopes.
+	 *
+	 * AfterAll() only affects the Describe() scope in which it is defined. Each AfterAll() block will only execute
+	 * after the last It() block of the scope in which it has been defined.
+	 *
+	 * @param Execution
+	 *	How the code in this block should be executed (task graph, thread pool, dedicated thread, etc.).
+	 * @param Timeout
+	 *	The maximum amount of time to wait for the code in this block to execute before failing the test.
+	 * @param DoWork
+	 *	A lambda that defines the code to execute after the last It() block within the enclosing scope.
+	 */
+	void LatentAfterAll(const EAsyncExecution                        Execution,
+	                    const FTimespan&                             Timeout,
+	                    const TFunction<void(const FDoneDelegate&)>& DoWork)
+	{
+		const TSharedRef<FSpecDefinitionScopeEx> CurrentScope = this->GetCurrentV2Scope();
+
+		CurrentScope->AfterAll.Push(MakeShareable(new FAsyncUntilDoneLatentCommand(this, Execution, DoWork, Timeout)));
+	}
+
+	// ReSharper disable once CppMemberFunctionMayBeStatic
+	// ReSharper disable once CppUE4CodingStandardNamingViolationWarning
+	/**
+	 * Disabled/skipped version of LatentAfterAll().
+	 *
+	 * @see FPF2SpecBase::LatentAfterAll(const EAsyncExecution, const FTimespan&, const TFunction<void(const FDoneDelegate&)>&)
+	 *
+	 * @param Execution
+	 *	How the code in this block should be executed (task graph, thread pool, dedicated thread, etc.).
+	 * @param Timeout
+	 *	The maximum amount of time to wait for the code in this block to execute before failing the test.
+	 * @param DoWork
+	 *	A lambda that defines the code to execute after the last It() block within the enclosing scope.
+	 */
+	void xLatentAfterAll(const EAsyncExecution                        Execution,
+	                     const FTimespan&                             Timeout,
+	                     const TFunction<void(const FDoneDelegate&)>& DoWork)
+	{
+		// Disabled.
+	}
 
 	/**
 	 * Instantiates a blueprint for use in a C++ test.
@@ -572,6 +1233,22 @@ protected:
 			);
 		}
 	}
+
+	/**
+	 * Ensures that all test definitions have been loaded and cached.
+	 *
+	 * This is a re-implementation of FAutomationSpecBase::EnsureDefinitions() to invoke PostDefineEx() for handling v2
+	 * spec definitions that include BeforeAll() and AfterAll().
+	 */
+	void EnsureDefinitionsEx() const;
+
+	/**
+	 * Converts all test definitions into executable tests.
+	 *
+	 * This is a re-implementation of FAutomationSpecBase::PostDefine() to handle v2 spec definitions that include
+	 * BeforeAll() and AfterAll().
+	 */
+	void PostDefineEx();
 
 	/**
 	 * Converts an array of 32-bit integers to a comma-delimited string.

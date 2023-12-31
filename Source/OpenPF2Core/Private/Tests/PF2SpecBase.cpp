@@ -19,6 +19,75 @@
 #include "Utilities/PF2GameplayAbilityUtilities.h"
 #include "Utilities/PF2InterfaceUtilities.h"
 
+bool FPF2SpecBase::RunTest(const FString& InParameters)
+{
+	FAutomationTestFramework& AutomationTestFramework = FAutomationTestFramework::GetInstance();
+
+	this->EnsureDefinitionsEx();
+
+	if (InParameters.IsEmpty())
+	{
+		TArray<TSharedRef<FSpec>> Specs;
+		IdToSpecMap.GenerateValueArray(Specs);
+
+		// Run all tests.
+		for (int32 SpecIndex = 0; SpecIndex < Specs.Num(); SpecIndex++)
+		{
+			for (int32 CommandIndex = 0; CommandIndex < Specs[SpecIndex]->Commands.Num(); ++CommandIndex)
+			{
+				AutomationTestFramework.EnqueueLatentCommand(Specs[SpecIndex]->Commands[CommandIndex]);
+			}
+		}
+	}
+	else
+	{
+		const TSharedRef<FSpec>* SpecToRun = IdToSpecMap.Find(InParameters);
+
+		// Run specific tests.
+		if (SpecToRun != nullptr)
+		{
+			for (int32 Index = 0; Index < (*SpecToRun)->Commands.Num(); ++Index)
+			{
+				AutomationTestFramework.EnqueueLatentCommand((*SpecToRun)->Commands[Index]);
+			}
+		}
+	}
+
+	return true;
+}
+
+void FPF2SpecBase::GetTests(TArray<FString>& OutBeautifiedNames, TArray<FString>& OutTestCommands) const
+{
+	this->EnsureDefinitionsEx();
+
+	FAutomationSpecBase::GetTests(OutBeautifiedNames, OutTestCommands);
+}
+
+void FPF2SpecBase::Describe(const FString& InDescription, const uint8 SpecVersion, const TFunction<void()>& DoWork)
+{
+	LLM_SCOPE_BYNAME(TEXT("AutomationTest/Framework"));
+	const TSharedRef<FSpecDefinitionScope> ParentScope = DefinitionScopeStack.Last();
+	// --- Start OpenPF2 Differences from <Misc/AutomationTest.h>
+	const TSharedRef<FSpecDefinitionScope> NewScope =
+		MakeShareable(
+			(SpecVersion == 2) ? new FSpecDefinitionScopeEx() : new FSpecDefinitionScope()
+		);
+	// --- End OpenPF2 Differences from <Misc/AutomationTest.h>
+	NewScope->Description = InDescription;
+	ParentScope->Children.Push(NewScope);
+
+	DefinitionScopeStack.Push(NewScope);
+	PushDescription(InDescription);
+	DoWork();
+	PopDescription(InDescription);
+	DefinitionScopeStack.Pop();
+
+	if (NewScope->It.Num() == 0 && NewScope->Children.Num() == 0)
+	{
+		ParentScope->Children.Remove(NewScope);
+	}
+}
+
 FAttributeCapture FPF2SpecBase::CaptureAttributes(const UPF2CharacterAttributeSet* AttributeSet)
 {
 	FAttributeCapture Capture =
@@ -309,4 +378,119 @@ void FPF2SpecBase::ApplyUnreplicatedTag(const FString& TagName) const
 void FPF2SpecBase::RemoveUnreplicatedTag(const FString& TagName) const
 {
 	this->TestPawnAsc->RemoveLooseGameplayTag(PF2GameplayAbilityUtilities::GetTag(TagName));
+}
+
+void FPF2SpecBase::EnsureDefinitionsEx() const
+{
+	if (!bHasBeenDefined)
+	{
+		const_cast<FPF2SpecBase*>(this)->Define();
+		const_cast<FPF2SpecBase*>(this)->PostDefineEx();
+	}
+}
+
+void FPF2SpecBase::PostDefineEx()
+{
+	TArray<TSharedRef<FSpecDefinitionScope>> Stack;
+	Stack.Push(RootDefinitionScope.ToSharedRef());
+
+	TArray<TSharedRef<IAutomationLatentCommand>> BeforeAll,
+	                                             BeforeEach,
+	                                             AfterEach,
+	                                             AfterAll;
+
+	while (Stack.Num() > 0)
+	{
+		const TSharedRef<FSpecDefinitionScope> Scope = Stack.Last();
+
+		if (Scope->SpecDefinitionVersion == 2)
+		{
+			const TSharedRef<FSpecDefinitionScopeEx> ScopeV2 = this->GetCurrentV2Scope();
+
+			BeforeAll.Append(ScopeV2->BeforeAll);
+			BeforeAll.Append(ScopeV2->AfterAll);
+		}
+
+		BeforeEach.Append(Scope->BeforeEach);
+		AfterEach.Append(Scope->AfterEach);
+
+		for (int32 ItIndex = 0; ItIndex < Scope->It.Num(); ItIndex++)
+		{
+			const TSharedRef<FSpecIt> It   = Scope->It[ItIndex];
+			TSharedRef<FSpec>         Spec = MakeShareable(new FSpec());
+
+			Spec->Id               = It->Id;
+			Spec->Description      = It->Description;
+			Spec->Filename         = It->Filename;
+			Spec->LineNumber       = It->LineNumber;
+
+			Spec->Commands.Append(BeforeAll);
+			Spec->Commands.Append(BeforeEach);
+			Spec->Commands.Add(It->Command);
+
+			// Iterate in reverse to evaluate AfterEach() from the inner-most scope outwards.
+			for (int32 AfterEachIndex = AfterEach.Num() - 1; AfterEachIndex >= 0; AfterEachIndex--)
+			{
+				Spec->Commands.Add(AfterEach[AfterEachIndex]);
+			}
+
+			for (int32 AfterAllIndex = AfterAll.Num() - 1; AfterAllIndex >= 0; AfterAllIndex--)
+			{
+				Spec->Commands.Add(AfterAll[AfterAllIndex]);
+			}
+
+			check(!IdToSpecMap.Contains(Spec->Id));
+			IdToSpecMap.Add(Spec->Id, Spec);
+		}
+
+		Scope->It.Empty();
+
+		if (Scope->Children.Num() > 0)
+		{
+			Stack.Append(Scope->Children);
+			Scope->Children.Empty();
+		}
+		else
+		{
+			while (Stack.Num() > 0 && Stack.Last()->Children.Num() == 0 && Stack.Last()->It.Num() == 0)
+			{
+				const TSharedRef<FSpecDefinitionScope> PoppedScope        = Stack.Pop();
+				const int32                            NumBeforeEachAdded = PoppedScope->BeforeEach.Num(),
+				                                       NumAfterEachAdded  = PoppedScope->AfterEach.Num();
+
+				if (NumBeforeEachAdded > 0)
+				{
+					BeforeEach.RemoveAt(BeforeEach.Num() - NumBeforeEachAdded, NumBeforeEachAdded);
+				}
+
+				if (NumAfterEachAdded > 0)
+				{
+					AfterEach.RemoveAt(AfterEach.Num() - NumAfterEachAdded, NumAfterEachAdded);
+				}
+
+				if (PoppedScope->SpecDefinitionVersion == 2)
+				{
+					const TSharedRef<FSpecDefinitionScopeEx> PoppedScopeV2 =
+						StaticCastSharedRef<FSpecDefinitionScopeEx>(PoppedScope);
+
+					const int32 NumBeforeAllAdded = PoppedScopeV2->BeforeAll.Num(),
+					            NumAfterAllAdded  = PoppedScopeV2->AfterAll.Num();
+
+					if (NumBeforeAllAdded > 0)
+					{
+						BeforeAll.RemoveAt(BeforeAll.Num() - NumBeforeAllAdded, NumBeforeAllAdded);
+					}
+
+					if (NumAfterAllAdded > 0)
+					{
+						AfterAll.RemoveAt(AfterAll.Num() - NumAfterAllAdded, NumAfterAllAdded);
+					}
+				}
+			}
+		}
+	}
+
+	RootDefinitionScope.Reset();
+	DefinitionScopeStack.Reset();
+	bHasBeenDefined = true;
 }
