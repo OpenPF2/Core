@@ -960,34 +960,20 @@ FString FPF2AutomationSpecBase::GetDescription() const
 	return CompleteDescription;
 }
 
-// @fixme this feels broken. The stack is always the same for the whole test and what gets shown in the test interface
-// is useless.
 TSharedRef<TArray<FProgramCounterSymbolInfo>> FPF2AutomationSpecBase::GetCallStack()
 {
 	QUICK_SCOPE_CYCLE_COUNTER(STAT_FPF2AutomationSpecBase_GetStack);
 
-	static bool bLastSkipStackWalk(FAutomationTestFramework::NeedSkipStackWalk());
-
-	static TSharedRef<TArray<FProgramCounterSymbolInfo>> CachedStack =
-		MakeShared<TArray<FProgramCounterSymbolInfo>>(
-			bLastSkipStackWalk ? SkipCallStackWalk() : CallStackWalk()
-		);
-
-	// React to changes in the value of the corresponding CVar since the last time the stack was cached.
-	if (bLastSkipStackWalk != FAutomationTestFramework::NeedSkipStackWalk())
-	{
-		bLastSkipStackWalk = !bLastSkipStackWalk;
-		CachedStack = MakeShared<TArray<FProgramCounterSymbolInfo>>(bLastSkipStackWalk ? SkipCallStackWalk() : CallStackWalk());
-	}
-
-	return CachedStack;
+	return MakeShared<TArray<FProgramCounterSymbolInfo>>(
+		FAutomationTestFramework::NeedSkipStackWalk() ? SkipCallStackWalk() : CallStackWalk()
+	);
 }
 
 TArray<FProgramCounterSymbolInfo> FPF2AutomationSpecBase::CallStackWalk()
 {
 	QUICK_SCOPE_CYCLE_COUNTER(STAT_FPF2AutomationSpecBase_StackWalk);
 	LLM_SCOPE_BYNAME(TEXT("AutomationTest/Framework"));
-	SAFE_GETSTACK(Stack, 1, 1);
+	SAFE_GETSTACK(Stack, 3, 1);
 
 	return Stack;
 }
