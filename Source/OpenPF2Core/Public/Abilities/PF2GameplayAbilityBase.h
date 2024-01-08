@@ -226,4 +226,23 @@ protected:
 		AActor*                            Instigator,
 		AActor*                            EffectCauser,
 		const float                        Level = 1.0f) const;
+
+	/**
+	 * Activates a Gameplay Effect (GE) on the owning ASC using source, instigator, causer, and tags from an event.
+	 *
+	 * This only works if all of the following are true:
+	 * 1. The Gameplay Event was triggered by a Gameplay Effect (GE); and
+	 * 2. The Gameplay Effect was triggered/applied by a GA (likely a *different* GA than this one); and
+	 * 3. The triggering GA is instanced per execution; and
+	 * 4. The Gameplay Effect context has been provided in the ContextHandle field of the payload.
+	 *
+	 * @param GameplayEffectClass
+	 *	The type of gameplay effect to activate with the forwarded context.
+	 * @param EventData
+	 *	The payload provided along with the Gameplay Event.
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure=false, Category="OpenPF2|Gameplay Abilities")
+	FActiveGameplayEffectHandle ApplyGameplayEffectToSelfWithForwardedGameplayEventContext(
+		const TSubclassOf<UGameplayEffect> GameplayEffectClass,
+		const FGameplayEventData&          EventData) const;
 };

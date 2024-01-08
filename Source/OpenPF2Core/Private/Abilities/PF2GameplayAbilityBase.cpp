@@ -282,9 +282,9 @@ FGameplayEffectSpecHandle UPF2GameplayAbilityBase::MakeOutgoingGameplayEffectSpe
 
 FGameplayEffectSpecHandle UPF2GameplayAbilityBase::MakeOutgoingGameplayEffectSpecForInstigatorAndCauser(
 	const TSubclassOf<UGameplayEffect> GameplayEffectClass,
-	AActor* Instigator,
-	AActor* EffectCauser,
-	const float Level) const
+	AActor*                            Instigator,
+	AActor*                            EffectCauser,
+	const float                        Level) const
 {
 	check(this->CurrentActorInfo != nullptr);
 	check(this->CurrentActorInfo->AbilitySystemComponent.IsValid());
@@ -297,4 +297,33 @@ FGameplayEffectSpecHandle UPF2GameplayAbilityBase::MakeOutgoingGameplayEffectSpe
 		EffectCauser,
 		Level
 	);
+}
+
+FActiveGameplayEffectHandle UPF2GameplayAbilityBase::ApplyGameplayEffectToSelfWithForwardedGameplayEventContext(
+	const TSubclassOf<UGameplayEffect> GameplayEffectClass,
+	const FGameplayEventData&          EventData) const
+{
+	const FGameplayEffectSpecHandle EffectSpecHandle =
+		UPF2AbilitySystemLibrary::MakeGameplayEffectSpecFromGameplayEventContext(GameplayEffectClass, EventData);
+
+	if (EffectSpecHandle.IsValid())
+	{
+		return this->ApplyGameplayEffectSpecToOwner(
+			this->CurrentSpecHandle,
+			this->CurrentActorInfo,
+			this->CurrentActivationInfo,
+			EffectSpecHandle
+		);
+	}
+	else
+	{
+		UE_LOG(
+			LogPf2CoreAbilities,
+			Error,
+			TEXT("Failed to make GE spec from Gameplay Event context received by ability ('%s'); there was insufficient context available in the event payload."),
+			*(this->GetIdForLogs())
+		);
+
+		return FActiveGameplayEffectHandle();
+	}
 }

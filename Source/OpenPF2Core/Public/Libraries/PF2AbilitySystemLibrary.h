@@ -14,6 +14,8 @@
 #include "PF2PlayerControllerInterface.h"
 #include "PF2TargetSelectionType.h"
 
+#include "Utilities/PF2InterfaceUtilities.h"
+
 #include "PF2AbilitySystemLibrary.generated.h"
 
 // =====================================================================================================================
@@ -45,10 +47,90 @@ public:
 	 *	A reference to the container to receive the captured source tags.
 	 */
 	UFUNCTION(BlueprintCallable, Category="OpenPF2|Gameplay Abilities")
-	static void GetCapturedSourceTags(const FGameplayEffectSpec& GameplayEffectSpec, FGameplayTagContainer& SourceTags);
+	static void GetCapturedSourceTags(const FGameplayEffectSpec& GameplayEffectSpec,
+	                                  FGameplayTagContainer&     SourceTags)
+	{
+		SourceTags.AppendTags(*GameplayEffectSpec.CapturedSourceTags.GetAggregatedTags());
+	}
 
 	/**
-	 * Creates an outgoing gameplay effect (GE) spec for damage from a weapon.
+	 * Extracts the effect causer that was supplied as the first optional object in a Gameplay Event payload.
+	 *
+	 * @param EventData
+	 *	The payload provided along with the Gameplay Event.
+	 *
+	 * @return
+	 *	Either the character as a Blueprint-friendly script interface, or a script interface that wraps nullptr if the
+	 *	the first optional object is a nullptr or not a OpenPF2-compatible character.
+	 */
+	UFUNCTION(BlueprintCallable, Category="OpenPF2|Gameplay Abilities")
+	static TScriptInterface<IPF2CharacterInterface> GetCausingCharacterFromGameplayEventPayload(
+		const FGameplayEventData& EventData);
+
+	/**
+	 * Locates the instance of the Gameplay Ability (GA) that activated the effect that emitted an event.
+	 *
+	 * This only works if all of the following are true:
+	 * 1. The Gameplay Event was triggered by a Gameplay Effect (GE); and
+	 * 2. The Gameplay Effect was triggered/applied by a GA; and
+	 * 3. The GA is instanced per execution; and
+	 * 4. The Gameplay Effect context has been provided in the ContextHandle field of the payload.
+	 *
+	 * @param EventData
+	 *	The payload provided along with the Gameplay Event.
+	 *
+	 * @return
+	 *	Either a pointer to the instigating GA, or a nullptr if the preconditions indicated above did not hold.
+	 */
+	UFUNCTION(BlueprintCallable, Category="OpenPF2|Gameplay Abilities")
+	static const UGameplayAbility* GetAbilityInstanceFromGameplayEventPayload(
+		const FGameplayEventData& EventData);
+
+	/**
+	 * Determines the instigator and damage source from the given Gameplay Effect (GE) activation specification.
+	 *
+	 * @param [in] EffectSpec
+	 *	A specification that provides context about the GE execution.
+	 * @param [out] Instigator
+	 *	The character who is ultimately responsible for the damage. This could be null if the damage is caused by the
+	 *	world.
+	 * @param [out] DamageSource
+	 *	The actor that directly inflicted the damage, such as a weapon or projectile.
+	 */
+	UFUNCTION(BlueprintCallable, Category="OpenPF2|Gameplay Abilities")
+	static void DetermineDamageInstigatorAndSource(const FGameplayEffectSpec&                EffectSpec,
+	                                               TScriptInterface<IPF2CharacterInterface>& Instigator,
+	                                               AActor*&                                  DamageSource);
+
+	/**
+	 * Creates a Gameplay Effect (GE) specification from context in a Gameplay Event.
+	 *
+	 * This enables a new GE to be applied to the target as if it was initiated by a prior ability action on the source.
+	 * We are forwarding details about the original ability activation into a new GE activation on the target, as if it
+	 * originated from the source.
+	 *
+	 * This only works if all of the following are true:
+	 * 1. The Gameplay Event was triggered by a Gameplay Effect (GE); and
+	 * 2. The Gameplay Effect was triggered/applied by a GA; and
+	 * 3. The GA is instanced per execution; and
+	 * 4. The Gameplay Effect context has been provided in the ContextHandle field of the payload.
+	 *
+	 * @param GameplayEffectClass
+	 *	The type of gameplay effect for which a spec is desired.
+	 * @param EventData
+	 *	The payload provided along with the Gameplay Event.
+	 *
+	 * @return
+	 *	Either a valid handle for the specified Gameplay Effect, or an invalid handle if the preconditions indicated
+	 *	above did not hold.
+	 */
+	UFUNCTION(BlueprintCallable, Category="OpenPF2|Gameplay Abilities")
+	static FGameplayEffectSpecHandle MakeGameplayEffectSpecFromGameplayEventContext(
+		const TSubclassOf<UGameplayEffect> GameplayEffectClass,
+		const FGameplayEventData&          EventData);
+
+	/**
+	 * Creates a gameplay effect (GE) spec for damage from a weapon.
 	 *
 	 * This method differs from methods like MakeEffectContextForCauser() and MakeEffectContextForInstigatorAndCauser()
 	 * in that it returns the server handle for a GE *specification* rather than for a GE *context*. The former is a
@@ -80,7 +162,7 @@ public:
 		const float                                  Level = 1.0f);
 
 	/**
-	 * Creates an outgoing gameplay effect (GE) spec that has a custom effect causer.
+	 * Creates a gameplay effect (GE) spec that has a custom effect causer.
 	 *
 	 * This is similar to MakeOutgoingGameplayEffectSpec() in GAS except that the effect causer can be set rather than
 	 * it being set equal to the "avatar actor" which, in many games, is identical to the "owner actor" that is used as
@@ -128,7 +210,7 @@ public:
 	}
 
 	/**
-	 * Creates an outgoing gameplay effect (GE) spec that has a custom instigator and effect causer.
+	 * Creates a gameplay effect (GE) spec that has a custom instigator and effect causer.
 	 *
 	 * This is similar to MakeOutgoingGameplayEffectSpec() in GAS except that the instigator and effect causer can both
 	 * be set rather than them being based on the "avatar actor" which, in many games, is identical to the

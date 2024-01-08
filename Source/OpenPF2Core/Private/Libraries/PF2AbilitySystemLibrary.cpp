@@ -13,10 +13,145 @@
 
 #include "Items/Weapons/PF2WeaponInterface.h"
 
-void UPF2AbilitySystemLibrary::GetCapturedSourceTags(const FGameplayEffectSpec& GameplayEffectSpec,
-                                                     FGameplayTagContainer&     SourceTags)
+TScriptInterface<IPF2CharacterInterface> UPF2AbilitySystemLibrary::GetCausingCharacterFromGameplayEventPayload(
+	const FGameplayEventData& EventData)
 {
-	SourceTags.AppendTags(*GameplayEffectSpec.CapturedSourceTags.GetAggregatedTags());
+	TScriptInterface<IPF2CharacterInterface> Result;
+	const UObject*                           Object        = EventData.OptionalObject.Get();
+	IPF2CharacterInterface*                  CharacterIntf = Cast<IPF2CharacterInterface>(const_cast<UObject*>(Object));
+
+	if (CharacterIntf == nullptr)
+	{
+		Result = TScriptInterface<IPF2CharacterInterface>(nullptr);
+	}
+	else
+	{
+		Result = PF2InterfaceUtilities::ToScriptInterface(CharacterIntf);
+	}
+
+	return Result;
+}
+
+const UGameplayAbility* UPF2AbilitySystemLibrary::GetAbilityInstanceFromGameplayEventPayload(
+	const FGameplayEventData& EventData)
+{
+	const UGameplayAbility*            Result        = nullptr;
+	const FGameplayEffectContextHandle ContextHandle = EventData.ContextHandle;
+
+	if (ContextHandle.IsValid())
+	{
+		Result = ContextHandle.GetAbilityInstance_NotReplicated();
+	}
+
+	return Result;
+}
+
+void UPF2AbilitySystemLibrary::DetermineDamageInstigatorAndSource(
+	const FGameplayEffectSpec&                EffectSpec,
+	TScriptInterface<IPF2CharacterInterface>& Instigator,
+	AActor*&                                  DamageSource)
+{
+	const FGameplayEffectContextHandle EffectContext   = EffectSpec.GetContext();
+	AActor*                            InstigatorActor = EffectContext.GetInstigator();
+
+	// Initialize both to NULL to start.
+	Instigator   = TScriptInterface<IPF2CharacterInterface>(nullptr);
+	DamageSource = nullptr;
+
+	// Initially, assume that the damage source is the instigator.
+	if (IsValid(InstigatorActor))
+	{
+		Instigator   = InstigatorActor;
+		DamageSource = InstigatorActor;
+	}
+
+	// If we have been given an explicit GE "causer", use that as the damage source instead of the instigator.
+	if (EffectContext.GetEffectCauser() != nullptr)
+	{
+		DamageSource = EffectContext.GetEffectCauser();
+	}
+}
+
+FGameplayEffectSpecHandle UPF2AbilitySystemLibrary::MakeGameplayEffectSpecFromGameplayEventContext(
+	const TSubclassOf<UGameplayEffect> GameplayEffectClass,
+	const FGameplayEventData&          EventData)
+{
+	FGameplayEffectSpecHandle Result          = FGameplayEffectSpecHandle();
+	const UGameplayAbility*   AbilityInstance = GetAbilityInstanceFromGameplayEventPayload(EventData);
+
+	if (AbilityInstance == nullptr)
+	{
+		UE_LOG(
+			LogPf2CoreAbilities,
+			Warning,
+			TEXT("MakeGameplayEffectSpecFromGameplayEventContext() invoked with insufficient context or a non-instanced GA.")
+		);
+	}
+	else
+	{
+		// This is the ability from the source ASC (i.e., the ability from the source character that resulted in an
+		// effect on the source. We are forwarding details about this ability activation into a new gameplay effect that
+		// is being applied to the target as if it originated from the source.
+		FGameplayAbilitySpec* AbilitySpec = AbilityInstance->GetCurrentAbilitySpec();
+
+		if (AbilitySpec == nullptr)
+		{
+			UE_LOG(
+				LogPf2CoreAbilities,
+				Warning,
+				TEXT("MakeGameplayEffectSpecFromGameplayEventContext() invoked a GA that has an invalid spec handle.")
+			);
+		}
+		else
+		{
+			const FGameplayEffectContextHandle   SourceGeContextHandle = EventData.ContextHandle;
+			const FGameplayAbilityActorInfo&     SourceActorInfo       = AbilityInstance->GetActorInfo();
+			const UAbilitySystemComponent* const SourceAsc             = SourceActorInfo.AbilitySystemComponent.Get();
+
+			// Effect context handle should be valid by now since it's a pre-req for getting the ability spec handle.
+			check(SourceGeContextHandle.IsValid());
+
+			const FGameplayEffectContextHandle NewEffectContext =
+				MakeEffectContextForInstigatorAndCauser(
+					AbilitySpec->Handle,
+					SourceActorInfo,
+					SourceGeContextHandle.GetInstigator(),
+					SourceGeContextHandle.GetEffectCauser()
+				);
+
+			const FGameplayEffectSpecHandle NewEffectHandle =
+				SourceAsc->MakeOutgoingSpec(
+					GameplayEffectClass,
+					SourceGeContextHandle.GetAbilityLevel(),
+					NewEffectContext
+				);
+
+			if (NewEffectHandle.IsValid())
+			{
+				// Copy over the all-important source tags from the GA and its source.
+				AbilitySpec->Ability->ApplyAbilityTagsToGameplayEffectSpec(
+					*NewEffectHandle.Data.Get(),
+					AbilitySpec
+				);
+
+				// Copy over set by caller magnitudes.
+				NewEffectHandle.Data->SetByCallerTagMagnitudes = AbilitySpec->SetByCallerTagMagnitudes;
+
+				Result = NewEffectHandle;
+			}
+			else
+			{
+				UE_LOG(
+					LogPf2CoreAbilities,
+					Error,
+					TEXT("Failed to obtain handle for gameplay effect ('%s')."),
+					*(GameplayEffectClass->GetName())
+				);
+			}
+		}
+	}
+
+	return Result;
 }
 
 FGameplayEffectSpecHandle UPF2AbilitySystemLibrary::MakeGameplayEffectSpecForWeapon(

@@ -13,11 +13,17 @@
 #include "Abilities/PF2CharacterAttributeSet.h"
 
 #include <GameplayEffectExtension.h>
+
 #include <GameFramework/Controller.h>
+
 #include <Net/UnrealNetwork.h>
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "PF2CharacterInterface.h"
+
+#include "Libraries/PF2AbilitySystemLibrary.h"
+
+#include "Utilities/PF2InterfaceUtilities.h"
 
 UPF2CharacterAttributeSet::UPF2CharacterAttributeSet() :
 	Experience(0.0f),
@@ -549,13 +555,12 @@ void UPF2CharacterAttributeSet::PreAttributeChange(const FGameplayAttribute& Att
 
 void UPF2CharacterAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
 {
-	Super::PostGameplayEffectExecute(Data);
+	const FGameplayEffectSpec& EffectSpec        = Data.EffectSpec;
+	const FGameplayAttribute   ModifiedAttribute = Data.EvaluatedData.Attribute;
+	IPF2CharacterInterface*    TargetCharacter   = PF2GameplayAbilityUtilities::GetEffectTarget(&Data);
+	float                      ValueDelta        = 0;
 
-	const FGameplayEffectContextHandle Context           = Data.EffectSpec.GetContext();
-	const FGameplayTagContainer*       EventTags         = Data.EffectSpec.CapturedSourceTags.GetAggregatedTags();
-	const FGameplayAttribute           ModifiedAttribute = Data.EvaluatedData.Attribute;
-	IPF2CharacterInterface*            TargetCharacter   = PF2GameplayAbilityUtilities::GetEffectTarget(&Data);
-	float                              ValueDelta        = 0;
+	Super::PostGameplayEffectExecute(Data);
 
 	checkf(
 		((TargetCharacter == nullptr) || (TargetCharacter->ToActor() == this->GetOwningActor())),
@@ -569,35 +574,38 @@ void UPF2CharacterAttributeSet::PostGameplayEffectExecute(const FGameplayEffectM
 
 	if (ModifiedAttribute == this->GetTmpDamageIncomingAttribute())
 	{
-		this->Native_OnDamageIncomingChanged(Context, TargetCharacter, EventTags);
+		this->Native_OnDamageIncomingChanged(EffectSpec, TargetCharacter);
 	}
 	else if (ModifiedAttribute == this->GetHitPointsAttribute())
 	{
-		this->Native_OnHitPointsChanged(Context, nullptr, nullptr, TargetCharacter, ValueDelta, EventTags);
+		this->Native_OnHitPointsChanged(EffectSpec, TargetCharacter, ValueDelta);
 	}
 	else if (ModifiedAttribute == this->GetSpeedAttribute())
 	{
-		this->Native_OnSpeedChanged(TargetCharacter, ValueDelta, EventTags);
+		this->Native_OnSpeedChanged(EffectSpec, TargetCharacter, ValueDelta);
 	}
 	else if (ModifiedAttribute == this->GetEncMultipleAttackPenaltyAttribute())
 	{
-		this->Native_OnMultipleAttackPenaltyChanged(TargetCharacter, ValueDelta);
+		this->Native_OnMultipleAttackPenaltyChanged(EffectSpec, TargetCharacter, ValueDelta);
 	}
 }
 
-void UPF2CharacterAttributeSet::EmitGameplayEvent(const FGameplayTag&                 EventTag,
-                                                  const float                         EventMagnitude,
-                                                  IPF2CharacterInterface*             Instigator,
-                                                  IPF2CharacterInterface*             TargetCharacter,
-                                                  AActor*                             DamageSource,
-                                                  const FGameplayEffectContextHandle& Context) const
+void UPF2CharacterAttributeSet::EmitGameplayEvent(const FGameplayTag&        EventTag,
+                                                  const float                EventMagnitude,
+                                                  IPF2CharacterInterface*    TargetCharacter,
+                                                  const FGameplayEffectSpec& SourceEffectSpec) const
 {
-	UAbilitySystemComponent* OwningAsc    = this->GetOwningAbilitySystemComponent();
-	FGameplayEventData       EventPayload;
+	UAbilitySystemComponent*                 OwningAsc     = this->GetOwningAbilitySystemComponent();
+	FGameplayEventData                       EventPayload;
+	TScriptInterface<IPF2CharacterInterface> Instigator;
+	AActor*                                  DamageSource  = nullptr;
 
+	UPF2AbilitySystemLibrary::DetermineDamageInstigatorAndSource(SourceEffectSpec, Instigator, DamageSource);
+
+	EventPayload.EventTag       = EventTag;
 	EventPayload.EventMagnitude = EventMagnitude;
 	EventPayload.OptionalObject = DamageSource;
-	EventPayload.ContextHandle  = Context;
+	EventPayload.ContextHandle  = SourceEffectSpec.GetContext();
 
 	if (Instigator != nullptr)
 	{
@@ -612,17 +620,14 @@ void UPF2CharacterAttributeSet::EmitGameplayEvent(const FGameplayTag&           
 	OwningAsc->HandleGameplayEvent(EventTag, &EventPayload);
 }
 
-void UPF2CharacterAttributeSet::Native_OnDamageIncomingChanged(const FGameplayEffectContextHandle& Context,
-                                                               IPF2CharacterInterface*             TargetCharacter,
-                                                               const FGameplayTagContainer*        EventTags)
+void UPF2CharacterAttributeSet::Native_OnDamageIncomingChanged(const FGameplayEffectSpec& SourceEffectSpec,
+                                                               IPF2CharacterInterface*    TargetCharacter)
 {
 	const float LocalDamage = this->GetTmpDamageIncoming();
 
 	if (LocalDamage > 0.0f)
 	{
-		const float             CurrentHitPoints = this->GetHitPoints();
-		IPF2CharacterInterface* Instigator       = nullptr;
-		AActor*                 DamageSource     = nullptr;
+		const float CurrentHitPoints = this->GetHitPoints();
 
 		this->SetTmpDamageIncoming(0.0f);
 
@@ -637,21 +642,13 @@ void UPF2CharacterAttributeSet::Native_OnDamageIncomingChanged(const FGameplayEf
 		}
 		else
 		{
-			AActor*          InstigatorActor = Context.GetInstigator();
-			const FHitResult HitResult       = UAbilitySystemBlueprintLibrary::EffectContextGetHitResult(Context);
+			const FGameplayEffectContextHandle       EffectContext = SourceEffectSpec.GetContext();
+			TScriptInterface<IPF2CharacterInterface> Instigator    = nullptr;
+			AActor*                                  DamageSource  = nullptr;
 
-			// Initially, assume that the source actor for damage is the instigator.
-			if (IsValid(InstigatorActor))
-			{
-				Instigator   = Cast<IPF2CharacterInterface>(InstigatorActor);
-				DamageSource = InstigatorActor;
-			}
+			const FHitResult HitResult = UAbilitySystemBlueprintLibrary::EffectContextGetHitResult(EffectContext);
 
-			// If we have been given an explicit GE "causer", use that instead of the instigator.
-			if (Context.GetEffectCauser() != nullptr)
-			{
-				DamageSource = Context.GetEffectCauser();
-			}
+			UPF2AbilitySystemLibrary::DetermineDamageInstigatorAndSource(SourceEffectSpec, Instigator, DamageSource);
 
 			UE_LOG(
 				LogPf2CoreStats,
@@ -662,39 +659,37 @@ void UPF2CharacterAttributeSet::Native_OnDamageIncomingChanged(const FGameplayEf
 				LocalDamage
 			);
 
-			TargetCharacter->Native_OnDamageReceived(LocalDamage, Instigator, DamageSource, EventTags, HitResult);
+			TargetCharacter->Native_OnDamageReceived(
+				LocalDamage,
+				PF2InterfaceUtilities::FromScriptInterface(Instigator),
+				DamageSource,
+				GetSourceTags(SourceEffectSpec),
+				HitResult
+			);
 		}
 
 		// Enable condition check GAs to react to incoming damage.
 		this->EmitGameplayEvent(
 			DamageReceivedEventTag,
 			LocalDamage,
-			Instigator,
 			TargetCharacter,
-			DamageSource,
-			Context
+			SourceEffectSpec
 		);
 
 		// We don't clamp hit points here; it gets clamped by Native_OnHitPointsChanged().
 		this->SetHitPoints(CurrentHitPoints - LocalDamage);
 
 		this->Native_OnHitPointsChanged(
-			Context,
-			Instigator,
-			DamageSource,
+			SourceEffectSpec,
 			TargetCharacter,
-			-LocalDamage,
-			EventTags
+			-LocalDamage
 		);
 	}
 }
 
-void UPF2CharacterAttributeSet::Native_OnHitPointsChanged(const FGameplayEffectContextHandle& Context,
-                                                          IPF2CharacterInterface*             Instigator,
-                                                          AActor*                             DamageSource,
-                                                          IPF2CharacterInterface*             TargetCharacter,
-                                                          const float                         ValueDelta,
-                                                          const FGameplayTagContainer*        EventTags)
+void UPF2CharacterAttributeSet::Native_OnHitPointsChanged(const FGameplayEffectSpec& SourceEffectSpec,
+                                                          IPF2CharacterInterface*    TargetCharacter,
+                                                          const float                ValueDelta)
 {
 	const float RawHitPoints     = this->GetHitPoints(),
 	            ClampedHitPoints = FMath::Clamp(RawHitPoints, 0.0f, this->GetMaxHitPoints());
@@ -726,24 +721,21 @@ void UPF2CharacterAttributeSet::Native_OnHitPointsChanged(const FGameplayEffectC
 
 		if (TargetCharacter != nullptr)
 		{
-			TargetCharacter->Native_OnHitPointsChanged(ValueDelta, ClampedHitPoints, EventTags);
+			TargetCharacter->Native_OnHitPointsChanged(ValueDelta, ClampedHitPoints, GetSourceTags(SourceEffectSpec));
 		}
 
-		// Enable condition check GAs to react to hit points.
 		this->EmitGameplayEvent(
 			HitPointsChangedEventTag,
 			ValueDelta,
-			Instigator,
 			TargetCharacter,
-			DamageSource,
-			Context
+			SourceEffectSpec
 		);
 	}
 }
 
-void UPF2CharacterAttributeSet::Native_OnSpeedChanged(IPF2CharacterInterface*      TargetCharacter,
-                                                      const float                  ValueDelta,
-                                                      const FGameplayTagContainer* EventTags)
+void UPF2CharacterAttributeSet::Native_OnSpeedChanged(const FGameplayEffectSpec& SourceEffectSpec,
+                                                      IPF2CharacterInterface*    TargetCharacter,
+                                                      const float                ValueDelta)
 {
 	const float RawSpeed     = this->GetSpeed();
 	const float ClampedSpeed = FMath::Clamp(RawSpeed, 0.0f, this->GetMaxSpeed());
@@ -775,12 +767,13 @@ void UPF2CharacterAttributeSet::Native_OnSpeedChanged(IPF2CharacterInterface*   
 
 		if (TargetCharacter != nullptr)
 		{
-			TargetCharacter->Native_OnSpeedChanged(ValueDelta, ClampedSpeed, EventTags);
+			TargetCharacter->Native_OnSpeedChanged(ValueDelta, ClampedSpeed, GetSourceTags(SourceEffectSpec));
 		}
 	}
 }
 
-void UPF2CharacterAttributeSet::Native_OnMultipleAttackPenaltyChanged(const IPF2CharacterInterface* TargetCharacter,
+void UPF2CharacterAttributeSet::Native_OnMultipleAttackPenaltyChanged(const FGameplayEffectSpec&    SourceEffectSpec,
+                                                                      const IPF2CharacterInterface* TargetCharacter,
                                                                       const float                   ValueDelta)
 {
 	const float RawPenalty     = this->GetEncMultipleAttackPenalty();

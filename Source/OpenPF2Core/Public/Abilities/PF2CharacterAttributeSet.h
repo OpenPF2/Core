@@ -35,6 +35,24 @@ class OPENPF2CORE_API UPF2CharacterAttributeSet : public UAttributeSet
 {
 	GENERATED_BODY()
 
+protected:
+	// =================================================================================================================
+	// Protected Static Methods
+	// =================================================================================================================
+	/**
+	 * Gets the source tags from the given Gameplay Effect (GE) specification.
+	 *
+	 * @param EffectSpec
+	 *	The specification from which source tags will be obtained.
+	 *
+	 * @return
+	 *	The source tags.
+	 */
+	FORCEINLINE static const FGameplayTagContainer* GetSourceTags(const FGameplayEffectSpec& EffectSpec)
+	{
+		return EffectSpec.CapturedSourceTags.GetAggregatedTags();
+	}
+
 public:
 	// =================================================================================================================
 	// Attributes - Stats Shared by Both PCs and NPCs
@@ -1076,22 +1094,15 @@ protected:
 	 * @param EventMagnitude
 	 *	The delta for which an event is being communicated (e.g., the amount of damage received or the amount of health
 	 *	lost or gained).
-	 * @param Instigator
-	 *	The character that is ultimately responsible for the damage. This can be null if the damage is caused by the
 	 * @param TargetCharacter
 	 *	The character receiving the hit point change. This is usually the same as the character who owns this ASC.
-	 * @param DamageSource
-	 *	The actor that directly inflicted the damage, such as a weapon or projectile.
-	 * @param Context
-	 *	Additional information about the original gameplay effect being executed that prompted this event to be
-	 *	emitted.
+	 * @param SourceEffectSpec
+	 *	Specifications and context about the original gameplay effect execution that prompted this event to be emitted.
 	 */
-	void EmitGameplayEvent(const FGameplayTag&                 EventTag,
-	                       float                               EventMagnitude,
-	                       IPF2CharacterInterface*             Instigator,
-	                       IPF2CharacterInterface*             TargetCharacter,
-	                       AActor*                             DamageSource,
-	                       const FGameplayEffectContextHandle& Context) const;
+	void EmitGameplayEvent(const FGameplayTag&        EventTag,
+	                       float                      EventMagnitude,
+	                       IPF2CharacterInterface*    TargetCharacter,
+	                       const FGameplayEffectSpec& SourceEffectSpec) const;
 
 	// =================================================================================================================
 	// Protected Native Event Callbacks
@@ -1102,16 +1113,13 @@ protected:
 	 * This is called after the change has already occurred. This applies damage to the target, resets the incoming
 	 * damage to zero, and then dispatches appropriate damage notifications to the character.
 	 *
-	 * @param Context
-	 *	Server handle for the context of the Gameplay Effect activation.
+	 * @param SourceEffectSpec
+	 *	Specifications and context about the gameplay effect activation that applied the incoming damage.
 	 * @param TargetCharacter
 	 *	The character receiving the damage. This is usually the same as the character who owns this ASC.
-	 * @param EventTags
-	 *	Tags passed along with the Gameplay Event as metadata about the cause of the change to damage.
 	 */
-	void Native_OnDamageIncomingChanged(const FGameplayEffectContextHandle& Context,
-	                                    IPF2CharacterInterface*             TargetCharacter,
-	                                    const FGameplayTagContainer*        EventTags);
+	void Native_OnDamageIncomingChanged(const FGameplayEffectSpec&   SourceEffectSpec,
+	                                    IPF2CharacterInterface*      TargetCharacter);
 
 	/**
 	 * Notifies this ASC that the hit points attribute has been changed (typically by a Gameplay Effect).
@@ -1119,26 +1127,16 @@ protected:
 	 * This is called after the change has already occurred. This clamps the value to the allowed range and then
 	 * dispatches appropriate damage notifications to the character.
 	 *
-	 * @param Context
-	 *	Server handle for the context of the Gameplay Effect activation.
-	 * @param Instigator
-	 *	The character that is ultimately responsible for the damage. This can be null if the damage is caused by the
-	 *	environment.
-	 * @param DamageSource
-	 *	The actor that directly inflicted the damage, such as a weapon or projectile.
+	 * @param SourceEffectSpec
+	 *	Specifications and context about the gameplay effect activation that adjusted the hit points.
 	 * @param TargetCharacter
 	 *	The character receiving the hit point change. This is usually the same as the character who owns this ASC.
 	 * @param ValueDelta
 	 *	The amount of the change.
-	 * @param EventTags
-	 *	Tags passed along with the Gameplay Event as metadata about the cause of the change to hit points.
 	 */
-	void Native_OnHitPointsChanged(const FGameplayEffectContextHandle& Context,
-	                               IPF2CharacterInterface*             Instigator,
-	                               AActor*                             DamageSource,
-	                               IPF2CharacterInterface*             TargetCharacter,
-	                               const float                         ValueDelta,
-	                               const FGameplayTagContainer*        EventTags);
+	void Native_OnHitPointsChanged(const FGameplayEffectSpec& SourceEffectSpec,
+	                               IPF2CharacterInterface*    TargetCharacter,
+	                               const float                ValueDelta);
 
 	/**
 	 * Notifies this ASC that the speed attribute has been changed (typically by a Gameplay Effect).
@@ -1146,29 +1144,32 @@ protected:
 	 * This is called after the change has already occurred. This clamps the value to the allowed range and then
 	 * dispatches appropriate damage notifications to the character.
 	 *
+	 * @param SourceEffectSpec
+	 *	Specifications and context about the gameplay effect activation that adjusted the speed.
 	 * @param TargetCharacter
 	 *	The character receiving the speed change. This is usually the same as the character who owns this ASC.
 	 * @param ValueDelta
 	 *	The amount of the change.
-	 * @param EventTags
-	 *	Tags passed along with the Gameplay Event as metadata about the cause of the change to speed.
 	 */
-	void Native_OnSpeedChanged(IPF2CharacterInterface*      TargetCharacter,
-	                           const float                  ValueDelta,
-	                           const FGameplayTagContainer* EventTags);
+	void Native_OnSpeedChanged(const FGameplayEffectSpec& SourceEffectSpec,
+	                           IPF2CharacterInterface*    TargetCharacter,
+	                           const float                ValueDelta);
 
 	/**
 	 * Notifies this ASC that the multiple attack penalty attribute has been changed (typically by a Gameplay Effect).
 	 *
 	 * This is called after the change has already occurred. This clamps the value to the allowed range.
 	 *
+	 * @param SourceEffectSpec
+	 *	Specifications and context about the gameplay effect activation that adjusted the multiple attack penalty.
 	 * @param TargetCharacter
 	 *	The character receiving the multiple attack penalty change. This is usually the same as the character who owns
 	 *	this ASC.
 	 * @param ValueDelta
 	 *	The amount of the change.
 	 */
-	void Native_OnMultipleAttackPenaltyChanged(const IPF2CharacterInterface* TargetCharacter,
+	void Native_OnMultipleAttackPenaltyChanged(const FGameplayEffectSpec&    SourceEffectSpec,
+	                                           const IPF2CharacterInterface* TargetCharacter,
 	                                           const float                   ValueDelta);
 
 };
