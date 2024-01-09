@@ -1,4 +1,4 @@
-// OpenPF2 for UE Game Logic, Copyright 2021-2023, Guy Elsmore-Paddock. All Rights Reserved.
+// OpenPF2 for UE Game Logic, Copyright 2021-2024, Guy Elsmore-Paddock. All Rights Reserved.
 //
 // Content from Pathfinder 2nd Edition is licensed under the Open Game License (OGL) v1.0a, subject to the following:
 //   - Open Game License v 1.0a, Copyright 2000, Wizards of the Coast, Inc.
@@ -512,16 +512,16 @@ public:
 	virtual void Native_OnDamageReceived(const float                         Damage,
 	                                     IPF2CharacterInterface*             InstigatorCharacter,
 	                                     AActor*                             DamageSource,
-	                                     const struct FGameplayTagContainer* EventTags,
+	                                     const struct FGameplayTagContainer* SourceTags,
 	                                     const FHitResult                    HitInfo) override;
 
 	virtual void Native_OnHitPointsChanged(const float                  Delta,
 	                                       const float                  NewValue,
-	                                       const FGameplayTagContainer* EventTags) override;
+	                                       const FGameplayTagContainer* SourceTags) override;
 
 	virtual void Native_OnSpeedChanged(const float                  Delta,
 	                                   const float                  NewValue,
-	                                   const FGameplayTagContainer* EventTags) override;
+	                                   const FGameplayTagContainer* SourceTags) override;
 
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void Multicast_OnEncounterTurnStarted() override;
@@ -668,9 +668,9 @@ protected:
 	 *	environment.
 	 * @param DamageSource
 	 *	The actor that directly inflicted the damage, such as a weapon or projectile.
-	 * @param EventTags
-	 *	Tags passed along with the damage Gameplay Event. This is typically set by an attack montage to indicate the
-	 *	nature of the attack that was performed.
+	 * @param SourceTags
+	 *	Tags passed along with the damage Gameplay Event that were captured from the source ability and source
+	 *	character.
 	 * @param HitInfo
 	 *	Hit result information, including who was hit and where the damage was inflicted.
 	 */
@@ -682,7 +682,7 @@ protected:
 	void BP_OnDamageReceived(const float                                     Damage,
 	                         const TScriptInterface<IPF2CharacterInterface>& InstigatorCharacter,
 	                         AActor*                                         DamageSource,
-	                         const FGameplayTagContainer&                    EventTags,
+	                         const FGameplayTagContainer&                    SourceTags,
 	                         const FHitResult                                HitInfo);
 
 	/**
@@ -692,8 +692,9 @@ protected:
 	 *	The amount that the character's hit points have changed.
 	 * @param NewValue
 	 *	The new amount of hit points after the change.
-	 * @param EventTags
-	 *	Tags passed along with the Gameplay Event as metadata about the cause of the change to hit points.
+	 * @param SourceTags
+	 *	Tags passed along with the Gameplay Event that were captured from the source ability and source character as
+	 *	metadata about the cause of the change to hit points.
 	 */
 	UFUNCTION(
 		BlueprintImplementableEvent,
@@ -702,7 +703,7 @@ protected:
 	)
 	void BP_OnHitPointsChanged(const float                         Delta,
 	                           const float                         NewValue,
-	                           const struct FGameplayTagContainer& EventTags);
+	                           const struct FGameplayTagContainer& SourceTags);
 
 	/**
 	 * BP event invoked when this character's speed (i.e., how fast it can move during a stride) has changed.
@@ -711,8 +712,9 @@ protected:
 	 *	The amount that the character's speed has changed.
 	 * @param NewValue
 	 *	The new amount of speed after the change.
-	 * @param EventTags
-	 *	Tags passed along with the Gameplay Event as metadata about the cause of the change to speed.
+	 * @param SourceTags
+	 *	Tags passed along with the Gameplay Event that were captured from the source ability and source character as
+	 *	metadata about the cause of the change to speed.
 	 */
 	UFUNCTION(
 		BlueprintImplementableEvent,
@@ -721,7 +723,7 @@ protected:
 	)
 	void BP_OnSpeedChanged(const float                  Delta,
 	                       const float                  NewValue,
-	                       const FGameplayTagContainer& EventTags);
+	                       const FGameplayTagContainer& SourceTags);
 };
 
 /**
