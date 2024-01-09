@@ -1,4 +1,4 @@
-﻿// OpenPF2 for UE Game Logic, Copyright 2021-2023, Guy Elsmore-Paddock. All Rights Reserved.
+﻿// OpenPF2 for UE Game Logic, Copyright 2021-2024, Guy Elsmore-Paddock. All Rights Reserved.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
 // distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
@@ -27,18 +27,54 @@ class OPENPF2CORE_API APF2ModeOfPlayRuleSetBase : public AActor, public IPF2Mode
 	GENERATED_BODY()
 
 protected:
+	// =================================================================================================================
+	// Protected Constants
+	// =================================================================================================================
+	/**
+	 * The name of the root of tags that indicate that a character is in the process of dying.
+	 */
+	inline static const FName DyingConditionTagName = FName("Trait.Condition.Dying");
+
+	/**
+	 * The name of the tag that indicates a character is dead. This is equivalent to Trait.Condition.Dying.4.
+	 */
+	inline static const FName DeadConditionTagName = FName("Trait.Condition.Dead");
+
+	/**
+	 * The name of the tag that indicates a character is no longer conscious.
+	 */
+	inline static const FName UnconsciousConditionTagName = FName("Trait.Condition.Unconscious");
+
+	// =================================================================================================================
+	// Protected Fields
+	// =================================================================================================================
 	/**
 	 * The root of tags that signify a character is dying.
 	 *
 	 * An MoPRS listens for a tag of this type to be added to or removed from a character in order to fire the
-	 * OnCharacterDying() and OnCharacterRecoveredFromDying().
+	 * Native_OnCharacterDying() and Native_OnCharacterRecoveredFromDying(), respectively.
 	 */
 	FGameplayTag DyingConditionTag;
 
 	/**
-	 * Map of handles for callback delegates on the dying condition tag.
+	 * The tag that signifies a character is dead.
+	 *
+	 * An MoPRS listens for a tag of this type to be added to a character in order to fire OnCharacterDead().
 	 */
-	TMap<const TWeakObjectPtr<const AActor>, FDelegateHandle> DyingCallbackHandles;
+	FGameplayTag DeadConditionTag;
+
+	/**
+	 * The tag that signifies a character is unconscious.
+	 *
+	 * An MoPRS listens for a tag of this type to be added to or removed from a character in order to fire the
+	 * OnCharacterUnconscious() and OnCharacterConscious(), respectively.
+	 */
+	FGameplayTag UnconsciousConditionTag;
+
+	/**
+	 * Map of handles for callback delegates on condition tags.
+	 */
+	TMap<const TWeakObjectPtr<AActor>, TMap<FGameplayTag, FDelegateHandle>> ConditionCallbackHandles;
 
 public:
 	// =================================================================================================================
@@ -73,19 +109,94 @@ public:
 
 protected:
 	// =================================================================================================================
+	// Protected Methods
+	// =================================================================================================================
+	/**
+	 * Registers callbacks to invoke when a tag is added or removed from the specified character.
+	 *
+	 * If the character has been garbage collected, this method has no effect.
+	 *
+	 * @param CharacterPtr
+	 *	A weak pointer to the character for which a callback will be registered.
+	 * @param Tag
+	 *	The tag to react to.
+	 * @param OnTagAdded
+	 *	The callback to invoke when the tag has been added.
+	 * @param OnTagRemoved
+	 *	The callback to invoke when the tag has been removed.
+	 */
+	void RegisterTagCallback(
+		const TWeakObjectPtr<AActor>      CharacterPtr,
+		const FGameplayTag&               Tag,
+		void (APF2ModeOfPlayRuleSetBase::*OnTagAdded)(const TScriptInterface<IPF2CharacterInterface>&),
+		void (APF2ModeOfPlayRuleSetBase::*OnTagRemoved)(const TScriptInterface<IPF2CharacterInterface>&));
+
+	/**
+	 * Unregisters all tag callbacks for the specified character.
+	 *
+	 * If the character has been garbage collected, this method has no effect.
+	 *
+	 * @param CharacterPtr
+	 *	A weak pointer to the character for which callbacks are being unregistered.
+	 */
+	void UnregisterAllTagCallbacksForCharacter(const TWeakObjectPtr<AActor> CharacterPtr);
+
+	/**
+	 * Unregisters callbacks from being invoked when a tag is added or removed from the specified character.
+	 *
+	 * If the character has been garbage collected, this method has no effect.
+	 *
+	 * @param CharacterPtr
+	 *	A weak pointer to the character for which a callback will be unregistered.
+	 * @param Tag
+	 *	The tag to no longer react to.
+	 * @param DelegateHandle
+	 *	The handle to unregister.
+	 */
+	void UnregisterTagCallback(
+		const TWeakObjectPtr<AActor> CharacterPtr,
+		const FGameplayTag&          Tag,
+		const FDelegateHandle&       DelegateHandle);
+
+	// =================================================================================================================
 	// Native Events
 	// =================================================================================================================
 	/**
-	 * Notifies this MoPRS that a character it is tracking has acquired the dying condition.
+	 * Notifies this MoPRS that a character it is tracking is now unconscious.
 	 *
 	 * Subclasses can use this callback to react accordingly to a character that is no longer suitable for combat and
 	 * interaction. For example, an encounter MoPRS will use this as an opportunity to adjust the character's
 	 * initiative.
 	 *
+	 * Characters become unconscious for a variety of reasons, including being knocked out at 0 HP by a non-lethal
+	 * attack, dying at 0 HP by a lethal attack, or merely just resting (e.g., during "Downtime" mode).
+	 *
 	 * @param Character
-	 *	The character who has just been knocked out.
+	 *	The character who has just become unconscious.
 	 */
-	virtual void OnCharacterDying(const TScriptInterface<IPF2CharacterInterface>& Character);
+	virtual void Native_OnCharacterUnconscious(const TScriptInterface<IPF2CharacterInterface>& Character);
+
+	/**
+	 * Notifies this MoPRS that a character it is tracking is no longer unconscious.
+	 *
+	 * Subclasses can use this callback to react accordingly to a character that is once again suitable for combat and
+	 * interaction.
+	 *
+	 * @param Character
+	 *	The character who has just awakened after being unconscious.
+	 */
+	virtual void Native_OnCharacterConscious(const TScriptInterface<IPF2CharacterInterface>& Character);
+
+	/**
+	 * Notifies this MoPRS that a character it is tracking has acquired the dying condition.
+	 *
+	 * Subclasses can use this callback to react accordingly to a character that is at risk of death but has not yet
+	 * died.
+	 *
+	 * @param Character
+	 *	The character who has just started started dying.
+	 */
+	virtual void Native_OnCharacterDying(const TScriptInterface<IPF2CharacterInterface>& Character);
 
 	/**
 	 * Notifies this MoPRS that a character it is tracking no longer has the dying condition.
@@ -94,9 +205,20 @@ protected:
 	 * interaction with other characters.
 	 *
 	 * @param Character
-	 *	The character who has just recovered.
+	 *	The character who has just recovered from dying.
 	 */
-	virtual void OnCharacterRecoveredFromDying(const TScriptInterface<IPF2CharacterInterface>& Character);
+	virtual void Native_OnCharacterRecoveredFromDying(const TScriptInterface<IPF2CharacterInterface>& Character);
+
+	/**
+	 * Notifies this MoPRS that a character it is tracking has acquired the dead condition.
+	 *
+	 * Subclasses can use this callback to react accordingly to a character that is no longer suitable for combat and
+	 * interaction. For example, this can be used to remove the character from the encounter.
+	 *
+	 * @param Character
+	 *	The character who has just died.
+	 */
+	virtual void Native_OnCharacterDead(const TScriptInterface<IPF2CharacterInterface>& Character);
 
 	// =================================================================================================================
 	// Blueprint Implementable Events
@@ -151,6 +273,38 @@ protected:
 	void BP_OnCharacterAddedToEncounter(const TScriptInterface<IPF2CharacterInterface>& Character);
 
 	/**
+	 * Callback to notify this rule set that a character it is tracking is now unconscious.
+	 *
+	 * The rule set can choose to ignore this event if it's not applicable (e.g., this rule set is not for an
+	 * encounter).
+	 *
+	 * @param Character
+	 *	The character who has just become unconscious.
+	 */
+	UFUNCTION(
+		BlueprintImplementableEvent,
+		Category="OpenPF2|Mode of Play Rule Sets",
+		meta=(DisplayName="On Character Unconscious")
+	)
+	void BP_OnCharacterUnconscious(const TScriptInterface<IPF2CharacterInterface>& Character);
+
+	/**
+	 * Callback to notify this rule set that a character it is tracking is no longer unconscious.
+	 *
+	 * The rule set can choose to ignore this event if it's not applicable (e.g., this rule set is not for an
+	 * encounter).
+	 *
+	 * @param Character
+	 *	The character who has just awakened after being unconscious.
+	 */
+	UFUNCTION(
+		BlueprintImplementableEvent,
+		Category="OpenPF2|Mode of Play Rule Sets",
+		meta=(DisplayName="On Character Conscious")
+	)
+	void BP_OnCharacterConscious(const TScriptInterface<IPF2CharacterInterface>& Character);
+
+	/**
 	 * Callback to notify this rule set that a character it is tracking has acquired the dying condition.
 	 *
 	 * The rule set can choose to ignore this event if it's not applicable (e.g., this rule set is not for an
@@ -181,6 +335,22 @@ protected:
 		meta=(DisplayName="On Character Recovered from Dying")
 	)
 	void BP_OnCharacterRecoveredFromDying(const TScriptInterface<IPF2CharacterInterface>& Character);
+
+	/**
+	 * Callback to notify this rule set that a character it is tracking has died.
+	 *
+	 * The rule set can choose to ignore this event if it's not applicable (e.g., this rule set is not for an
+	 * encounter).
+	 *
+	 * @param Character
+	 *	The character who has just died.
+	 */
+	UFUNCTION(
+		BlueprintImplementableEvent,
+		Category="OpenPF2|Mode of Play Rule Sets",
+		meta=(DisplayName="On Character Dead")
+	)
+	void BP_OnCharacterDead(const TScriptInterface<IPF2CharacterInterface>& Character);
 
 	/**
 	 * Callback to notify this rule set that a character should be removed from the current encounter.
@@ -255,7 +425,7 @@ protected:
 	 *	The character being added to the encounter.
 	 */
 	UFUNCTION(BlueprintCallable, Category="OpenPF2|Mode of Play Rule Sets")
-	void AddCharacterToEncounter(const TScriptInterface<IPF2CharacterInterface> Character);
+	void AddCharacterToEncounter(const TScriptInterface<IPF2CharacterInterface>& Character);
 
 	/**
 	 * Adds all characters controlled by players to the current encounter, if an encounter is active.

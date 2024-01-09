@@ -1,4 +1,4 @@
-﻿// OpenPF2 for UE Game Logic, Copyright 2022-2023, Guy Elsmore-Paddock. All Rights Reserved.
+﻿// OpenPF2 for UE Game Logic, Copyright 2022-2024, Guy Elsmore-Paddock. All Rights Reserved.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
 // distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
@@ -16,9 +16,13 @@
 #include "Libraries/PF2CharacterCommandLibrary.h"
 #include "Libraries/PF2CharacterLibrary.h"
 
+#include "Utilities/PF2InterfaceUtilities.h"
+
 APF2ModeOfPlayRuleSetBase::APF2ModeOfPlayRuleSetBase()
 {
-	this->DyingConditionTag = PF2GameplayAbilityUtilities::GetTag(FName("Trait.Condition.Dying"));
+	this->DyingConditionTag       = PF2GameplayAbilityUtilities::GetTag(DyingConditionTagName);
+	this->DeadConditionTag        = PF2GameplayAbilityUtilities::GetTag(DeadConditionTagName);
+	this->UnconsciousConditionTag = PF2GameplayAbilityUtilities::GetTag(UnconsciousConditionTagName);
 }
 
 void APF2ModeOfPlayRuleSetBase::OnModeOfPlayStart(const EPF2ModeOfPlayType ModeOfPlay)
@@ -33,36 +37,39 @@ void APF2ModeOfPlayRuleSetBase::OnPlayableCharacterStarting(const TScriptInterfa
 
 void APF2ModeOfPlayRuleSetBase::OnCharacterAddedToEncounter(const TScriptInterface<IPF2CharacterInterface>& Character)
 {
-	const TWeakObjectPtr<const AActor> CharacterPtr = Character->ToActor();
+	const TWeakObjectPtr<AActor> CharacterPtr = Character->ToActor();
 
-	if (this->DyingCallbackHandles.Contains(CharacterPtr))
+	if (this->ConditionCallbackHandles.Contains(CharacterPtr))
 	{
 		UE_LOG(
 			LogPf2CoreEncounters,
-			Warning,
-			TEXT("OnCharacterAddedToEncounter() was invoked with character ('%s') that already had a 'Dying' callback registered."),
+			Error,
+			TEXT("OnCharacterAddedToEncounter() was invoked with character ('%s') that already has condition callbacks registered."),
 			*(Character->GetIdForLogs())
 		);
 	}
 	else
 	{
-		const FDelegateHandle DyingCallbackHandle =
-			Character->GetAbilitySystemComponent()->RegisterGameplayTagEvent(
-				this->DyingConditionTag,
-				EGameplayTagEventType::NewOrRemoved
-			).AddLambda([this, Character](const FGameplayTag, const int32 NewCount)
-			{
-				if (NewCount == 0)
-				{
-					this->OnCharacterRecoveredFromDying(Character);
-				}
-				else
-				{
-					this->OnCharacterDying(Character);
-				}
-			});
+		this->RegisterTagCallback(
+			CharacterPtr,
+			this->UnconsciousConditionTag,
+			&APF2ModeOfPlayRuleSetBase::Native_OnCharacterUnconscious,
+			&APF2ModeOfPlayRuleSetBase::Native_OnCharacterConscious
+		);
 
-		this->DyingCallbackHandles.Add(CharacterPtr, DyingCallbackHandle);
+		this->RegisterTagCallback(
+			CharacterPtr,
+			this->DyingConditionTag,
+			&APF2ModeOfPlayRuleSetBase::Native_OnCharacterDying,
+			&APF2ModeOfPlayRuleSetBase::Native_OnCharacterRecoveredFromDying
+		);
+
+		this->RegisterTagCallback(
+			CharacterPtr,
+			this->DeadConditionTag,
+			&APF2ModeOfPlayRuleSetBase::Native_OnCharacterDead,
+			nullptr
+		);
 	}
 
 	this->BP_OnCharacterAddedToEncounter(Character);
@@ -71,26 +78,19 @@ void APF2ModeOfPlayRuleSetBase::OnCharacterAddedToEncounter(const TScriptInterfa
 void APF2ModeOfPlayRuleSetBase::OnCharacterRemovedFromEncounter(
 	const TScriptInterface<IPF2CharacterInterface>& Character)
 {
-	const TWeakObjectPtr<const AActor> CharacterPtr = Character->ToActor();
+	const TWeakObjectPtr<AActor> CharacterPtr = Character->ToActor();
 
-	if (this->DyingCallbackHandles.Contains(CharacterPtr))
+	if (this->ConditionCallbackHandles.Contains(CharacterPtr))
 	{
-		const FDelegateHandle DyingCallbackHandle = this->DyingCallbackHandles[CharacterPtr];
-
-		Character->GetAbilitySystemComponent()->UnregisterGameplayTagEvent(
-			DyingCallbackHandle,
-			this->DyingConditionTag,
-			EGameplayTagEventType::NewOrRemoved
-		);
-
-		this->DyingCallbackHandles.Remove(CharacterPtr);
+		this->UnregisterAllTagCallbacksForCharacter(CharacterPtr);
+		this->ConditionCallbackHandles.Remove(CharacterPtr);
 	}
 	else
 	{
 		UE_LOG(
 			LogPf2CoreEncounters,
-			Warning,
-			TEXT("OnCharacterRemovedFromEncounter() was invoked with character ('%s') that had no 'Dying' callback registered."),
+			Error,
+			TEXT("OnCharacterRemovedFromEncounter() was invoked with character ('%s') that had no callbacks registered."),
 			*(Character->GetIdForLogs())
 		);
 	}
@@ -100,26 +100,12 @@ void APF2ModeOfPlayRuleSetBase::OnCharacterRemovedFromEncounter(
 
 void APF2ModeOfPlayRuleSetBase::OnModeOfPlayEnd(const EPF2ModeOfPlayType ModeOfPlay)
 {
-	for (const auto& [CharacterPtr, EventDelegateHandle] : this->DyingCallbackHandles)
+	for (const auto& [CharacterPtr, _] : this->ConditionCallbackHandles)
 	{
-		const AActor* CharacterActor = CharacterPtr.Get();
-
-		// Actor might have been garbage collected since they were originally added for tracking by this MoPRS.
-		if (CharacterActor != nullptr)
-		{
-			const IPF2CharacterInterface* Character = Cast<IPF2CharacterInterface>(CharacterActor);
-
-			check(Character != nullptr);
-
-			Character->GetAbilitySystemComponent()->UnregisterGameplayTagEvent(
-				EventDelegateHandle,
-				this->DyingConditionTag,
-				EGameplayTagEventType::NewOrRemoved
-			);
-		}
+		this->UnregisterAllTagCallbacksForCharacter(CharacterPtr);
 	}
 
-	this->DyingCallbackHandles.Empty();
+	this->ConditionCallbackHandles.Empty();
 
 	this->BP_OnModeOfPlayEnd(ModeOfPlay);
 }
@@ -192,14 +178,170 @@ void APF2ModeOfPlayRuleSetBase::AttemptToCancelCommand_Implementation(
 	CommandQueue->Remove(Command);
 }
 
-void APF2ModeOfPlayRuleSetBase::OnCharacterDying(const TScriptInterface<IPF2CharacterInterface>& Character)
+void APF2ModeOfPlayRuleSetBase::RegisterTagCallback(
+	const TWeakObjectPtr<AActor>      CharacterPtr,
+	const FGameplayTag&               Tag,
+	void (APF2ModeOfPlayRuleSetBase::*OnTagAdded)(const TScriptInterface<IPF2CharacterInterface>&),
+	void (APF2ModeOfPlayRuleSetBase::*OnTagRemoved)(const TScriptInterface<IPF2CharacterInterface>&))
+{
+	if ((OnTagAdded == nullptr) && (OnTagRemoved == nullptr))
+	{
+		UE_LOG(
+			LogPf2Core,
+			Error,
+			TEXT("RegisterTagCallback() was invoked null pointers for both callbacks for tag ('%s'), so nothing was bound."),
+			*(Tag.ToString())
+		);
+	}
+	else
+	{
+		AActor*                 CharacterActor = CharacterPtr.Get();
+		IPF2CharacterInterface* CharacterIntf  = Cast<IPF2CharacterInterface>(CharacterActor);
+
+		// Actor might have been garbage collected since they were originally added for tracking by this MoPRS.
+		if (CharacterIntf != nullptr)
+		{
+			UAbilitySystemComponent*            CharacterAsc = CharacterIntf->GetAbilitySystemComponent();
+			TMap<FGameplayTag, FDelegateHandle> CallbacksForCharacter;
+
+			if (this->ConditionCallbackHandles.Contains(CharacterPtr))
+			{
+				CallbacksForCharacter = this->ConditionCallbackHandles[CharacterPtr];
+			}
+			else
+			{
+				CallbacksForCharacter = TMap<FGameplayTag, FDelegateHandle>();
+			}
+
+			if (CallbacksForCharacter.Contains(Tag))
+			{
+				UE_LOG(
+					LogPf2Core,
+					Error,
+					TEXT("RegisterTagCallback() was invoked with character ('%s') that already has a condition callback registered for tag ('%s')."),
+					*(CharacterIntf->GetIdForLogs()),
+					*(Tag.ToString())
+				);
+			}
+			else
+			{
+				TScriptInterface<IPF2CharacterInterface> Character =
+					PF2InterfaceUtilities::ToScriptInterface(CharacterIntf);
+
+				CallbacksForCharacter.Add(
+					Tag,
+					CharacterAsc->RegisterGameplayTagEvent(Tag, EGameplayTagEventType::NewOrRemoved).AddLambda(
+						[this, OnTagAdded, OnTagRemoved, Character](const FGameplayTag, const int32 NewCount)
+						{
+							if (NewCount > 0)
+							{
+								if (OnTagAdded != nullptr)
+								{
+									(this->*OnTagAdded)(Character);
+								}
+							}
+							else
+							{
+								if (OnTagRemoved != nullptr)
+								{
+									(this->*OnTagRemoved)(Character);
+								}
+							}
+						}
+					)
+				);
+
+				this->ConditionCallbackHandles.Add(CharacterPtr, CallbacksForCharacter);
+			}
+		}
+	}
+}
+
+void APF2ModeOfPlayRuleSetBase::UnregisterAllTagCallbacksForCharacter(
+	const TWeakObjectPtr<AActor> CharacterPtr)
+{
+	if (CharacterPtr.IsValid())
+	{
+		TMap<FGameplayTag, FDelegateHandle>& CallbacksForCharacter = this->ConditionCallbackHandles[CharacterPtr];
+
+		// Iterate over a copy since UnregisterTagCallback() modifies the map.
+		for (const auto& [Tag, CallbackHandle] : TMap(CallbacksForCharacter))
+		{
+			this->UnregisterTagCallback(CharacterPtr, Tag, CallbackHandle);
+		}
+
+		CallbacksForCharacter.Empty();
+	}
+}
+
+void APF2ModeOfPlayRuleSetBase::UnregisterTagCallback(
+	const TWeakObjectPtr<AActor> CharacterPtr,
+	const FGameplayTag&          Tag,
+	const FDelegateHandle&       DelegateHandle)
+{
+	AActor*                       CharacterActor = CharacterPtr.Get();
+	const IPF2CharacterInterface* Character      = Cast<IPF2CharacterInterface>(CharacterActor);
+
+	// Actor might have been garbage collected since they were originally added for tracking by this MoPRS.
+	if (Character != nullptr)
+	{
+		if (this->ConditionCallbackHandles.Contains(CharacterPtr))
+		{
+			TMap<FGameplayTag, FDelegateHandle>& CallbacksForCharacter = this->ConditionCallbackHandles[CharacterPtr];
+
+			if (CallbacksForCharacter.Contains(Tag))
+			{
+				UAbilitySystemComponent* CharacterAsc = Character->GetAbilitySystemComponent();
+
+				CharacterAsc->UnregisterGameplayTagEvent(DelegateHandle, Tag, EGameplayTagEventType::NewOrRemoved);
+				CallbacksForCharacter.Remove(Tag);
+			}
+			else
+			{
+				UE_LOG(
+					LogPf2Core,
+					Error,
+					TEXT("UnregisterTagCallback() was invoked with character ('%s') that had no callbacks registered for tag ('%s')."),
+					*(Character->GetIdForLogs()),
+					*(Tag.ToString())
+				);
+			}
+		}
+		else
+		{
+			UE_LOG(
+				LogPf2Core,
+				Error,
+				TEXT("UnregisterTagCallback() was invoked with character ('%s') that had no callbacks registered."),
+				*(Character->GetIdForLogs())
+			);
+		}
+	}
+}
+
+void APF2ModeOfPlayRuleSetBase::Native_OnCharacterUnconscious(const TScriptInterface<IPF2CharacterInterface>& Character)
+{
+	this->BP_OnCharacterUnconscious(Character);
+}
+
+void APF2ModeOfPlayRuleSetBase::Native_OnCharacterConscious(const TScriptInterface<IPF2CharacterInterface>& Character)
+{
+	this->BP_OnCharacterConscious(Character);
+}
+
+void APF2ModeOfPlayRuleSetBase::Native_OnCharacterDying(const TScriptInterface<IPF2CharacterInterface>& Character)
 {
 	this->BP_OnCharacterDying(Character);
 }
 
-void APF2ModeOfPlayRuleSetBase::OnCharacterRecoveredFromDying(const TScriptInterface<IPF2CharacterInterface>& Character)
+void APF2ModeOfPlayRuleSetBase::Native_OnCharacterRecoveredFromDying(const TScriptInterface<IPF2CharacterInterface>& Character)
 {
 	this->BP_OnCharacterRecoveredFromDying(Character);
+}
+
+void APF2ModeOfPlayRuleSetBase::Native_OnCharacterDead(const TScriptInterface<IPF2CharacterInterface>& Character)
+{
+	this->BP_OnCharacterDead(Character);
 }
 
 TScriptInterface<IPF2GameModeInterface> APF2ModeOfPlayRuleSetBase::GetGameMode() const
@@ -221,7 +363,7 @@ TArray<TScriptInterface<IPF2CharacterInterface>> APF2ModeOfPlayRuleSetBase::GetP
 	return UPF2CharacterLibrary::GetPlayerControlledCharacters(this->GetWorld());
 }
 
-void APF2ModeOfPlayRuleSetBase::AddCharacterToEncounter(const TScriptInterface<IPF2CharacterInterface> Character)
+void APF2ModeOfPlayRuleSetBase::AddCharacterToEncounter(const TScriptInterface<IPF2CharacterInterface>& Character)
 {
 	this->OnCharacterAddedToEncounter(Character);
 }
