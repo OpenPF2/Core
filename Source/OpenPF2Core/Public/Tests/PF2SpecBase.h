@@ -285,25 +285,35 @@ protected:
 	 *
 	 * @param Character
 	 *	The character to which the ability will be granted.
+	 * @param DynamicAbilityTags
+	 *	Optional tags to apply to the ability that will contribute toward the source tags of any gameplay effects that
+	 *	the ability applies.
 	 *
 	 * @return
 	 *	The server-side handle of the granted ability.
 	 */
-	static FGameplayAbilitySpecHandle GrantCharacterFakeAbility(TScriptInterface<IPF2CharacterInterface> Character);
+	static FGameplayAbilitySpecHandle GrantCharacterFakeAbility(
+		TScriptInterface<IPF2CharacterInterface> Character,
+		const FGameplayTagContainer&             DynamicAbilityTags = FGameplayTagContainer());
 
 	/**
 	 * Grants the specified character the specified Gameplay Ability and returns its handle.
 	 *
 	 * @param Character
 	 *	The character to which the ability will be granted.
-	 * @param AbilityClass
+	 * @param AbilityType
 	 *	The type of ability to grant.
+	 * @param DynamicAbilityTags
+	 *	Optional tags to apply to the ability that will contribute toward the source tags of any gameplay effects that
+	 *	the ability applies.
 	 *
 	 * @return
 	 *	The server-side handle of the granted ability.
 	 */
-	static FGameplayAbilitySpecHandle GrantCharacterAbility(TScriptInterface<IPF2CharacterInterface> Character,
-	                                                        TSubclassOf<UGameplayAbility>            AbilityClass);
+	static FGameplayAbilitySpecHandle GrantCharacterAbility(
+		TScriptInterface<IPF2CharacterInterface> Character,
+		TSubclassOf<UGameplayAbility>            AbilityType,
+		const FGameplayTagContainer&             DynamicAbilityTags = FGameplayTagContainer());
 
 	/**
 	 * Builds a Gameplay Effect (GE) specification for the given type of GE.
@@ -340,7 +350,6 @@ protected:
 		const TScriptInterface<IPF2CharacterInterface> Instigator,
 		const FGameplayAbilitySpecHandle               InvokingAbilityHandle,
 		const TMap<FName, float>&                      SetByCallerMagnitudesMap = {});
-
 
 	/**
 	 * Builds a Gameplay Effect (GE) specification for the given GE type, instigated by the given ability and character.

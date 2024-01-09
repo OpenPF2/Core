@@ -137,19 +137,38 @@ FAttributeCapture FPF2SpecBase::CaptureSpellAttributes(const UPF2CharacterAttrib
 	return Capture;
 }
 
-
 FGameplayAbilitySpecHandle FPF2SpecBase::GrantCharacterFakeAbility(
-	const TScriptInterface<IPF2CharacterInterface> Character)
+	const TScriptInterface<IPF2CharacterInterface> Character,
+	const FGameplayTagContainer&                   DynamicAbilityTags)
 {
-	return GrantCharacterAbility(Character, TSubclassOf<UPF2TestAbility>(UPF2TestAbility::StaticClass()));
+	return GrantCharacterAbility(Character, UPF2TestAbility::StaticClass(), DynamicAbilityTags);
 }
 
 FGameplayAbilitySpecHandle FPF2SpecBase::GrantCharacterAbility(
 	const TScriptInterface<IPF2CharacterInterface> Character,
-	const TSubclassOf<UGameplayAbility>            AbilityClass)
+	const TSubclassOf<UGameplayAbility>            AbilityType,
+	const FGameplayTagContainer&                   DynamicAbilityTags)
 {
-	UAbilitySystemComponent*   CharacterAsc = Character->GetAbilitySystemComponent();
-	const FGameplayAbilitySpec AbilitySpec  = FGameplayAbilitySpec(AbilityClass);
+	UAbilitySystemComponent* CharacterAsc    = Character->GetAbilitySystemComponent();
+	UGameplayAbility *       AbilityCDO      = AbilityType->GetDefaultObject<UGameplayAbility>(),
+	                 *       AbilityInstance;
+	FGameplayAbilitySpec     AbilitySpec;
+
+	if (AbilityCDO->GetInstancingPolicy() == EGameplayAbilityInstancingPolicy::InstancedPerExecution)
+	{
+		// Instantiate the GA before granting it, to simulate the logic that would normally happen in
+		// UAbilitySystemComponent::InternalTryActivateAbility() so that UGameplayAbility::IsInstantiated() returns
+		// "true" and the ability gets assigned a handle when it is granted to the actor. This allows the spec to be
+		// retrieved by handle from the ASC during processing (e.g., for dynamic tags).
+		AbilityInstance = NewObject<UGameplayAbility>(Character->ToActor(), AbilityType);
+	}
+	else
+	{
+		AbilityInstance = AbilityCDO;
+	}
+
+	AbilitySpec = FGameplayAbilitySpec(AbilityInstance);
+	AbilitySpec.DynamicAbilityTags.AppendTags(DynamicAbilityTags);
 
 	return CharacterAsc->GiveAbility(AbilitySpec);
 }
