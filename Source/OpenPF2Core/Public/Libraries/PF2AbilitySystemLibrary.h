@@ -140,7 +140,7 @@ public:
 	 * information to apply a GE to a target.
 	 *
 	 * @param AbilityHandle
-	 *	The handle for the current gameplay ability activation, which is generating the outgoing gameplay effect spec.
+	 *	The handle for the gameplay ability activation that is generating the gameplay effect spec.
 	 * @param AbilityOwnerInfo
 	 *	Information about the actor who activated this gameplay ability.
 	 * @param GameplayEffectClass
@@ -176,7 +176,7 @@ public:
 	 * information to apply a GE to a target.
 	 *
 	 * @param AbilityHandle
-	 *	The handle for the current gameplay ability activation, which is generating the outgoing gameplay effect spec.
+	 *	The handle for the gameplay ability activation that is generating the gameplay effect spec.
 	 * @param AbilityOwnerInfo
 	 *	Information about the actor who activated this gameplay ability.
 	 * @param GameplayEffectClass
@@ -224,7 +224,7 @@ public:
 	 * information to apply a GE to a target.
 	 *
 	 * @param AbilityHandle
-	 *	The handle for the current gameplay ability activation, which is generating the outgoing gameplay effect spec.
+	 *	The handle for the gameplay ability activation that is generating the gameplay effect spec.
 	 * @param AbilityOwnerInfo
 	 *	Information about the actor who activated this gameplay ability.
 	 * @param GameplayEffectClass
@@ -262,7 +262,7 @@ public:
 	 * invoking a GE, without enough information to know which GE to invoke or how to invoke it.
 	 *
 	 * @param AbilityHandle
-	 *	The handle for the current gameplay ability activation, which is generating the outgoing gameplay effect spec.
+	 *	The handle for the gameplay ability activation that is generating the effect context.
 	 * @param AbilityOwnerInfo
 	 *	Information about the actor who activated this gameplay ability.
 	 * @param EffectCauser
@@ -300,7 +300,7 @@ public:
 	 * invoking a GE, without enough information to know which GE to invoke or how to invoke it.
 	 *
 	 * @param AbilityHandle
-	 *	The handle for the current gameplay ability activation, which is generating the outgoing gameplay effect spec.
+	 *	The handle for the gameplay ability activation that is generating the effect context.
 	 * @param AbilityOwnerInfo
 	 *	Information about the actor who activated this gameplay ability.
 	 * @param Instigator
