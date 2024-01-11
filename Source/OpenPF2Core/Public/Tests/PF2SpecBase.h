@@ -563,10 +563,10 @@ protected:
 		}
 		else
 		{
-			for (auto It = NotExpected.CreateConstIterator(); It; ++It)
+			for (auto NotExpectedIt = NotExpected.CreateConstIterator(); NotExpectedIt; ++NotExpectedIt)
 			{
-				int               Index               = It.GetIndex();
-				const ElementType &NotExpectedElement = *It,
+				int               Index               = NotExpectedIt.GetIndex();
+				const ElementType &NotExpectedElement = *NotExpectedIt,
 				                  &ActualElement      = Actual[Index];
 
 				if (ActualElement != NotExpectedElement)
