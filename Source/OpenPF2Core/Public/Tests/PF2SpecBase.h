@@ -510,17 +510,28 @@ protected:
 			Expected.Num()
 		);
 
-		for (auto It = Expected.CreateConstIterator(); It; ++It)
+		for (auto ExpectedIt = Expected.CreateConstIterator(); ExpectedIt; ++ExpectedIt)
 		{
-			int               Index            = It.GetIndex();
-			const ElementType &ExpectedElement = *It,
-			                  &ActualElement   = Actual[Index];
+			int Index = ExpectedIt.GetIndex();
 
-			this->TestEqual(
-				FString::Format(TEXT("{0}[{1}]"), {What, FString::FormatAsNumber(Index)}),
-				ActualElement,
-				ExpectedElement
-			);
+			if (Index <= Actual.Num() - 1)
+			{
+				const ElementType &ExpectedElement = *ExpectedIt,
+				                  &ActualElement   = Actual[Index];
+
+				this->TestEqual(
+					FString::Format(TEXT("Element {0}[{1}]"), {What, FString::FormatAsNumber(Index)}),
+					ActualElement,
+					ExpectedElement
+				);
+			}
+			else
+			{
+				this->AddError(
+					FString::Format(TEXT("Element {0}[{1}] does not exist."),
+					{What, FString::FormatAsNumber(Index)})
+				);
+			}
 		}
 	}
 
