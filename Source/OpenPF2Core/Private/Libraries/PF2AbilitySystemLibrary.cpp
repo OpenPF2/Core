@@ -89,9 +89,9 @@ FGameplayEffectSpecHandle UPF2AbilitySystemLibrary::MakeGameplayEffectSpecFromGa
 	}
 	else
 	{
-		// This is the ability from the source ASC (i.e., the ability from the source character that resulted in an
-		// effect on the source. We are forwarding details about this ability activation into a new gameplay effect that
-		// is being applied to the target as if it originated from the source.
+		// This is the invoking ability from the source ASC (i.e., the ability from the source character that resulted
+		// in an effect on the target. We are forwarding details about this ability activation into a new gameplay
+		// effect that is being applied to the target as if it, too, originated from that source.
 		FGameplayAbilitySpec* AbilitySpec = AbilityInstance->GetCurrentAbilitySpec();
 
 		if (AbilitySpec == nullptr)
