@@ -1,4 +1,4 @@
-﻿// OpenPF2 for UE Game Logic, Copyright 2021-2023, Guy Elsmore-Paddock. All Rights Reserved.
+﻿// OpenPF2 for UE Game Logic, Copyright 2021-2024, Guy Elsmore-Paddock. All Rights Reserved.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
 // distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
@@ -19,14 +19,12 @@ APF2EffectCauseWrapper* UPF2Weapon::ToEffectCauser(AActor* OwningActor)
 
 void UPF2Weapon::OnSourceGameplayEffectsContainerSpecGenerated(
 	const TScriptInterface<IPF2CharacterAbilitySystemInterface>& SourceAbilitySystemComponent,
-	const FGameplayAbilitySpecHandle&                            ActivatedAbility,
-	const FGameplayAbilityActorInfo&                             AbilityOwnerInfo,
+	const UGameplayAbility*                                      ActivatedAbility,
 	FPF2GameplayEffectContainerSpec&                             ContainerSpec)
 {
 	this->BP_OnSourceGameplayEffectsContainerSpecGenerated(
 		SourceAbilitySystemComponent,
 		ActivatedAbility,
-		AbilityOwnerInfo,
 		ContainerSpec,
 		ContainerSpec
 	);
@@ -34,14 +32,12 @@ void UPF2Weapon::OnSourceGameplayEffectsContainerSpecGenerated(
 
 void UPF2Weapon::OnTargetGameplayEffectsContainerSpecGenerated(
 	const TScriptInterface<IPF2CharacterAbilitySystemInterface>& SourceAbilitySystemComponent,
-	const FGameplayAbilitySpecHandle&                            ActivatedAbility,
-	const FGameplayAbilityActorInfo&                             AbilityOwnerInfo,
+	const UGameplayAbility*                                      ActivatedAbility,
 	FPF2GameplayEffectContainerSpec&                             ContainerSpec)
 {
 	this->BP_OnTargetGameplayEffectsContainerSpecGenerated(
 		SourceAbilitySystemComponent,
 		ActivatedAbility,
-		AbilityOwnerInfo,
 		ContainerSpec,
 		ContainerSpec
 	);
@@ -104,8 +100,7 @@ FString UPF2Weapon::GetIdForLogs() const
 
 void UPF2Weapon::BP_OnSourceGameplayEffectsContainerSpecGenerated_Implementation(
 	const TScriptInterface<IPF2CharacterAbilitySystemInterface>& SourceAbilitySystemComponent,
-	const FGameplayAbilitySpecHandle&                            ActivatedAbility,
-	const FGameplayAbilityActorInfo&                             AbilityOwnerInfo,
+	const UGameplayAbility*                                      ActivatedAbility,
 	const FPF2GameplayEffectContainerSpec&                       ContainerSpec,
 	FPF2GameplayEffectContainerSpec&                             ModifiedContainerSpec)
 {
@@ -115,8 +110,7 @@ void UPF2Weapon::BP_OnSourceGameplayEffectsContainerSpecGenerated_Implementation
 
 void UPF2Weapon::BP_OnTargetGameplayEffectsContainerSpecGenerated_Implementation(
 	const TScriptInterface<IPF2CharacterAbilitySystemInterface>& SourceAbilitySystemComponent,
-	const FGameplayAbilitySpecHandle&                            ActivatedAbility,
-	const FGameplayAbilityActorInfo&                             AbilityOwnerInfo,
+	const UGameplayAbility*                                      ActivatedAbility,
 	const FPF2GameplayEffectContainerSpec&                       ContainerSpec,
 	FPF2GameplayEffectContainerSpec&                             ModifiedContainerSpec)
 {

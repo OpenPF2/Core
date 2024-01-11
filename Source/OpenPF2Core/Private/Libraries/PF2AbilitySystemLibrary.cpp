@@ -83,8 +83,9 @@ FGameplayEffectSpecHandle UPF2AbilitySystemLibrary::MakeGameplayEffectSpecFromGa
 	{
 		UE_LOG(
 			LogPf2CoreAbilities,
-			Warning,
-			TEXT("MakeGameplayEffectSpecFromGameplayEventContext() invoked with insufficient context or a non-instanced GA.")
+			Error,
+			TEXT("Cannot make GE specification for '%s' because insufficient context was provided or GA is non-instanced."),
+			*(GameplayEffectClass->GetName())
 		);
 	}
 	else
@@ -98,8 +99,9 @@ FGameplayEffectSpecHandle UPF2AbilitySystemLibrary::MakeGameplayEffectSpecFromGa
 		{
 			UE_LOG(
 				LogPf2CoreAbilities,
-				Warning,
-				TEXT("MakeGameplayEffectSpecFromGameplayEventContext() invoked a GA that has an invalid spec handle.")
+				Error,
+				TEXT("Cannot make GE specification for '%s' because GA that has an invalid spec handle."),
+				*(GameplayEffectClass->GetName())
 			);
 		}
 		else
@@ -112,9 +114,8 @@ FGameplayEffectSpecHandle UPF2AbilitySystemLibrary::MakeGameplayEffectSpecFromGa
 			check(SourceGeContextHandle.IsValid());
 
 			const FGameplayEffectContextHandle NewEffectContext =
-				MakeEffectContextForInstigatorAndCauser(
-					AbilitySpec->Handle,
-					SourceActorInfo,
+				MakeEffectContextFromAbilityForInstigatorAndCauser(
+					AbilityInstance,
 					SourceGeContextHandle.GetInstigator(),
 					SourceGeContextHandle.GetEffectCauser()
 				);
@@ -154,107 +155,154 @@ FGameplayEffectSpecHandle UPF2AbilitySystemLibrary::MakeGameplayEffectSpecFromGa
 	return Result;
 }
 
-FGameplayEffectSpecHandle UPF2AbilitySystemLibrary::MakeGameplayEffectSpecForWeapon(
-	const FGameplayAbilitySpecHandle&            AbilityHandle,
-	const FGameplayAbilityActorInfo&             AbilityOwnerInfo,
+FGameplayEffectSpecHandle UPF2AbilitySystemLibrary::MakeGameplayEffectSpecForWeaponAttack(
+	const UGameplayAbility*                      AttackAbility,
 	const TSubclassOf<UGameplayEffect>           GameplayEffectClass,
 	const TScriptInterface<IPF2WeaponInterface>& Weapon,
 	const float                                  Level)
 {
-	return MakeGameplayEffectSpecForCauser(
-		AbilityHandle,
-		AbilityOwnerInfo,
-		GameplayEffectClass,
-		Weapon->ToEffectCauser(AbilityOwnerInfo.OwnerActor.Get()),
-		Level
+	PF2_ENSURE_ABILITY_IS_INSTANTIATED_OR_RETURN(
+		AttackAbility,
+		MakeGameplayEffectSpecForWeaponAttack,
+		FGameplayEffectSpecHandle()
 	);
+	{
+		const FGameplayAbilityActorInfo& AbilityOwnerInfo = AttackAbility->GetActorInfo();
+		AActor*                          OwningActor      = AbilityOwnerInfo.OwnerActor.Get();
+
+		return MakeGameplayEffectSpecFromAbilityForInstigatorAndCauser(
+			AttackAbility,
+			GameplayEffectClass,
+			OwningActor,
+			Weapon->ToEffectCauser(OwningActor),
+			Level
+		);
+	}
 }
 
-FGameplayEffectSpecHandle UPF2AbilitySystemLibrary::MakeGameplayEffectSpecForInstigatorAndCauser(
-	const FGameplayAbilitySpecHandle&  AbilityHandle,
-	const FGameplayAbilityActorInfo&   AbilityOwnerInfo,
+FGameplayEffectSpecHandle UPF2AbilitySystemLibrary::MakeGameplayEffectSpecFromAbilityForCauser(
+	const UGameplayAbility* InvokingAbility, const TSubclassOf<UGameplayEffect> GameplayEffectClass,
+	AActor* EffectCauser, const float Level)
+{
+	PF2_ENSURE_ABILITY_IS_INSTANTIATED_OR_RETURN(
+		InvokingAbility,
+		MakeGameplayEffectSpecFromAbilityForCauser,
+		FGameplayEffectSpecHandle()
+	);
+	{
+		const FGameplayAbilityActorInfo AbilityOwnerInfo = InvokingAbility->GetActorInfo();
+
+		return MakeGameplayEffectSpecFromAbilityForInstigatorAndCauser(
+			InvokingAbility,
+			GameplayEffectClass,
+			AbilityOwnerInfo.OwnerActor.Get(),
+			EffectCauser,
+			Level
+		);
+	}
+}
+
+FGameplayEffectSpecHandle UPF2AbilitySystemLibrary::MakeGameplayEffectSpecFromAbilityForInstigatorAndCauser(
+	const UGameplayAbility*            InvokingAbility,
 	const TSubclassOf<UGameplayEffect> GameplayEffectClass,
 	AActor*                            Instigator,
 	AActor*                            EffectCauser,
 	const float                        Level)
 {
-	const UAbilitySystemComponent* const SourceAsc = AbilityOwnerInfo.AbilitySystemComponent.Get();
-
-	const FGameplayEffectContextHandle EffectContext =
-		MakeEffectContextForInstigatorAndCauser(AbilityHandle, AbilityOwnerInfo, Instigator, EffectCauser);
-
-	FGameplayEffectSpecHandle EffectHandle = SourceAsc->MakeOutgoingSpec(GameplayEffectClass, Level, EffectContext);
-
-	if (EffectHandle.IsValid())
+	PF2_ENSURE_ABILITY_IS_INSTANTIATED_OR_RETURN(
+		InvokingAbility,
+		MakeGameplayEffectSpecFromAbilityForInstigatorAndCauser,
+		FGameplayEffectSpecHandle()
+	);
 	{
-		FGameplayAbilitySpec* AbilitySpec = SourceAsc->FindAbilitySpecFromHandle(AbilityHandle);
+		const FGameplayAbilitySpecHandle&    AbilityHandle    = InvokingAbility->GetCurrentAbilitySpecHandle();
+		const FGameplayAbilityActorInfo&     AbilityOwnerInfo = InvokingAbility->GetActorInfo();
+		const UAbilitySystemComponent* const SourceAsc        = AbilityOwnerInfo.AbilitySystemComponent.Get();
 
-		if (AbilitySpec == nullptr)
+		const FGameplayEffectContextHandle EffectContext =
+			MakeEffectContextFromAbilityForInstigatorAndCauser(InvokingAbility, Instigator, EffectCauser);
+
+		FGameplayEffectSpecHandle EffectHandle = SourceAsc->MakeOutgoingSpec(GameplayEffectClass, Level, EffectContext);
+
+		if (EffectHandle.IsValid())
+		{
+			FGameplayAbilitySpec* AbilitySpec = SourceAsc->FindAbilitySpecFromHandle(AbilityHandle);
+
+			if (AbilitySpec == nullptr)
+			{
+				UE_LOG(
+					LogPf2CoreAbilities,
+					Error,
+					TEXT("Gameplay ability specification not found for handle ('%s')."),
+					*(AbilityHandle.ToString())
+				);
+			}
+			else
+			{
+				InvokingAbility->ApplyAbilityTagsToGameplayEffectSpec(*EffectHandle.Data.Get(), AbilitySpec);
+
+				// Copy over set by caller magnitudes.
+				EffectHandle.Data->SetByCallerTagMagnitudes = AbilitySpec->SetByCallerTagMagnitudes;
+			}
+		}
+		else
 		{
 			UE_LOG(
 				LogPf2CoreAbilities,
 				Error,
-				TEXT("Gameplay ability specification not found for handle ('%s')."),
-				*(AbilityHandle.ToString())
+				TEXT("Failed to obtain handle for gameplay effect ('%s')."),
+				*(GameplayEffectClass->GetName())
 			);
 		}
-		else
-		{
-			AbilitySpec->Ability->ApplyAbilityTagsToGameplayEffectSpec(*EffectHandle.Data.Get(), AbilitySpec);
 
-			// Copy over set by caller magnitudes.
-			EffectHandle.Data->SetByCallerTagMagnitudes = AbilitySpec->SetByCallerTagMagnitudes;
-		}
+		return EffectHandle;
 	}
-	else
-	{
-		UE_LOG(
-			LogPf2CoreAbilities,
-			Error,
-			TEXT("Failed to obtain handle for gameplay effect ('%s')."),
-			*(GameplayEffectClass->GetName())
-		);
-	}
-
-	return EffectHandle;
 }
 
-FGameplayEffectContextHandle UPF2AbilitySystemLibrary::MakeEffectContextForInstigatorAndCauser(
-	const FGameplayAbilitySpecHandle& AbilityHandle,
-	const FGameplayAbilityActorInfo&  AbilityOwnerInfo,
-	AActor*                           Instigator,
-	AActor*                           EffectCauser)
+FGameplayEffectContextHandle UPF2AbilitySystemLibrary::MakeEffectContextFromAbilityForInstigatorAndCauser(
+	const UGameplayAbility* InvokingAbility,
+	AActor*                 Instigator,
+	AActor*                 EffectCauser)
 {
-	FGameplayEffectContextHandle Context =
-		FGameplayEffectContextHandle(UAbilitySystemGlobals::Get().AllocGameplayEffectContext());
-
-	Context.AddInstigator(Instigator, EffectCauser);
-
-	// Pass along the source ability object to the effect, as long as it is available.
+	PF2_ENSURE_ABILITY_IS_INSTANTIATED_OR_RETURN(
+		InvokingAbility,
+		MakeEffectContextFromAbilityForInstigatorAndCauser,
+		FGameplayEffectContextHandle()
+	);
 	{
-		const FGameplayAbilitySpec* AbilitySpec =
-			AbilityOwnerInfo.AbilitySystemComponent->FindAbilitySpecFromHandle(AbilityHandle);
+		FGameplayEffectContextHandle Context =
+			FGameplayEffectContextHandle(UAbilitySystemGlobals::Get().AllocGameplayEffectContext());
 
-		if (AbilitySpec == nullptr)
-		{
-			UE_LOG(
-				LogPf2CoreAbilities,
-				Error,
-				TEXT("Gameplay ability specification not found for handle ('%s')."),
-				*(AbilityHandle.ToString())
-			);
-		}
-		else
-		{
-			// Track which ability is initiating the GE.
-			Context.SetAbility(AbilitySpec->Ability);
+		Context.AddInstigator(Instigator, EffectCauser);
 
-			// Copy the ability source over to the GE.
-			Context.AddSourceObject(AbilitySpec->SourceObject.Get());
+		// Pass along the source ability object to the effect, as long as it is available.
+		{
+			const FGameplayAbilitySpecHandle& AbilityHandle    = InvokingAbility->GetCurrentAbilitySpecHandle();
+			const FGameplayAbilityActorInfo&  AbilityOwnerInfo = InvokingAbility->GetActorInfo();
+			const UAbilitySystemComponent*    OwningAsc        = AbilityOwnerInfo.AbilitySystemComponent.Get();
+			const FGameplayAbilitySpec*       AbilitySpec      = OwningAsc->FindAbilitySpecFromHandle(AbilityHandle);
+
+			if (AbilitySpec == nullptr)
+			{
+				UE_LOG(
+					LogPf2CoreAbilities,
+					Error,
+					TEXT("Gameplay ability specification not found for handle ('%s')."),
+					*(AbilityHandle.ToString())
+				);
+			}
+			else
+			{
+				// Track the ability that is initiating the GE.
+				Context.SetAbility(InvokingAbility);
+
+				// Copy the ability source over to the GE.
+				Context.AddSourceObject(AbilitySpec->SourceObject.Get());
+			}
 		}
+
+		return Context;
 	}
-
-	return Context;
 }
 
 FGameplayAbilityTargetDataHandle UPF2AbilitySystemLibrary::CreateAbilityTargetDataFromPlayerControllerTargetSelection(

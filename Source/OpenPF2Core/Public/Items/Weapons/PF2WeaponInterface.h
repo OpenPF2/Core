@@ -186,9 +186,7 @@ public:
 	 * @param SourceAbilitySystemComponent
 	 *	The source ASC for the GEs (i.e., the character performing the attack).
 	 * @param ActivatedAbility
-	 *	The handle of the active ability (the ability that has generated the GE container spec).
-	 * @param AbilityOwnerInfo
-	 *	Information about the actor who activated the gameplay ability.
+	 *	The active ability (the ability that has generated the GE container spec).
 	 * @param ContainerSpec
 	 *	A reference to the GE container specification that was generated. The weapon may modify this specification in
 	 *	place.
@@ -196,8 +194,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category="OpenPF2|Items|Weapons")
 	virtual void OnSourceGameplayEffectsContainerSpecGenerated(
 		const TScriptInterface<IPF2CharacterAbilitySystemInterface>& SourceAbilitySystemComponent,
-		const FGameplayAbilitySpecHandle&                            ActivatedAbility,
-		const FGameplayAbilityActorInfo&                             AbilityOwnerInfo,
+	    const UGameplayAbility*                                      ActivatedAbility,
 		FPF2GameplayEffectContainerSpec&                             ContainerSpec) = 0;
 
 	/**
@@ -209,9 +206,7 @@ public:
 	 * @param SourceAbilitySystemComponent
 	 *	The source ASC for the GEs (i.e., the character performing the attack).
 	 * @param ActivatedAbility
-	 *	The handle of the active ability (the ability that has generated the GE container spec).
-	 * @param AbilityOwnerInfo
-	 *	Information about the actor who activated the gameplay ability.
+	 *	The active ability (the ability that has generated the GE container spec).
 	 * @param ContainerSpec
 	 *	A reference to the GE container specification that was generated. The weapon may modify this specification in
 	 *	place.
@@ -219,7 +214,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category="OpenPF2|Items|Weapons")
 	virtual void OnTargetGameplayEffectsContainerSpecGenerated(
 		const TScriptInterface<IPF2CharacterAbilitySystemInterface>& SourceAbilitySystemComponent,
-		const FGameplayAbilitySpecHandle&                            ActivatedAbility,
-		const FGameplayAbilityActorInfo&                             AbilityOwnerInfo,
+	    const UGameplayAbility*                                      ActivatedAbility,
 		FPF2GameplayEffectContainerSpec&                             ContainerSpec) = 0;
 };

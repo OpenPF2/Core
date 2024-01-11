@@ -337,8 +337,8 @@ protected:
 	 *	The type of GE for which a spec is desired.
 	 * @param Instigator
 	 *	The character to spoof as being responsible for the effect (e.g., the source of damage).
-	 * @param InvokingAbilityHandle
-	 *	The handle of the ability to spoof as having initiated the effect (e.g., the attack ability).
+	 * @param InvokingAbility
+	 *	The ability to spoof as having initiated the effect (e.g., the attack ability).
 	 * @param SetByCallerMagnitudesMap
 	 *	An optional map of set-by-caller-magnitudes/parameters to parameters, to pass into the GE.
 	 *
@@ -348,7 +348,7 @@ protected:
 	static FGameplayEffectSpecHandle BuildEffectSpec(
 		const TSubclassOf<UGameplayEffect>             EffectClass,
 		const TScriptInterface<IPF2CharacterInterface> Instigator,
-		const FGameplayAbilitySpecHandle               InvokingAbilityHandle,
+		const UGameplayAbility*                        InvokingAbility,
 		const TMap<FName, float>&                      SetByCallerMagnitudesMap = {});
 
 	/**
@@ -358,8 +358,8 @@ protected:
 	 *	The type of GE for which a spec is desired.
 	 * @param Instigator
 	 *	The character to spoof as being responsible for the effect (e.g., the source of damage).
-	 * @param InvokingAbilityHandle
-	 *	The handle of the ability to spoof as having initiated the effect (e.g., the attack ability).
+	 * @param InvokingAbility
+	 *	The ability to spoof as having initiated the effect (e.g., the attack ability).
 	 * @param EffectCauser
 	 *	The actor inflicting damage on the target (e.g., a projectile or melee weapon).
 	 * @param SetByCallerMagnitudesMap
@@ -371,7 +371,7 @@ protected:
 	static FGameplayEffectSpecHandle BuildEffectSpec(
 		const TSubclassOf<UGameplayEffect>             EffectClass,
 		const TScriptInterface<IPF2CharacterInterface> Instigator,
-		const FGameplayAbilitySpecHandle               InvokingAbilityHandle,
+		const UGameplayAbility*                        InvokingAbility,
 		AActor*                                        EffectCauser,
 		const TMap<FName, float>&                      SetByCallerMagnitudesMap = {});
 

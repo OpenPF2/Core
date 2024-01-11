@@ -1,4 +1,4 @@
-﻿// OpenPF2 for UE Game Logic, Copyright 2021-2023, Guy Elsmore-Paddock. All Rights Reserved.
+﻿// OpenPF2 for UE Game Logic, Copyright 2021-2024, Guy Elsmore-Paddock. All Rights Reserved.
 //
 // Content from Pathfinder 2nd Edition is licensed under the Open Game License (OGL) v1.0a, subject to the following:
 //   - Open Game License v 1.0a, Copyright 2000, Wizards of the Coast, Inc.
@@ -243,14 +243,12 @@ public:
 
     virtual void OnSourceGameplayEffectsContainerSpecGenerated(
 	    const TScriptInterface<IPF2CharacterAbilitySystemInterface>& SourceAbilitySystemComponent,
-	    const FGameplayAbilitySpecHandle&                            ActivatedAbility,
-	    const FGameplayAbilityActorInfo&                             AbilityOwnerInfo,
+	    const UGameplayAbility*                                      ActivatedAbility,
 	    FPF2GameplayEffectContainerSpec&                             ContainerSpec) override;
 
     virtual void OnTargetGameplayEffectsContainerSpecGenerated(
 	    const TScriptInterface<IPF2CharacterAbilitySystemInterface>& SourceAbilitySystemComponent,
-	    const FGameplayAbilitySpecHandle&                            ActivatedAbility,
-	    const FGameplayAbilityActorInfo&                             AbilityOwnerInfo,
+	    const UGameplayAbility*                                      ActivatedAbility,
 	    FPF2GameplayEffectContainerSpec&                             ContainerSpec) override;
 
 	// =================================================================================================================
@@ -278,9 +276,7 @@ protected:
 	 * @param SourceAbilitySystemComponent
 	 *	The source ASC for the GEs (i.e., the character performing the attack).
 	 * @param ActivatedAbility
-	 *	The handle of the active ability (the ability that has generated the GE container spec).
-	 * @param AbilityOwnerInfo
-	 *	Information about the actor who activated the gameplay ability.
+	 *	The active ability (the ability that has generated the GE container spec).
 	 * @param ContainerSpec
 	 *	The GE container specification that was generated.
 	 * @param [out] ModifiedContainerSpec
@@ -289,8 +285,7 @@ protected:
 	UFUNCTION(BlueprintNativeEvent, DisplayName="On Source Gameplay Effects Container Spec Generated")
 	void BP_OnSourceGameplayEffectsContainerSpecGenerated(
 		const TScriptInterface<IPF2CharacterAbilitySystemInterface>& SourceAbilitySystemComponent,
-		const FGameplayAbilitySpecHandle&                            ActivatedAbility,
-		const FGameplayAbilityActorInfo&                             AbilityOwnerInfo,
+	    const UGameplayAbility*                                      ActivatedAbility,
 		const FPF2GameplayEffectContainerSpec&                       ContainerSpec,
 		FPF2GameplayEffectContainerSpec&                             ModifiedContainerSpec);
 
@@ -303,9 +298,7 @@ protected:
 	 * @param SourceAbilitySystemComponent
 	 *	The source ASC for the GEs (i.e., the character performing the attack).
 	 * @param ActivatedAbility
-	 *	The handle of the active ability (the ability that has generated the GE container spec).
-	 * @param AbilityOwnerInfo
-	 *	Information about the actor who activated the gameplay ability.
+	 *	The active ability (the ability that has generated the GE container spec).
 	 * @param ContainerSpec
 	 *	The GE container specification that was generated.
 	 * @param [out] ModifiedContainerSpec
@@ -314,8 +307,7 @@ protected:
 	UFUNCTION(BlueprintNativeEvent, DisplayName="On Target Gameplay Effects Container Spec Generated")
 	void BP_OnTargetGameplayEffectsContainerSpecGenerated(
 		const TScriptInterface<IPF2CharacterAbilitySystemInterface>& SourceAbilitySystemComponent,
-		const FGameplayAbilitySpecHandle&                            ActivatedAbility,
-		const FGameplayAbilityActorInfo&                             AbilityOwnerInfo,
+	    const UGameplayAbility*                                      ActivatedAbility,
 		const FPF2GameplayEffectContainerSpec&                       ContainerSpec,
 		FPF2GameplayEffectContainerSpec&                             ModifiedContainerSpec);
 };

@@ -196,13 +196,13 @@ FGameplayEffectSpecHandle FPF2SpecBase::BuildEffectSpec(
 FGameplayEffectSpecHandle FPF2SpecBase::BuildEffectSpec(
 	const TSubclassOf<UGameplayEffect>             EffectClass,
 	const TScriptInterface<IPF2CharacterInterface> Instigator,
-	const FGameplayAbilitySpecHandle               InvokingAbilityHandle,
+	const UGameplayAbility*                        InvokingAbility,
 	const TMap<FName, float>&                      SetByCallerMagnitudesMap)
 {
 	return BuildEffectSpec(
 		EffectClass,
 		Instigator,
-		InvokingAbilityHandle,
+		InvokingAbility,
 		Instigator->ToActor(),
 		SetByCallerMagnitudesMap
 	);
@@ -211,18 +211,16 @@ FGameplayEffectSpecHandle FPF2SpecBase::BuildEffectSpec(
 FGameplayEffectSpecHandle FPF2SpecBase::BuildEffectSpec(
 	const TSubclassOf<UGameplayEffect>             EffectClass,
 	const TScriptInterface<IPF2CharacterInterface> Instigator,
-	const FGameplayAbilitySpecHandle               InvokingAbilityHandle,
+	const UGameplayAbility*                        InvokingAbility,
 	AActor*                                        EffectCauser,
 	const TMap<FName, float>&                      SetByCallerMagnitudesMap)
 {
-	FGameplayEffectSpecHandle      EffectSpec;
-	AActor*                        InstigatorActor = Instigator->ToActor();
-	const UAbilitySystemComponent* InstigatorAsc   = Instigator->GetAbilitySystemComponent();
+	FGameplayEffectSpecHandle EffectSpec;
+	AActor*                   InstigatorActor = Instigator->ToActor();
 
 	EffectSpec =
-		UPF2AbilitySystemLibrary::MakeGameplayEffectSpecForInstigatorAndCauser(
-			InvokingAbilityHandle,
-			*InstigatorAsc->AbilityActorInfo.Get(),
+		UPF2AbilitySystemLibrary::MakeGameplayEffectSpecFromAbilityForInstigatorAndCauser(
+			InvokingAbility,
 			EffectClass,
 			InstigatorActor,
 			EffectCauser,
