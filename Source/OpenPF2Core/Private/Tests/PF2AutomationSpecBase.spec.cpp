@@ -67,11 +67,8 @@ void FPF2AutomationSpecBaseSpec::Define()
 	{
 		Describe("when a variable is defined in a scope", [=, this]
 		{
-			const TSpecVariable<TSharedPtr<FTestObject>> OuterValue1 =
-				Let(TGeneratorFunc<TSharedPtr<FTestObject>>([]{ return MakeShared<FTestObject>("Outer"); }));
-
-			const TSpecVariable<TSharedPtr<FTestObject>> OuterValue2 =
-				Let(TGeneratorFunc<TSharedPtr<FTestObject>>([OuterValue1]{ return *OuterValue1; }));
+			LET(OuterValue1, TSharedPtr<FTestObject>, [],            { return MakeShared<FTestObject>("Outer"); });
+			LET(OuterValue2, TSharedPtr<FTestObject>, [OuterValue1], { return *OuterValue1;                     });
 
 			It("can supply the value via Get()", [=, this]
 			{
@@ -104,8 +101,7 @@ void FPF2AutomationSpecBaseSpec::Define()
 
 			Describe("when a different variable is defined in a nested scope", [=, this]
 			{
-				const TSpecVariable<TSharedPtr<FTestObject>> InnerValue =
-					Let(TGeneratorFunc<TSharedPtr<FTestObject>>([] { return MakeShared<FTestObject>("Inner"); }));
+				LET(InnerValue, TSharedPtr<FTestObject>, [], { return MakeShared<FTestObject>("Inner"); });
 
 				It("tracks the two variable separately in the current scope", [=, this]
 				{
@@ -118,12 +114,9 @@ void FPF2AutomationSpecBaseSpec::Define()
 			{
 				Describe("when the redefinition does not reference the original value", [=, this]
 				{
-					const TSpecVariable<FString> MyVariable = Let(TGeneratorFunc<FString>([] { return "ABC"; }));
+					LET(MyVariable, FString, [], { return "ABC"; });
 
-					RedefineLet(
-						MyVariable,
-						TGeneratorRedefineFunc<FString>([](const TSpecVariablePtr<FString>&) { return "DEF"; })
-					);
+					REDEFINE_LET(MyVariable, FString, [], { return "DEF"; });
 
 					It("replaces the original value in the scope", [=, this]
 					{
@@ -133,15 +126,9 @@ void FPF2AutomationSpecBaseSpec::Define()
 
 				Describe("when the redefinition references the original value", [=, this]
 				{
-					const TSpecVariable<FString> MyVariable = Let(TGeneratorFunc<FString>([]
-					{
-						return "ABC";
-					}));
+					LET(MyVariable, FString, [], { return "ABC"; });
 
-					RedefineLet(MyVariable, TGeneratorRedefineFunc<FString>([](const TSpecVariablePtr<FString>& Original)
-					{
-						return **Original + "DEF";
-					}));
+					REDEFINE_LET(MyVariable, FString, [], { return **Previous + "DEF"; });
 
 					It("replaces the original value in the scope", [=, this]
 					{
@@ -153,7 +140,7 @@ void FPF2AutomationSpecBaseSpec::Define()
 
 			Describe("when changing the value of a variable via its reference", [=, this]
 			{
-				const TSpecVariable<FString> MyVariable = Let(TGeneratorFunc<FString>([] { return "ABC"; }));
+				LET(MyVariable, FString, [], { return "ABC"; });
 
 				It("affects the value of the variable in the test that changes it", [=, this]
 				{
@@ -172,13 +159,7 @@ void FPF2AutomationSpecBaseSpec::Define()
 			{
 				Describe("when the redefinition does not reference the original value", [=, this]
 				{
-					RedefineLet(
-						OuterValue1,
-						TGeneratorRedefineFunc<TSharedPtr<FTestObject>>([](const TSpecVariablePtr<TSharedPtr<FTestObject>>&)
-						{
-							return MakeShared<FTestObject>("Inner");
-						})
-					);
+					REDEFINE_LET(OuterValue1, TSharedPtr<FTestObject>, [], { return MakeShared<FTestObject>("Inner"); });
 
 					It("replaces the original value in the scope", [=, this]
 					{
@@ -194,13 +175,7 @@ void FPF2AutomationSpecBaseSpec::Define()
 					{
 						Describe("when the second redefinition does not reference the original value", [=, this]
 						{
-							RedefineLet(
-								OuterValue1,
-								TGeneratorRedefineFunc<TSharedPtr<FTestObject>>([](const TSpecVariablePtr<TSharedPtr<FTestObject>>&)
-								{
-									return MakeShared<FTestObject>("DeepInner");
-								})
-							);
+							REDEFINE_LET(OuterValue1, TSharedPtr<FTestObject>, [], { return MakeShared<FTestObject>("DeepInner"); });
 
 							It("replaces the original value in the scope", [=, this]
 							{
@@ -215,12 +190,11 @@ void FPF2AutomationSpecBaseSpec::Define()
 
 						Describe("when the second redefinition references the original value", [=, this]
 						{
-							RedefineLet(
+							REDEFINE_LET(
 								OuterValue1,
-								TGeneratorRedefineFunc<TSharedPtr<FTestObject>>([](const TSpecVariablePtr<TSharedPtr<FTestObject>>& Original)
-								{
-									return MakeShared<FTestObject>((*Original)->SomeValue + "DeepInner");
-								})
+								TSharedPtr<FTestObject>,
+								[],
+								{ return MakeShared<FTestObject>((*Previous)->SomeValue + "DeepInner"); }
 							);
 
 							It("replaces the original value in the scope", [=, this]
@@ -238,12 +212,11 @@ void FPF2AutomationSpecBaseSpec::Define()
 
 				Describe("when the redefinition references the original value", [=, this]
 				{
-					RedefineLet(
+					REDEFINE_LET(
 						OuterValue1,
-						TGeneratorRedefineFunc<TSharedPtr<FTestObject>>([](const TSpecVariablePtr<TSharedPtr<FTestObject>>& Original)
-						{
-							return MakeShared<FTestObject>((*Original)->SomeValue + "Inner");
-						})
+						TSharedPtr<FTestObject>,
+						[],
+						{ return MakeShared<FTestObject>((*Previous)->SomeValue + "Inner"); }
 					);
 
 					It("replaces the original value in the scope", [=, this]
@@ -260,12 +233,11 @@ void FPF2AutomationSpecBaseSpec::Define()
 					{
 						Describe("when the second redefinition does not reference the original value", [=, this]
 						{
-							RedefineLet(
+							REDEFINE_LET(
 								OuterValue1,
-								TGeneratorRedefineFunc<TSharedPtr<FTestObject>>([](const TSpecVariablePtr<TSharedPtr<FTestObject>>&)
-								{
-									return MakeShared<FTestObject>("DeepInner");
-								})
+								TSharedPtr<FTestObject>,
+								[],
+								{ return MakeShared<FTestObject>("DeepInner"); }
 							);
 
 							It("replaces the original value in the scope", [=, this]
@@ -281,12 +253,11 @@ void FPF2AutomationSpecBaseSpec::Define()
 
 						Describe("when the second redefinition references the original value", [=, this]
 						{
-							RedefineLet(
+							REDEFINE_LET(
 								OuterValue1,
-								TGeneratorRedefineFunc<TSharedPtr<FTestObject>>([](const TSpecVariablePtr<TSharedPtr<FTestObject>>& Original)
-								{
-									return MakeShared<FTestObject>((*Original)->SomeValue + "DeepInner");
-								})
+								TSharedPtr<FTestObject>,
+								[],
+								{ return MakeShared<FTestObject>((*Previous)->SomeValue + "DeepInner"); }
 							);
 
 							It("replaces the original value in the scope", [=, this]
@@ -309,10 +280,7 @@ void FPF2AutomationSpecBaseSpec::Define()
 	{
 		Describe("when a variable is referenced by a BeforeEach() block", [=, this]
 		{
-			const TSpecVariable<FString> Variable = Let(TGeneratorFunc<FString>([]()
-			{
-				return "ABC";
-			}));
+			LET(Variable, FString, [], { return "ABC"; });
 
 			BeforeEach([=, this]
 			{
@@ -327,13 +295,7 @@ void FPF2AutomationSpecBaseSpec::Define()
 
 			Describe("when the variable is redefined in a nested scope", [=, this]
 			{
-				RedefineLet(
-					Variable,
-					TGeneratorRedefineFunc<FString>([](const TSpecVariablePtr<FString>&)
-					{
-						return "Inner";
-					})
-				);
+				REDEFINE_LET(Variable, FString, [], { return "Inner"; });
 
 				It("provides the redefined value to the outer BeforeEach() block", [=, this]
 				{

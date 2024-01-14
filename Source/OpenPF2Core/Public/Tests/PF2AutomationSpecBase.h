@@ -7,6 +7,52 @@
 
 #include <Misc/AutomationTest.h>
 
+// =====================================================================================================================
+// Macro Declarations
+// =====================================================================================================================
+/**
+ * Declares a new variable for use in the current test scope and nested scopes.
+ *
+ * This is an alias for Let() that shortens variable and lambda type definitions.
+ *
+ * @param Name
+ *	The name of the variable to declare.
+ * @param Type
+ *	The type of the variable to declare.
+ * @param Captures
+ *	A comma-separated list of zero or more captures, optionally beginning with a capture-default. This must be enclosed
+ *	in square brackets, even if there are no captures.
+ * @param Generator
+ *	The block/body of the generator function, enclosed in curly braces. This must return a value of the same type as the
+ *	variable.
+ */
+#define LET(Name, Type, Captures, Generator) \
+	const TSpecVariable<Type> Name = Let(TGeneratorFunc<Type>(Captures() Generator))
+
+/**
+ * Redefines the value of an existing variable from the current test scope or an outer scope.
+ *
+ * The new value only has effect within the current scope and nested scopes.
+ *
+ * This is an alias for RedefineLet() that shortens variable and lambda type definitions.
+ *
+ * @param Name
+ *	The name of the variable to redefine.
+ * @param Type
+ *	The type of the variable to redefine.
+ * @param Captures
+ *	A comma-separated list of zero or more captures, optionally beginning with a capture-default. This must be enclosed
+ *	in square brackets, even if there are no captures.
+ * @param Generator
+ *	The block/body of the re-generator function, enclosed in curly braces. This lambda receives a pointer variable
+ *	called "Previous" that can be used to obtain the value from the last definition or redefinition of the variable.
+ */
+#define REDEFINE_LET(Name, Type, Captures, RegeneratorBody) \
+	RedefineLet(Name, TGeneratorRedefineFunc<Type>(Captures(const TSpecVariablePtr<Type>& Previous) RegeneratorBody))
+
+// =====================================================================================================================
+// Normal Declarations
+// =====================================================================================================================
 /**
  * Automation spec base class used by OpenPF2 automation tests.
  *
