@@ -16,6 +16,476 @@
  */
 class FPF2AutomationSpecBase : public FAutomationTestBase, public TSharedFromThis<FPF2AutomationSpecBase>
 {
+public:
+	// =================================================================================================================
+	// Forward Declarations
+	// =================================================================================================================
+	struct FSpecBlockHandle;
+
+	template <typename VariableType>
+	class TSpecLet;
+
+private:
+	class FSpecLetWildcard;
+
+public:
+	// =================================================================================================================
+	// Public Type Aliases
+	// =================================================================================================================
+	/**
+	 * Alias for a shared pointer to a variable declared with Let().
+	 */
+	template <typename VariableType>
+	using TSpecVariablePtr = TSharedPtr<TSpecLet<VariableType>>;
+
+	/**
+	 * Alias for a shared pointer to the un-templated base variable type for Let().
+	 */
+	using FSpecVariablePtrWildcard = TSharedPtr<FSpecLetWildcard>;
+
+	/**
+	 * Alias for a function invoked to generate the value of a Let() variable.
+	 */
+	template <typename VariableType>
+	using TGeneratorFunc = TFunction<VariableType()>;
+
+	/**
+	 * Alias for a function invoked to regenerate the value of a Let() variable.
+	 */
+	template <typename VariableType>
+	using TGeneratorRedefineFunc = TFunction<VariableType(const TSpecVariablePtr<VariableType>)>;
+
+	/**
+	 * Alias for a map of variables in a spec scope.
+	 */
+	using FSpecVariableScope = TMap<FSpecBlockHandle, FSpecVariablePtrWildcard>;
+
+	// =================================================================================================================
+	// Public Type Definitions
+	// =================================================================================================================
+	/**
+	 * Represents a unique handle/ID for a specific block within an automation test specification.
+	 */
+	struct FSpecBlockHandle
+	{
+		// =============================================================================================================
+		// Private Fields
+		// =============================================================================================================
+	private:
+		/**
+		 * The unique identifier for the handle.
+		 */
+		int32 Handle;
+
+	public:
+		// =============================================================================================================
+		// Public Static Methods
+		// =============================================================================================================
+		/**
+		 * Gets the unique hash for this handle.
+		 *
+		 * @param SpecHandle - The handle to hash.
+		 * @return The hash value.
+		 */
+		friend static uint32 GetTypeHash(const FSpecBlockHandle& SpecHandle)
+		{
+			return ::GetTypeHash(SpecHandle.Handle);
+		}
+
+		// =============================================================================================================
+		// Public Constructor
+		// =============================================================================================================
+		/**
+		 * Constructs a new instance and assigns it a unique identifier.
+		 */
+		explicit FSpecBlockHandle()
+		{
+			this->Assign();
+		}
+
+		// =============================================================================================================
+		// Public Instance Methods
+		// =============================================================================================================
+		/**
+         * Equality operator for comparing this handle to another handle.
+         *
+         * @param Other
+         *	The handle to compare against.
+         * @return
+         *	true if the handles are equal; or, false otherwise.
+         */
+		bool operator==(const FSpecBlockHandle& Other) const
+		{
+			return (this->Handle == Other.Handle);
+		}
+
+		/**
+		 * Inequality operator for comparing this handle to another handle.
+		 *
+		 * @param Other
+		 *	The handle to compare against.
+		 * @return
+		 *	true if the handles are not equal; or, false otherwise.
+		 */
+		bool operator!=(const FSpecBlockHandle& Other) const
+		{
+			return (this->Handle != Other.Handle);
+		}
+
+		/**
+		 * Converts this handle to a string representation.
+		 *
+		 * @return
+		 *	The string representation of the unique identifier of this handle.
+		 */
+		FString ToString() const
+		{
+			return FString::FromInt(this->Handle);
+		}
+
+	private:
+		/**
+		 * Assigns this handle its unique identifier.
+		 */
+		void Assign();
+	};
+
+	/**
+	 * A reference to a variable in a test context.
+	 *
+	 * The real value of the variable is not stored in this object; rather, the value is retrieved from the variable map
+	 * of the current scope (the active spec). This allows the value of a variable to be redefined in nested scopes in a
+	 * way that impacts outer scopes (e.g., BeforeEach()).
+	 *
+	 * @tparam VariableType
+	 *	The type of the variable.
+	 */
+	template <typename VariableType>
+	class TSpecVariable
+	{
+		// =============================================================================================================
+		// Private Fields
+		// =============================================================================================================
+		/**
+		 * The unique handle of this variable.
+		 *
+		 * This handle uniquely defines this variable and is retained even if the value of the variable is redefined.
+		 */
+		FSpecBlockHandle Handle;
+
+		/**
+		 * The outer test.
+		 */
+		const FPF2AutomationSpecBase* Spec;
+
+	public:
+		// =============================================================================================================
+		// Public Constructors
+		// =============================================================================================================
+		/**
+		 * Constructs a new instance.
+		 *
+		 * @param Spec
+		 *	The outer test.
+		 */
+		explicit TSpecVariable(const FPF2AutomationSpecBase* const Spec) : Spec(Spec)
+		{
+		}
+
+		// =============================================================================================================
+		// Public Methods
+		// =============================================================================================================
+		/**
+		 * Gets the unique handle for this variable.
+		 *
+		 * @return
+		 *	The block handle for this variable.
+		 */
+		FORCEINLINE UE_NODISCARD FSpecBlockHandle GetHandle() const
+		{
+			return this->Handle;
+		}
+
+		/**
+		 * Retrieves the value of this variable from the current scope.
+		 *
+		 * Variables are lazily evaluated but only evaluated once per test, so subsequent fetches of the same variable
+		 * during the same test return the same value.
+		 *
+		 * @return
+		 *	The current value of this variable.
+		 */
+		FORCEINLINE UE_NODISCARD VariableType& Get() const
+		{
+			TSpecVariablePtr<VariableType> VariablePtr = this->Spec->GetVariable<VariableType>(this->Handle);
+
+			return VariablePtr->Get();
+		}
+
+		/**
+		 * Defines a dereference operator for retrieving the value of this variable from the current scope.
+		 *
+		 * Variables are lazily evaluated but only evaluated once per test, so subsequent fetches of the same variable
+		 * during the same test return the same value.
+		 *
+		 * @return
+		 *	The current value of this variable.
+		 */
+		FORCEINLINE UE_NODISCARD VariableType& operator *() const
+		{
+			return this->Get();
+		}
+
+		/**
+		 * Defines an arrow operator for interacting with the value of this variable from the current scope.
+		 *
+		 * Variables are lazily evaluated but only evaluated once per test, so subsequent fetches of the same variable
+		 * during the same test return the same value.
+		 *
+		 * @return
+		 *	The current value of this variable.
+		 */
+		FORCEINLINE UE_NODISCARD VariableType& operator ->() const
+		{
+			return this->Get();
+		}
+	};
+
+private:
+	// =================================================================================================================
+	// Private Type Definitions
+	// =================================================================================================================
+	/**
+	 * Un-templated base class for variables declared with Let() in spec contexts.
+	 *
+	 * This class mainly exists to give us a concrete type to store in the map of variables in tests, since maps require
+	 * a concrete value type. At execution time, this type is downcast to the specific variable type upon retrieval.
+	 */
+	class FSpecLetWildcard
+	{
+	protected:
+		// =============================================================================================================
+		// Protected Fields
+		// =============================================================================================================
+		/**
+		 * Whether the value of the variable has been generated and memoized during the current test.
+		 */
+		bool bWasGenerated;
+
+		// =============================================================================================================
+		// Protected Constructors
+		// =============================================================================================================
+		/**
+		 * Constructs a new instance.
+		 */
+		explicit FSpecLetWildcard() : bWasGenerated(false)
+		{
+		}
+
+		/**
+		 * Destructs this instance.
+		 */
+		virtual ~FSpecLetWildcard() = default;
+
+	public:
+		// =============================================================================================================
+		// Public Methods
+		// =============================================================================================================
+		/**
+		 * Resets the value of this variable so that will regenerate its value on the next request.
+		 */
+		virtual void Reset()
+		{
+			this->bWasGenerated = false;
+		}
+
+		// =============================================================================================================
+		// Protected Methods
+		// =============================================================================================================
+		FORCEINLINE UE_NODISCARD bool WasGenerated() const
+		{
+			return this->bWasGenerated;
+		}
+	};
+
+	/**
+	 * A placeholder for a Let() block that performs no operation and returns the default value for a type.
+	 *
+	 * This is instantiated as the "prior definition" for the first definition of a variable within a scope.
+	 *
+	 * @tparam VariableType
+	 *	The type of variable that this is standing in for.
+	 */
+	template <typename VariableType>
+	class TNoOpSpecLet final : public TSpecLet<VariableType>
+	{
+	public:
+		// =============================================================================================================
+		// Public Constructors and Destructors
+		// =============================================================================================================
+		/**
+		 * Constructs a new instance.
+		 */
+		explicit TNoOpSpecLet() :
+			TSpecLet<VariableType>(
+				TGeneratorRedefineFunc<VariableType>([](const TSpecVariablePtr<VariableType>&)
+					{
+						return VariableType();
+					}
+				),
+				TSpecVariablePtr<VariableType>()
+			)
+		{
+		}
+
+		/**
+		 * Destructs this instance.
+		 */
+		virtual ~TNoOpSpecLet() override = default;
+	};
+
+	/**
+	 * A lazy-loaded, memoized variable that can be defined in a spec. scope and overridden in nested scopes.
+	 *
+	 * This is the actual object stored in the variables map of a test. Tests generate and retrieve the value from this
+	 * object via a TSpecVariable object, which acts like a handle.
+	 *
+	 * @tparam VariableType
+	 *	The type of the variable.
+	 */
+	template <typename VariableType>
+	class TSpecLet : public FSpecLetWildcard
+	{
+		// =============================================================================================================
+		// Private Fields
+		// =============================================================================================================
+		/**
+		 * The original definition of this variable within the same scope.
+		 *
+		 * This enables a re-definition of an existing variable to be based on the prior value of the same variable.
+		 */
+		TSharedPtr<TSpecLet> PriorDefinition;
+
+		/**
+		 * The lambda that will be invoked to generate the value of the variable.
+		 *
+		 * This is invoked the first time the variable is retrieved during the test, and the value is memoized so the
+		 * same value will be returned if the value is retrieved again during the same test. The lambda receives a const
+		 * pointer to the previous definition of variable, to enable the variable to base its value on its prior
+		 * definition. If the variable has been redefined multiple times (e.g., through multiple nested scopes), the
+		 * variables are chained, so only the prior definition is accessible within each lambda.
+		 */
+		TGeneratorRedefineFunc<VariableType> GeneratorFunc;
+
+		/**
+		 * The value of this variable (if any) that was memoized during the current test.
+		 */
+		VariableType MemoizedValue;
+
+		// =============================================================================================================
+		// Public Constructors and Destructors
+		// =============================================================================================================
+	public:
+		/**
+		 * Constructs a new instance for a Let() block that has no prior definition in outer scopes.
+		 *
+		 * @param GeneratorFunc
+		 *	The lambda to invoke to generate the value of the variable. The lambda receives a const pointer to the
+		 *	previous definition of variable, to enable the variable to base its value on its prior definition. If the
+		 *	variable has been redefined multiple times (e.g., through multiple nested scopes), the variables are
+		 *	chained, so only the prior definition is accessible within each lambda.
+		 */
+		explicit TSpecLet(TGeneratorRedefineFunc<VariableType> GeneratorFunc) :
+			PriorDefinition(TSharedPtr<TSpecLet>(new TNoOpSpecLet<VariableType>())),
+			GeneratorFunc(MoveTemp(GeneratorFunc))
+		{
+		}
+
+		/**
+		 * Constructs a new instance for a Let() block that is redefining a definition from outer scopes.
+		 *
+		 * @param PriorDefinition
+		 *	The original definition of this variable from an outer scope or earlier within the same scope.
+		 * @param GeneratorFunc
+		 *	The lambda to invoke to generate the value of the variable. The lambda receives a const pointer to the
+		 *	previous definition of variable, to enable the variable to base its value on its prior definition. If the
+		 *	variable has been redefined multiple times (e.g., through multiple nested scopes), the variables are
+		 *	chained, so only the prior definition is accessible within each lambda.
+		 */
+		explicit TSpecLet(TGeneratorRedefineFunc<VariableType> GeneratorFunc, TSharedPtr<TSpecLet> PriorDefinition) :
+			PriorDefinition(MoveTemp(PriorDefinition)),
+			GeneratorFunc(MoveTemp(GeneratorFunc))
+		{
+		}
+
+		/**
+		 * Destructs this instance.
+		 */
+		virtual ~TSpecLet() override
+		{
+		};
+
+		// =============================================================================================================
+		// Public Methods
+		// =============================================================================================================
+		/**
+		 * Gets the value of this variable.
+		 *
+		 * If the variable has not been generated during this test, it is generated and then memoized.
+		 *
+		 * @return
+		 *	The value of this variable.
+		 */
+		UE_NODISCARD VariableType& Get()
+		{
+			if (!this->WasGenerated())
+			{
+				this->MemoizedValue = this->GeneratorFunc(this->PriorDefinition);
+				this->bWasGenerated = true;
+			}
+
+			return this->MemoizedValue;
+		}
+
+		/**
+		 * Defines a dereference operator for retrieving the value of this variable.
+		 *
+		 * Variables are lazily evaluated but only evaluated once per test, so subsequent fetches of the same variable
+		 * during the same test return the same value.
+		 *
+		 * @return
+		 *	The current value of this variable.
+		 */
+		FORCEINLINE UE_NODISCARD VariableType& operator *()
+		{
+			return this->Get();
+		}
+
+		/**
+		 * Defines an arrow operator for interacting with the value of this variable.
+		 *
+		 * Variables are lazily evaluated but only evaluated once per test, so subsequent fetches of the same variable
+		 * during the same test return the same value.
+		 *
+		 * @return
+		 *	The current value of this variable.
+		 */
+		FORCEINLINE UE_NODISCARD VariableType& operator ->()
+		{
+			return this->Get();
+		}
+
+		// =============================================================================================================
+		// Public Methods - FSpecLetWildcard Overrides
+		// =============================================================================================================
+		virtual void Reset() override
+		{
+			FSpecLetWildcard::Reset();
+
+			this->MemoizedValue = VariableType();
+		}
+	};
+
 	/**
 	 * An automation test command that just runs code and waits until it returns.
 	 *
@@ -388,93 +858,6 @@ class FPF2AutomationSpecBase : public FAutomationTestBase, public TSharedFromThi
 	};
 
 	/**
-	 * Represents a unique handle/ID for a specific block within an automation test specification.
-	 */
-	struct FSpecBlockHandle
-	{
-		// =============================================================================================================
-		// Private Fields
-		// =============================================================================================================
-	private:
-		/**
-		 * The unique identifier for the handle.
-		 */
-		int32 Handle;
-
-	public:
-		// =============================================================================================================
-		// Public Static Methods
-		// =============================================================================================================
-		/**
-		 * Gets the unique hash for this handle.
-		 *
-		 * @param SpecHandle - The handle to hash.
-		 * @return The hash value.
-		 */
-		friend static uint32 GetTypeHash(const FSpecBlockHandle& SpecHandle)
-		{
-			return ::GetTypeHash(SpecHandle.Handle);
-		}
-
-		// =============================================================================================================
-		// Public Constructor
-		// =============================================================================================================
-		/**
-		 * Constructs a new instance and assigns it a unique identifier.
-		 */
-		explicit FSpecBlockHandle()
-		{
-			this->Assign();
-		}
-
-		// =============================================================================================================
-		// Public Instance Methods
-		// =============================================================================================================
-		/**
-         * Equality operator for comparing this handle to another handle.
-         *
-         * @param Other
-         *	The handle to compare against.
-         * @return
-         *	true if the handles are equal; or, false otherwise.
-         */
-		bool operator==(const FSpecBlockHandle& Other) const
-		{
-			return (this->Handle == Other.Handle);
-		}
-
-		/**
-		 * Inequality operator for comparing this handle to another handle.
-		 *
-		 * @param Other
-		 *	The handle to compare against.
-		 * @return
-		 *	true if the handles are not equal; or, false otherwise.
-		 */
-		bool operator!=(const FSpecBlockHandle& Other) const
-		{
-			return (this->Handle != Other.Handle);
-		}
-
-		/**
-		 * Converts this handle to a string representation.
-		 *
-		 * @return
-		 *	The string representation of the unique identifier of this handle.
-		 */
-		FString ToString() const
-		{
-			return FString::FromInt(this->Handle);
-		}
-
-	private:
-		/**
-		 * Assigns this handle its unique identifier.
-		 */
-		void Assign();
-	};
-
-	/**
 	 * Represents an It() block within a specification.
 	 *
 	 * Each It() block defines a specific test case, including a human-readable description and automation command to
@@ -565,6 +948,11 @@ class FPF2AutomationSpecBase : public FAutomationTestBase, public TSharedFromThi
 		FString Description;
 
 		/**
+		 * The variables defined in this scope.
+		 */
+		FSpecVariableScope Variables;
+
+		/**
 		 * Latent commands to execute once before all It() blocks within the specification (including nested scopes).
 		 */
 		TArray<TSharedRef<IAutomationLatentCommand>> BeforeAll;
@@ -620,6 +1008,11 @@ class FPF2AutomationSpecBase : public FAutomationTestBase, public TSharedFromThi
 		 * The line number where this test was defined.
 		 */
 		int32 LineNumber;
+
+		/**
+		 * The variables defined in this scope.
+		 */
+		FSpecVariableScope Variables;
 
 		/**
 		 * The automation commands to execute to perform this test.
@@ -705,6 +1098,32 @@ class FPF2AutomationSpecBase : public FAutomationTestBase, public TSharedFromThi
 	};
 
 	// =================================================================================================================
+	// Private Static Methods
+	// =================================================================================================================
+	/**
+	 * Gets the current value of a variable from a scope.
+	 *
+	 * @tparam VariableType
+	 *	The type of the variable.
+	 *
+	 * @param Variables
+	 *	The scope of variables from which to obtain the variable.
+	 * @param Handle
+	 *	The unique handle of the desired variable.
+	 *
+	 * @return
+	 *	The value of the variable.
+	 */
+	template <typename VariableType>
+	FORCEINLINE UE_NODISCARD static TSpecVariablePtr<VariableType> GetVariableFromScope(
+		FSpecVariableScope      Variables,
+		const FSpecBlockHandle& Handle)
+	{
+		check(Variables.Contains(Handle));
+		return StaticCastSharedPtr<TSpecLet<VariableType>>(Variables[Handle]);
+	}
+
+	// =================================================================================================================
 	// Private Fields
 	// =================================================================================================================
 	/**
@@ -754,6 +1173,13 @@ class FPF2AutomationSpecBase : public FAutomationTestBase, public TSharedFromThi
 	 * This is used to keep track of state that has to be reset between test suite runs.
 	 */
 	TSharedPtr<FPF2TestSessionState> SuiteSessionState;
+
+	/**
+	 * The variables defined for the current test.
+	 *
+	 * This is cleared and repopulated at the start of each test case.
+	 */
+	FSpecVariableScope VariablesInScope;
 
 public:
 	// =================================================================================================================
@@ -827,6 +1253,79 @@ protected:
 	FORCEINLINE void xDescribe(const FString& InDescription, const TFunction<void()>& DoWork)
 	{
 		// Disabled.
+	}
+
+	/**
+	 * Declares a variable for use in a test.
+	 *
+	 * @tparam VariableType
+	 *	The type of the variable.
+	 *
+	 * @param GeneratorFunc
+	 *	The lambda to invoke to generate the value of the variable.
+	 *
+	 * @return
+	 *	A reference/handle to the variable, for access to the variable during the test.
+	 */
+	template <typename VariableType>
+	TSpecVariable<VariableType> Let(const TGeneratorFunc<VariableType>& GeneratorFunc)
+	{
+		const TSharedRef<FSpecDefinitionScope> CurrentScope = this->GetCurrentScope();
+		TSpecVariable<VariableType>            Variable     = TSpecVariable<VariableType>(this);
+
+		// Adapt the signature so that we only have one type of generator function we have to call.
+		FSpecVariablePtrWildcard Definition = FSpecVariablePtrWildcard(
+			new TSpecLet<VariableType>([GeneratorFunc](const TSpecVariablePtr<VariableType>)
+			{
+				return GeneratorFunc();
+			})
+		);
+
+		CurrentScope->Variables.Add(Variable.GetHandle(), Definition);
+
+		return Variable;
+	}
+
+	/**
+	 * Redefines the value of a previously defined variable in a test.
+	 *
+	 * @tparam VariableType
+	 *	The type of the variable.
+	 *
+	 * @param Variable
+	 *	The variable to redefine.
+	 * @param GeneratorFunc
+	 *	The lambda to invoke to generate the value of the variable. The lambda receives a const pointer to the previous
+	 *	definition of variable, to enable the variable to base its value on its prior definition. If the variable has
+	 *	been redefined multiple times (e.g., through multiple nested scopes), the variables are chained, so only the
+	 *	prior definition is accessible within each lambda.
+	 */
+	template <typename VariableType>
+	void RedefineLet(TSpecVariable<VariableType> Variable, const TGeneratorRedefineFunc<VariableType>& GeneratorFunc)
+	{
+		const FSpecBlockHandle&                VariableHandle  = Variable.GetHandle();
+		const TSharedRef<FSpecDefinitionScope> CurrentScope    = this->GetCurrentScope();
+		TSpecVariablePtr<VariableType>         PriorDefinition = TSpecVariablePtr<VariableType>();
+		FSpecVariablePtrWildcard               NewDefinition;
+
+		// Iterate in reverse to evaluate variables from the inner-most scope outwards, looking for an existing
+		// definition of this variable.
+		for (int32 ScopeIndex = this->DefinitionScopeStack.Num() - 1; ScopeIndex >= 0; --ScopeIndex)
+		{
+			const TSharedRef<FSpecDefinitionScope> Scope = this->DefinitionScopeStack[ScopeIndex];
+
+			if (Scope->Variables.Contains(VariableHandle))
+			{
+				PriorDefinition = GetVariableFromScope<VariableType>(Scope->Variables, VariableHandle);
+				break;
+			}
+		}
+
+		check(PriorDefinition.IsValid());
+
+		NewDefinition = FSpecVariablePtrWildcard(new TSpecLet<VariableType>(GeneratorFunc, PriorDefinition));
+
+		CurrentScope->Variables.Add(VariableHandle, NewDefinition);
 	}
 
 	/**
@@ -1960,5 +2459,25 @@ private:
 	 * @param SpecToRun
 	 *	The spec to run.
 	 */
-	static void RunSpec(const TSharedRef<FSpec>& SpecToRun);
+	void RunSpec(const TSharedRef<FSpec>& SpecToRun);
+
+	/**
+	 * Gets the value of the specified variable from the scope of the current test.
+	 *
+	 * This is used only while the test is running, not during test definition.
+	 *
+	 * @tparam VariableType
+	 *	The type of the variable.
+	 *
+	 * @param Handle
+	 *	The unique handle of the desired variable.
+	 *
+	 * @return
+	 *	The value of the variable.
+	 */
+	template <typename VariableType>
+	FORCEINLINE UE_NODISCARD TSpecVariablePtr<VariableType> GetVariable(const FSpecBlockHandle& Handle) const
+	{
+		return GetVariableFromScope<VariableType>(this->VariablesInScope, Handle);
+	}
 };

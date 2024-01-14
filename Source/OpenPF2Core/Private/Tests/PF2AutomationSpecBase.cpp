@@ -799,6 +799,7 @@ void FPF2AutomationSpecBase::PostDefine()
 		{
 			const TSharedRef<FSpecItDefinition> ItBlockScope = *ScopeIterator;
 			TSharedRef<FSpec>                   Spec         = MakeShareable(new FSpec());
+			FSpecVariableScope                  Variables;
 
 			Spec->Id          = ItBlockScope->Id;
 			Spec->Description = ItBlockScope->Description;
@@ -814,6 +815,13 @@ void FPF2AutomationSpecBase::PostDefine()
 			{
 				Spec->Commands.Add(AfterEach[AfterEachIndex]);
 			}
+
+			for (const auto& ScopeInStack : Stack)
+			{
+				Variables.Append(ScopeInStack->Variables);
+			}
+
+			Spec->Variables = Variables;
 
 			check(!this->IdToSpecMap.Contains(Spec->Id));
 			this->IdToSpecMap.Add(Spec->Id, Spec);
@@ -1040,6 +1048,14 @@ TFunction<void(const FDoneDelegate&)> FPF2AutomationSpecBase::CreateRunWorkOnceW
 void FPF2AutomationSpecBase::RunSpec(const TSharedRef<FSpec>& SpecToRun)
 {
 	FAutomationTestFramework& AutomationTestFramework = FAutomationTestFramework::GetInstance();
+	FSpecVariableScope&       Variables               = SpecToRun->Variables;
+
+	for (const auto& [_, Variable] : Variables)
+	{
+		Variable->Reset();
+	}
+
+	this->VariablesInScope = Variables;
 
 	for (int32 CommandIndex = 0; CommandIndex < SpecToRun->Commands.Num(); ++CommandIndex)
 	{
