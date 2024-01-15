@@ -211,7 +211,11 @@ protected:
 		const TSoftClassPtr<BlueprintType> ObjectClass =
 			TSoftClassPtr<BlueprintType>(FSoftObjectPath(ObjectPath));
 
-		return ObjectClass.LoadSynchronous();
+		TSubclassOf<BlueprintType> LoadedBlueprint = ObjectClass.LoadSynchronous();
+
+		ensureMsgf(LoadedBlueprint, TEXT("Failed to load blueprint: %s"), *ObjectPath);
+
+		return LoadedBlueprint;
 	}
 
 	/**
