@@ -173,6 +173,18 @@ FGameplayAbilitySpecHandle FPF2SpecBase::GrantCharacterAbility(
 	return CharacterAsc->GiveAbility(AbilitySpec);
 }
 
+FActiveGameplayEffectHandle FPF2SpecBase::ApplyGameplayEffectToTestCharacter(
+	const TSubclassOf<UGameplayEffect>& EffectType) const
+{
+	FGameplayEffectContext* GameplayEffectContext = new FGameplayEffectContext();
+
+	return this->TestCharacterAsc->BP_ApplyGameplayEffectToSelf(
+		EffectType,
+		1.0,
+		FGameplayEffectContextHandle(GameplayEffectContext)
+	);
+}
+
 FGameplayEffectSpecHandle FPF2SpecBase::BuildEffectSpec(
 	const TSubclassOf<UGameplayEffect>& EffectClass,
 	const TMap<FName, float>&           SetByCallerMagnitudesMap) const

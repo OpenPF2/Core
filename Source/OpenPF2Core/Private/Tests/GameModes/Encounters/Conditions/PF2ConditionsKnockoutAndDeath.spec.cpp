@@ -43,19 +43,6 @@ BEGIN_DEFINE_PF_SPEC(FPF2ConditionsKnockoutAndDeath,
 		const TSubclassOf<UGameplayEffect>             DamageEffect,
 		const EPF2DegreeOfSuccess                      DegreeOfSuccess      = EPF2DegreeOfSuccess::None,
 		const float                                    DamageAmount         = 20.0f) const;
-
-	/**
-	 * Applies an arbitrary Gameplay Effect (GE) to the test character.
-	 *
-	 * This should be used for passive GEs and stat updates, not attack GEs.
-	 *
-	 * @param EffectType
-	 *	The type of GE to apply to the character.
-	 *
-	 * @return
-	 *	The handle of the GE, now active on the character.
-	 */
-	FActiveGameplayEffectHandle ApplyGameplayEffectToTestCharacter(const TSubclassOf<UGameplayEffect>& EffectType) const;
 END_DEFINE_PF_SPEC(FPF2ConditionsKnockoutAndDeath)
 
 void FPF2ConditionsKnockoutAndDeath::Define()
@@ -1123,16 +1110,4 @@ void FPF2ConditionsKnockoutAndDeath::ApplyDamageToTestCharacter(
 		);
 
 	this->TestCharacterAsc->ApplyGameplayEffectSpecToSelf(*EffectSpecHandle.Data);
-}
-
-FActiveGameplayEffectHandle FPF2ConditionsKnockoutAndDeath::ApplyGameplayEffectToTestCharacter(
-	const TSubclassOf<UGameplayEffect>& EffectType) const
-{
-	FGameplayEffectContext* GameplayEffectContext = new FGameplayEffectContext();
-
-	return this->TestCharacterAsc->BP_ApplyGameplayEffectToSelf(
-		EffectType,
-		1.0,
-		FGameplayEffectContextHandle(GameplayEffectContext)
-	);
 }

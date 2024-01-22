@@ -320,6 +320,21 @@ protected:
 		const FGameplayTagContainer&                    DynamicAbilityTags = FGameplayTagContainer());
 
 	/**
+	 * Applies an arbitrary Gameplay Effect (GE) to the test character.
+	 *
+	 * This should be used for passive GEs and stat updates, not attack GEs.
+	 *
+	 * @param EffectType
+	 *	The type of GE to apply to the character.
+	 *
+	 * @return
+	 *	The handle of the GE that is now active on the character.
+	 */
+	FActiveGameplayEffectHandle ApplyGameplayEffectToTestCharacter(
+		const TSubclassOf<UGameplayEffect>& EffectType
+	) const;
+
+	/**
 	 * Builds a Gameplay Effect (GE) specification for the given type of GE.
 	 *
 	 * @param EffectClass
