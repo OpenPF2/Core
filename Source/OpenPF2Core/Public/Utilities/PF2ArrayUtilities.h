@@ -11,6 +11,31 @@
 namespace PF2ArrayUtilities
 {
 	/**
+	 * Concatenates two or more arrays together into a new array.
+	 *
+	 * @tparam T
+	 *	The type of elements in the array.
+	 * @tparam TArgs
+	 *	Variadic type for the remaining arrays.
+	 *
+	 * @param Array
+	 *	The array containing the starting list of items to which the contents of remaining arrays will be concatenated.
+	 * @param OtherArray
+	 *	Each additional array that will be appended to the end of the result.
+	 *
+	 * @return
+	 *	A new array containing all of the elements of the arrays in the order that they were passed to this method.
+	 */
+	template <typename T, typename... TArgs>
+	TArray<T> Concatenate(const TArray<T>& Array, const TArgs&... OtherArray) {
+		TArray<T> CombinedArray = Array;
+
+		((CombinedArray += OtherArray), ...);
+
+		return CombinedArray;
+	}
+
+	/**
 	 * Add each unique element from one array to the end of the other.
 	 *
 	 * Elements that already exist in the target array are skipped.
