@@ -138,16 +138,16 @@ FAttributeCapture FPF2SpecBase::CaptureSpellAttributes(const UPF2CharacterAttrib
 }
 
 FGameplayAbilitySpecHandle FPF2SpecBase::GrantCharacterFakeAbility(
-	const TScriptInterface<IPF2CharacterInterface> Character,
-	const FGameplayTagContainer&                   DynamicAbilityTags)
+	const TScriptInterface<IPF2CharacterInterface>& Character,
+	const FGameplayTagContainer&                    DynamicAbilityTags)
 {
 	return GrantCharacterAbility(Character, UPF2TestAbility::StaticClass(), DynamicAbilityTags);
 }
 
 FGameplayAbilitySpecHandle FPF2SpecBase::GrantCharacterAbility(
-	const TScriptInterface<IPF2CharacterInterface> Character,
-	const TSubclassOf<UGameplayAbility>            AbilityType,
-	const FGameplayTagContainer&                   DynamicAbilityTags)
+	const TScriptInterface<IPF2CharacterInterface>& Character,
+	const TSubclassOf<UGameplayAbility>&            AbilityType,
+	const FGameplayTagContainer&                    DynamicAbilityTags)
 {
 	UAbilitySystemComponent* CharacterAsc    = Character->GetAbilitySystemComponent();
 	UGameplayAbility *       AbilityCDO      = AbilityType->GetDefaultObject<UGameplayAbility>(),
@@ -174,8 +174,8 @@ FGameplayAbilitySpecHandle FPF2SpecBase::GrantCharacterAbility(
 }
 
 FGameplayEffectSpecHandle FPF2SpecBase::BuildEffectSpec(
-	const TSubclassOf<UGameplayEffect> EffectClass,
-	TMap<FName, float>                 SetByCallerMagnitudesMap) const
+	const TSubclassOf<UGameplayEffect>& EffectClass,
+	const TMap<FName, float>&           SetByCallerMagnitudesMap) const
 {
 	FGameplayEffectSpecHandle EffectSpec;
 

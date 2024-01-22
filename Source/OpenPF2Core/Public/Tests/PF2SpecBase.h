@@ -297,8 +297,8 @@ protected:
 	 *	The server-side handle of the granted ability.
 	 */
 	static FGameplayAbilitySpecHandle GrantCharacterFakeAbility(
-		TScriptInterface<IPF2CharacterInterface> Character,
-		const FGameplayTagContainer&             DynamicAbilityTags = FGameplayTagContainer());
+		const TScriptInterface<IPF2CharacterInterface>& Character,
+		const FGameplayTagContainer&                    DynamicAbilityTags = FGameplayTagContainer());
 
 	/**
 	 * Grants the specified character the specified Gameplay Ability and returns its handle.
@@ -315,9 +315,9 @@ protected:
 	 *	The server-side handle of the granted ability.
 	 */
 	static FGameplayAbilitySpecHandle GrantCharacterAbility(
-		TScriptInterface<IPF2CharacterInterface> Character,
-		TSubclassOf<UGameplayAbility>            AbilityType,
-		const FGameplayTagContainer&             DynamicAbilityTags = FGameplayTagContainer());
+		const TScriptInterface<IPF2CharacterInterface>& Character,
+		const TSubclassOf<UGameplayAbility>&            AbilityType,
+		const FGameplayTagContainer&                    DynamicAbilityTags = FGameplayTagContainer());
 
 	/**
 	 * Builds a Gameplay Effect (GE) specification for the given type of GE.
@@ -331,8 +331,8 @@ protected:
 	 *	The server-side handle of the GE specification.
 	 */
 	FGameplayEffectSpecHandle BuildEffectSpec(
-		const TSubclassOf<UGameplayEffect> EffectClass,
-		TMap<FName, float>                 SetByCallerMagnitudesMap = {}) const;
+		const TSubclassOf<UGameplayEffect>& EffectClass,
+		const TMap<FName, float>&           SetByCallerMagnitudesMap = {}) const;
 
 	/**
 	 * Builds a Gameplay Effect (GE) specification for the given GE type, instigated by the given ability and character.
