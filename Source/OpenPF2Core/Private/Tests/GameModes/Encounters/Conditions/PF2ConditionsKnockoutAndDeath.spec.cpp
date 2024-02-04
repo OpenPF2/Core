@@ -278,11 +278,9 @@ void FPF2ConditionsKnockoutAndDeath::Define()
 
 				It("does not apply the 'Trait_Condition_Unconscious' gameplay tag to the character", [=, this]
 				{
-					TestFalse(
-						TEXT("Has tag 'Trait.Condition.Unconscious'"),
-						this->TestCharacterAsc->HasMatchingGameplayTag(
-							FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Unconscious"))
-						)
+					TestCharacterNotHaveCondition(
+						this->TestCharacter,
+						FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Unconscious"))
 					);
 				});
 
@@ -290,21 +288,17 @@ void FPF2ConditionsKnockoutAndDeath::Define()
 				{
 					It("does not apply any 'Trait_Condition_Dying' gameplay tags to the character", [=, this]
 					{
-						TestFalse(
-							TEXT("Has tag 'Trait.Condition.Dying'"),
-							this->TestCharacterAsc->HasMatchingGameplayTag(
-								FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying"))
-							)
+						TestCharacterNotHaveCondition(
+							this->TestCharacter,
+							FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying"))
 						);
 					});
 
 					It("does not kill the character", [=, this]
 					{
-						TestFalse(
-							TEXT("Has tag 'Trait.Condition.Dead'"),
-							this->TestCharacterAsc->HasMatchingGameplayTag(
-								FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dead"))
-							)
+						TestCharacterNotHaveCondition(
+							this->TestCharacter,
+							FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dead"))
 						);
 					});
 				});
@@ -320,21 +314,17 @@ void FPF2ConditionsKnockoutAndDeath::Define()
 
 					It("does not apply any 'Trait_Condition_Dying' gameplay tags to the character", [=, this]
 					{
-						TestFalse(
-							TEXT("Has tag 'Trait.Condition.Dying'"),
-							this->TestCharacterAsc->HasMatchingGameplayTag(
-								FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying"))
-							)
+						TestCharacterNotHaveCondition(
+							this->TestCharacter,
+							FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying"))
 						);
 					});
 
 					It("does not kill the character", [=, this]
 					{
-						TestFalse(
-							TEXT("Has tag 'Trait.Condition.Dead'"),
-							this->TestCharacterAsc->HasMatchingGameplayTag(
-								FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dead"))
-							)
+						TestCharacterNotHaveCondition(
+							this->TestCharacter,
+							FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dead"))
 						);
 					});
 				});
@@ -350,21 +340,17 @@ void FPF2ConditionsKnockoutAndDeath::Define()
 
 					It("does not apply any 'Trait_Condition_Dying' gameplay tags to the character", [=, this]
 					{
-						TestFalse(
-							TEXT("Has tag 'Trait.Condition.Dying'"),
-							this->TestCharacterAsc->HasMatchingGameplayTag(
-								FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying"))
-							)
+						TestCharacterNotHaveCondition(
+							this->TestCharacter,
+							FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying"))
 						);
 					});
 
 					It("does not kill the character", [=, this]
 					{
-						TestFalse(
-							TEXT("Has tag 'Trait.Condition.Dead'"),
-							this->TestCharacterAsc->HasMatchingGameplayTag(
-								FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dead"))
-							)
+						TestCharacterNotHaveCondition(
+							this->TestCharacter,
+							FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dead"))
 						);
 					});
 				});
@@ -380,21 +366,17 @@ void FPF2ConditionsKnockoutAndDeath::Define()
 
 					It("does not apply any 'Trait_Condition_Dying' gameplay tags to the character", [=, this]
 					{
-						TestFalse(
-							TEXT("Has tag 'Trait.Condition.Dying'"),
-							this->TestCharacterAsc->HasMatchingGameplayTag(
-								FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying"))
-							)
+						TestCharacterNotHaveCondition(
+							this->TestCharacter,
+							FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying"))
 						);
 					});
 
 					It("does not kill the character", [=, this]
 					{
-						TestFalse(
-							TEXT("Has tag 'Trait.Condition.Dead'"),
-							this->TestCharacterAsc->HasMatchingGameplayTag(
-								FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dead"))
-							)
+						TestCharacterNotHaveCondition(
+							this->TestCharacter,
+							FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dead"))
 						);
 					});
 				});
@@ -410,21 +392,17 @@ void FPF2ConditionsKnockoutAndDeath::Define()
 
 					It("does not apply any 'Trait_Condition_Dying' gameplay tags to the character", [=, this]
 					{
-						TestFalse(
-							TEXT("Has tag 'Trait.Condition.Dying'"),
-							this->TestCharacterAsc->HasMatchingGameplayTag(
-								FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying"))
-							)
+						TestCharacterNotHaveCondition(
+							this->TestCharacter,
+							FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying"))
 						);
 					});
 
 					It("does not kill the character", [=, this]
 					{
-						TestFalse(
-							TEXT("Has tag 'Trait.Condition.Dead'"),
-							this->TestCharacterAsc->HasMatchingGameplayTag(
-								FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dead"))
-							)
+						TestCharacterNotHaveCondition(
+							this->TestCharacter,
+							FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dead"))
 						);
 					});
 				});
@@ -454,11 +432,9 @@ void FPF2ConditionsKnockoutAndDeath::Define()
 
 				It("does not apply the 'Trait_Condition_Unconscious' gameplay tag to the character", [=, this]
 				{
-					TestFalse(
-						TEXT("Has tag 'Trait.Condition.Unconscious'"),
-						this->TestCharacterAsc->HasMatchingGameplayTag(
-							FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Unconscious"))
-						)
+					TestCharacterNotHaveCondition(
+						this->TestCharacter,
+						FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Unconscious"))
 					);
 				});
 
@@ -466,21 +442,17 @@ void FPF2ConditionsKnockoutAndDeath::Define()
 				{
 					It("does not apply any 'Trait_Condition_Dying' gameplay tags to the character", [=, this]
 					{
-						TestFalse(
-							TEXT("Has tag 'Trait.Condition.Dying'"),
-							this->TestCharacterAsc->HasMatchingGameplayTag(
-								FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying"))
-							)
+						TestCharacterNotHaveCondition(
+							this->TestCharacter,
+							FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying"))
 						);
 					});
 
 					It("does not kill the character", [=, this]
 					{
-						TestFalse(
-							TEXT("Has tag 'Trait.Condition.Dead'"),
-							this->TestCharacterAsc->HasMatchingGameplayTag(
-								FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dead"))
-							)
+						TestCharacterNotHaveCondition(
+							this->TestCharacter,
+							FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dead"))
 						);
 					});
 				});
@@ -496,21 +468,17 @@ void FPF2ConditionsKnockoutAndDeath::Define()
 
 					It("does not apply any 'Trait_Condition_Dying' gameplay tags to the character", [=, this]
 					{
-						TestFalse(
-							TEXT("Has tag 'Trait.Condition.Dying'"),
-							this->TestCharacterAsc->HasMatchingGameplayTag(
-								FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying"))
-							)
+						TestCharacterNotHaveCondition(
+							this->TestCharacter,
+							FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying"))
 						);
 					});
 
 					It("does not kill the character", [=, this]
 					{
-						TestFalse(
-							TEXT("Has tag 'Trait.Condition.Dead'"),
-							this->TestCharacterAsc->HasMatchingGameplayTag(
-								FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dead"))
-							)
+						TestCharacterNotHaveCondition(
+							this->TestCharacter,
+							FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dead"))
 						);
 					});
 				});
@@ -526,21 +494,17 @@ void FPF2ConditionsKnockoutAndDeath::Define()
 
 					It("does not apply any 'Trait_Condition_Dying' gameplay tags to the character", [=, this]
 					{
-						TestFalse(
-							TEXT("Has tag 'Trait.Condition.Dying'"),
-							this->TestCharacterAsc->HasMatchingGameplayTag(
-								FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying"))
-							)
+						TestCharacterNotHaveCondition(
+							this->TestCharacter,
+							FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying"))
 						);
 					});
 
 					It("does not kill the character", [=, this]
 					{
-						TestFalse(
-							TEXT("Has tag 'Trait.Condition.Dead'"),
-							this->TestCharacterAsc->HasMatchingGameplayTag(
-								FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dead"))
-							)
+						TestCharacterNotHaveCondition(
+							this->TestCharacter,
+							FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dead"))
 						);
 					});
 				});
@@ -556,21 +520,17 @@ void FPF2ConditionsKnockoutAndDeath::Define()
 
 					It("does not apply any 'Trait_Condition_Dying' gameplay tags to the character", [=, this]
 					{
-						TestFalse(
-							TEXT("Has tag 'Trait.Condition.Dying'"),
-							this->TestCharacterAsc->HasMatchingGameplayTag(
-								FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying"))
-							)
+						TestCharacterNotHaveCondition(
+							this->TestCharacter,
+							FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying"))
 						);
 					});
 
 					It("does not kill the character", [=, this]
 					{
-						TestFalse(
-							TEXT("Has tag 'Trait.Condition.Dead'"),
-							this->TestCharacterAsc->HasMatchingGameplayTag(
-								FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dead"))
-							)
+						TestCharacterNotHaveCondition(
+							this->TestCharacter,
+							FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dead"))
 						);
 					});
 				});
@@ -586,21 +546,17 @@ void FPF2ConditionsKnockoutAndDeath::Define()
 
 					It("does not apply any 'Trait_Condition_Dying' gameplay tags to the character", [=, this]
 					{
-						TestFalse(
-							TEXT("Has tag 'Trait.Condition.Dying'"),
-							this->TestCharacterAsc->HasMatchingGameplayTag(
-								FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying"))
-							)
+						TestCharacterNotHaveCondition(
+							this->TestCharacter,
+							FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying"))
 						);
 					});
 
 					It("does not kill the character", [=, this]
 					{
-						TestFalse(
-							TEXT("Has tag 'Trait.Condition.Dead'"),
-							this->TestCharacterAsc->HasMatchingGameplayTag(
-								FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dead"))
-							)
+						TestCharacterNotHaveCondition(
+							this->TestCharacter,
+							FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dead"))
 						);
 					});
 				});
@@ -631,21 +587,17 @@ void FPF2ConditionsKnockoutAndDeath::Define()
 
 			It("does not apply the 'Trait_Condition_Unconscious' gameplay tag to the character", [=, this]
 			{
-				TestFalse(
-					TEXT("Has tag 'Trait.Condition.Unconscious'"),
-					this->TestCharacterAsc->HasMatchingGameplayTag(
-						FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Unconscious"))
-					)
+				TestCharacterNotHaveCondition(
+					this->TestCharacter,
+					FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Unconscious"))
 				);
 			});
 
 			It("does not apply any 'Trait_Condition_Dying' gameplay tag to the character", [=, this]
 			{
-				TestFalse(
-					TEXT("Has tag 'Trait.Condition.Dying'"),
-					this->TestCharacterAsc->HasMatchingGameplayTag(
-						FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying"))
-					)
+				TestCharacterNotHaveCondition(
+					this->TestCharacter,
+					FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying"))
 				);
 			});
 		});
@@ -704,11 +656,9 @@ void FPF2ConditionsKnockoutAndDeath::Define()
 
 				It("applies the 'Trait_Condition_Unconscious' gameplay tag to the character", [=, this]
 				{
-					TestTrue(
-						TEXT("Has tag 'Trait.Condition.Unconscious'"),
-						this->TestCharacterAsc->HasMatchingGameplayTag(
-							FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Unconscious"))
-						)
+					TestCharacterHasCondition(
+						this->TestCharacter,
+						FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Unconscious"))
 					);
 				});
 
@@ -716,32 +666,10 @@ void FPF2ConditionsKnockoutAndDeath::Define()
 				{
 					It("applies the 'Trait_Condition_Dying_1' gameplay tag to the character", [=, this]
 					{
-						TestTrue(
-							TEXT("Has tag 'Trait.Condition.Dying.1'"),
-							this->TestCharacterAsc->HasMatchingGameplayTag(
-								FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying.1"))
-							)
-						);
-
-						TestFalse(
-							TEXT("Has tag 'Trait.Condition.Dying.2'"),
-							this->TestCharacterAsc->HasMatchingGameplayTag(
-								FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying.2"))
-							)
-						);
-
-						TestFalse(
-							TEXT("Has tag 'Trait.Condition.Dying.3'"),
-							this->TestCharacterAsc->HasMatchingGameplayTag(
-								FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying.3"))
-							)
-						);
-
-						TestFalse(
-							TEXT("Has tag 'Trait.Condition.Dying.4'"),
-							this->TestCharacterAsc->HasMatchingGameplayTag(
-								FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying.4"))
-							)
+						TestCharacterHasConditionLevel(
+							this->TestCharacter,
+							FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying")),
+							1
 						);
 					});
 				});
@@ -757,32 +685,10 @@ void FPF2ConditionsKnockoutAndDeath::Define()
 
 					It("applies the 'Trait_Condition_Dying_2' gameplay tag to the character", [=, this]
 					{
-						TestFalse(
-							TEXT("Has tag 'Trait.Condition.Dying.1'"),
-							this->TestCharacterAsc->HasMatchingGameplayTag(
-								FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying.1"))
-							)
-						);
-
-						TestTrue(
-							TEXT("Has tag 'Trait.Condition.Dying.2'"),
-							this->TestCharacterAsc->HasMatchingGameplayTag(
-								FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying.2"))
-							)
-						);
-
-						TestFalse(
-							TEXT("Has tag 'Trait.Condition.Dying.3'"),
-							this->TestCharacterAsc->HasMatchingGameplayTag(
-								FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying.3"))
-							)
-						);
-
-						TestFalse(
-							TEXT("Has tag 'Trait.Condition.Dying.4'"),
-							this->TestCharacterAsc->HasMatchingGameplayTag(
-								FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying.4"))
-							)
+						TestCharacterHasConditionLevel(
+							this->TestCharacter,
+							FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying")),
+							2
 						);
 					});
 				});
@@ -798,32 +704,10 @@ void FPF2ConditionsKnockoutAndDeath::Define()
 
 					It("applies the 'Trait_Condition_Dying_3' gameplay tag to the character", [=, this]
 					{
-						TestFalse(
-							TEXT("Has tag 'Trait.Condition.Dying.1'"),
-							this->TestCharacterAsc->HasMatchingGameplayTag(
-								FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying.1"))
-							)
-						);
-
-						TestFalse(
-							TEXT("Has tag 'Trait.Condition.Dying.2'"),
-							this->TestCharacterAsc->HasMatchingGameplayTag(
-								FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying.2"))
-							)
-						);
-
-						TestTrue(
-							TEXT("Has tag 'Trait.Condition.Dying.3'"),
-							this->TestCharacterAsc->HasMatchingGameplayTag(
-								FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying.3"))
-							)
-						);
-
-						TestFalse(
-							TEXT("Has tag 'Trait.Condition.Dying.4'"),
-							this->TestCharacterAsc->HasMatchingGameplayTag(
-								FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying.4"))
-							)
+						TestCharacterHasConditionLevel(
+							this->TestCharacter,
+							FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying")),
+							3
 						);
 					});
 				});
@@ -839,11 +723,9 @@ void FPF2ConditionsKnockoutAndDeath::Define()
 
 					It("kills the character", [=, this]
 					{
-						TestTrue(
-							TEXT("Has tag 'Trait.Condition.Dead'"),
-							this->TestCharacterAsc->HasMatchingGameplayTag(
-								FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dead"))
-							)
+						TestCharacterHasCondition(
+							this->TestCharacter,
+							FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dead"))
 						);
 					});
 				});
@@ -859,11 +741,9 @@ void FPF2ConditionsKnockoutAndDeath::Define()
 
 					It("kills the character", [=, this]
 					{
-						TestTrue(
-							TEXT("Has tag 'Trait.Condition.Dead'"),
-							this->TestCharacterAsc->HasMatchingGameplayTag(
-								FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dead"))
-							)
+						TestCharacterHasCondition(
+							this->TestCharacter,
+							FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dead"))
 						);
 					});
 				});
@@ -893,11 +773,9 @@ void FPF2ConditionsKnockoutAndDeath::Define()
 
 				It("applies the 'Trait_Condition_Unconscious' gameplay tag to the character", [=, this]
 				{
-					TestTrue(
-						TEXT("Has tag 'Trait.Condition.Unconscious'"),
-						this->TestCharacterAsc->HasMatchingGameplayTag(
-							FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Unconscious"))
-						)
+					TestCharacterHasCondition(
+						this->TestCharacter,
+						FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Unconscious"))
 					);
 				});
 
@@ -905,32 +783,10 @@ void FPF2ConditionsKnockoutAndDeath::Define()
 				{
 					It("applies the 'Trait_Condition_Dying_2' gameplay tag to the character", [=, this]
 					{
-						TestFalse(
-							TEXT("Has tag 'Trait.Condition.Dying.1'"),
-							this->TestCharacterAsc->HasMatchingGameplayTag(
-								FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying.1"))
-							)
-						);
-
-						TestTrue(
-							TEXT("Has tag 'Trait.Condition.Dying.2'"),
-							this->TestCharacterAsc->HasMatchingGameplayTag(
-								FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying.2"))
-							)
-						);
-
-						TestFalse(
-							TEXT("Has tag 'Trait.Condition.Dying.3'"),
-							this->TestCharacterAsc->HasMatchingGameplayTag(
-								FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying.3"))
-							)
-						);
-
-						TestFalse(
-							TEXT("Has tag 'Trait.Condition.Dying.4'"),
-							this->TestCharacterAsc->HasMatchingGameplayTag(
-								FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying.4"))
-							)
+						TestCharacterHasConditionLevel(
+							this->TestCharacter,
+							FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying")),
+							2
 						);
 					});
 				});
@@ -946,32 +802,10 @@ void FPF2ConditionsKnockoutAndDeath::Define()
 
 					It("applies the 'Trait_Condition_Dying_3' gameplay tag to the character", [=, this]
 					{
-						TestFalse(
-							TEXT("Has tag 'Trait.Condition.Dying.1'"),
-							this->TestCharacterAsc->HasMatchingGameplayTag(
-								FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying.1"))
-							)
-						);
-
-						TestFalse(
-							TEXT("Has tag 'Trait.Condition.Dying.2'"),
-							this->TestCharacterAsc->HasMatchingGameplayTag(
-								FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying.2"))
-							)
-						);
-
-						TestTrue(
-							TEXT("Has tag 'Trait.Condition.Dying.3'"),
-							this->TestCharacterAsc->HasMatchingGameplayTag(
-								FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying.3"))
-							)
-						);
-
-						TestFalse(
-							TEXT("Has tag 'Trait.Condition.Dying.4'"),
-							this->TestCharacterAsc->HasMatchingGameplayTag(
-								FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying.4"))
-							)
+						TestCharacterHasConditionLevel(
+							this->TestCharacter,
+							FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying")),
+							3
 						);
 					});
 				});
@@ -987,11 +821,9 @@ void FPF2ConditionsKnockoutAndDeath::Define()
 
 					It("kills the character", [=, this]
 					{
-						TestTrue(
-							TEXT("Has tag 'Trait.Condition.Dead'"),
-							this->TestCharacterAsc->HasMatchingGameplayTag(
-								FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dead"))
-							)
+						TestCharacterHasCondition(
+							this->TestCharacter,
+							FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dead"))
 						);
 					});
 				});
@@ -1007,11 +839,9 @@ void FPF2ConditionsKnockoutAndDeath::Define()
 
 					It("kills the character", [=, this]
 					{
-						TestTrue(
-							TEXT("Has tag 'Trait.Condition.Dead'"),
-							this->TestCharacterAsc->HasMatchingGameplayTag(
-								FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dead"))
-							)
+						TestCharacterHasCondition(
+							this->TestCharacter,
+							FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dead"))
 						);
 					});
 				});
@@ -1027,11 +857,9 @@ void FPF2ConditionsKnockoutAndDeath::Define()
 
 					It("kills the character", [=, this]
 					{
-						TestTrue(
-							TEXT("Has tag 'Trait.Condition.Dead'"),
-							this->TestCharacterAsc->HasMatchingGameplayTag(
-								FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dead"))
-							)
+						TestCharacterHasCondition(
+							this->TestCharacter,
+							FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dead"))
 						);
 					});
 				});
@@ -1062,21 +890,17 @@ void FPF2ConditionsKnockoutAndDeath::Define()
 
 			It("applies the 'Trait_Condition_Unconscious' gameplay tag to the character", [=, this]
 			{
-				TestTrue(
-					TEXT("Has tag 'Trait.Condition.Unconscious'"),
-					this->TestCharacterAsc->HasMatchingGameplayTag(
-						FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Unconscious"))
-					)
+				TestCharacterHasCondition(
+					this->TestCharacter,
+					FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Unconscious"))
 				);
 			});
 
 			It("does not apply any 'Trait_Condition_Dying' gameplay tag to the character", [=, this]
 			{
-				TestFalse(
-					TEXT("Has tag 'Trait.Condition.Dying'"),
-					this->TestCharacterAsc->HasMatchingGameplayTag(
-						FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying"))
-					)
+				TestCharacterNotHaveCondition(
+					this->TestCharacter,
+					FGameplayTag::RequestGameplayTag(TEXT("Trait.Condition.Dying"))
 				);
 			});
 		});

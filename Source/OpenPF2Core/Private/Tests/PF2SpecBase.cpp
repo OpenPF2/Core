@@ -12,6 +12,7 @@
 #include "Abilities/PF2CharacterAttributeSet.h"
 
 #include "Libraries/PF2AbilitySystemLibrary.h"
+#include "Libraries/PF2TagLibrary.h"
 
 #include "Tests/PF2TestAbility.h"
 #include "Tests/PF2TestCharacter.h"
@@ -348,4 +349,83 @@ void FPF2SpecBase::ApplyUnreplicatedTag(const FString& TagName) const
 void FPF2SpecBase::RemoveUnreplicatedTag(const FString& TagName) const
 {
 	this->TestPawnAsc->RemoveLooseGameplayTag(PF2GameplayAbilityUtilities::GetTag(TagName));
+}
+
+void FPF2SpecBase::TestCharacterHasCondition(const TScriptInterface<IPF2CharacterInterface>& Character,
+                                             const FGameplayTag&                             ConditionTag)
+{
+	this->TestAscHasCondition(
+		Character->GetIdForLogs(),
+		Character->GetAbilitySystemComponent(),
+		ConditionTag
+	);
+}
+
+void FPF2SpecBase::TestAscHasCondition(const FString&                 WhatAsc,
+                                       const UAbilitySystemComponent* AbilitySystemComponent,
+                                       const FGameplayTag&            ConditionTag)
+{
+	TestTrue(
+		FString::Format(TEXT("'{0}' has tag '{1}'"), {*WhatAsc, *ConditionTag.ToString()}),
+		AbilitySystemComponent->HasMatchingGameplayTag(ConditionTag)
+	);
+}
+
+void FPF2SpecBase::TestCharacterNotHaveCondition(const TScriptInterface<IPF2CharacterInterface>& Character,
+                                                 const FGameplayTag&                             ConditionTag)
+{
+	this->TestAscNotHaveCondition(
+		Character->GetIdForLogs(),
+		Character->GetAbilitySystemComponent(),
+		ConditionTag
+	);
+}
+
+void FPF2SpecBase::TestAscNotHaveCondition(const FString&                 WhatAsc,
+                                           const UAbilitySystemComponent* AbilitySystemComponent,
+                                           const FGameplayTag&            ConditionTag)
+{
+	TestFalse(
+		FString::Format(TEXT("'{0}' has tag '{1}'"), {*WhatAsc, *ConditionTag.ToString()}),
+		AbilitySystemComponent->HasMatchingGameplayTag(ConditionTag)
+	);
+}
+
+void FPF2SpecBase::TestCharacterHasConditionLevel(const TScriptInterface<IPF2CharacterInterface>& Character,
+                                                  const FGameplayTag&                             ParentTag,
+                                                  const uint8                                     ExpectedLevel)
+{
+	this->TestAscHasConditionLevel(
+		Character->GetIdForLogs(),
+		Character->GetAbilitySystemComponent(),
+		ParentTag,
+		ExpectedLevel
+	);
+}
+
+void FPF2SpecBase::TestAscHasConditionLevel(const FString&                 WhatAsc,
+                                            const UAbilitySystemComponent* AbilitySystemComponent,
+                                            const FGameplayTag&            ParentTag,
+                                            const uint8                    ExpectedLevel)
+{
+	FGameplayTagContainer CharacterTags;
+	uint8                 ActualLevel;
+
+	AbilitySystemComponent->GetOwnedGameplayTags(CharacterTags);
+
+	ActualLevel = UPF2TagLibrary::FindAndParseConditionLevel(CharacterTags, ParentTag);
+
+	this->TestEqual(
+		FString::Format(
+			TEXT("Expected '{0}' to have condition level {1} of tag '{2}', but it was level {3}."),
+			{
+				*WhatAsc,
+				*FString::FromInt(ExpectedLevel),
+				*ParentTag.ToString(),
+				*FString::FromInt(ActualLevel)
+			}
+		),
+		ActualLevel,
+		ExpectedLevel
+	);
 }

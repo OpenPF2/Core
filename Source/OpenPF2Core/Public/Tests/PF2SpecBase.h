@@ -506,6 +506,107 @@ protected:
 	void RemoveUnreplicatedTag(const FString& TagName) const;
 
 	/**
+	 * Tests that a character has the specified condition.
+	 *
+	 * This works for both regular conditions and conditions that have levels, but it's recommended to use
+	 * TestCharacterHasConditionLevel() instead when checking leveled conditions. This is equivalent to checking that
+	 * the ASC has the given tag, but is more explicit and intention revealing than a tag check in tests.
+	 *
+	 * @param Character
+	 *	The character to test.
+	 * @param ConditionTag
+	 *	The parent condition level tag (e.g., "Trait.Condition.Dying", "Trait.Condition.Wounded", etc.).
+	 */
+	void TestCharacterHasCondition(
+		const TScriptInterface<IPF2CharacterInterface>& Character,
+		const FGameplayTag&                             ConditionTag);
+
+	/**
+	 * Tests that an Ability System Component (ASC) does not have the specified condition.
+	 *
+	 * This works for both regular conditions and conditions that have levels, but it's recommended to use
+	 * TestAscHasConditionLevel() instead when checking leveled conditions. This is equivalent to checking that the
+	 * ASC has the given tag, but is more explicit and intention revealing than a tag check in tests.
+	 *
+	 * @param WhatAsc
+	 *	A description of the ASC being tested.
+	 * @param AbilitySystemComponent
+	 *	The ASC to test.
+	 * @param ConditionTag
+	 *	The parent condition level tag (e.g., "Trait.Condition.Dying", "Trait.Condition.Wounded", etc.).
+	 */
+	void TestAscHasCondition(
+		const FString&                 WhatAsc,
+		const UAbilitySystemComponent* AbilitySystemComponent,
+		const FGameplayTag&            ConditionTag);
+
+	/**
+	 * Tests that a character does not have the specified condition.
+	 *
+	 * This works for both regular conditions and conditions that have levels. It's equivalent to checking that the
+	 * ASC has the given tag, but is more explicit and intention revealing than a tag check in tests.
+	 *
+	 * @param Character
+	 *	The character to test.
+	 * @param ConditionTag
+	 *	The parent condition level tag (e.g., "Trait.Condition.Dying", "Trait.Condition.Wounded", etc.).
+	 */
+	void TestCharacterNotHaveCondition(
+		const TScriptInterface<IPF2CharacterInterface>& Character,
+		const FGameplayTag&                             ConditionTag);
+
+	/**
+	 * Tests that an Ability System Component (ASC) does not have the specified condition.
+	 *
+	 * This works for both regular conditions and conditions that have levels. It's equivalent to checking that the
+	 * ASC has the given tag, but is more explicit and intention revealing than a tag check in tests.
+	 *
+	 * @param WhatAsc
+	 *	A description of the ASC being tested.
+	 * @param AbilitySystemComponent
+	 *	The ASC to test.
+	 * @param ConditionTag
+	 *	The parent condition level tag (e.g., "Trait.Condition.Dying", "Trait.Condition.Wounded", etc.).
+	 */
+	void TestAscNotHaveCondition(
+		const FString&                 WhatAsc,
+		const UAbilitySystemComponent* AbilitySystemComponent,
+		const FGameplayTag&            ConditionTag);
+
+	/**
+	 * Tests that a character has the specified level of a condition.
+	 *
+	 * @param Character
+	 *	The character to test.
+	 * @param ParentTag
+	 *	The parent condition level tag (e.g., "Trait.Condition.Dying", "Trait.Condition.Wounded", etc.).
+	 * @param ExpectedLevel
+	 *	The condition level expected for the tag.
+	 */
+	void TestCharacterHasConditionLevel(
+		const TScriptInterface<IPF2CharacterInterface>& Character,
+		const FGameplayTag&                             ParentTag,
+		const uint8                                     ExpectedLevel);
+
+	/**
+	 * Tests that an Ability System Component (ASC) has the specified level of a condition.
+	 *
+	 * @param WhatAsc
+	 *	A description of the ASC being tested.
+	 * @param AbilitySystemComponent
+	 *	The ASC to test.
+	 * @param ParentTag
+	 *	The parent condition level tag (e.g., "Trait.Condition.Dying", "Trait.Condition.Wounded", etc.).
+	 * @param ExpectedLevel
+	 *	The condition level expected for the tag.
+	 */
+	void TestAscHasConditionLevel(
+		const FString&                 WhatAsc,
+		const UAbilitySystemComponent* AbilitySystemComponent,
+		const FGameplayTag&            ParentTag,
+		const uint8                    ExpectedLevel);
+
+	/**
 	 * Tests that each element of an array matches its corresponding element from expected values.
 	 *
 	 * This provides better output on failure than TestEqual().
