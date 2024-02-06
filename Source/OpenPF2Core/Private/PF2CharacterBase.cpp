@@ -271,7 +271,7 @@ void APF2CharacterBase::ApplyAbilityBoostSelections()
 		for (const auto& AbilityBoostSelection : this->AbilityBoostSelections)
 		{
 			TSubclassOf<UPF2AbilityBoostBase> BoostGa   = AbilityBoostSelection.BoostGameplayAbility;
-			UAbilitySystemComponent*          Asc       = this->GetAbilitySystemComponent();
+			const UAbilitySystemComponent*    Asc       = this->GetAbilitySystemComponent();
 			FGameplayAbilitySpec*             BoostSpec = Asc->FindAbilitySpecFromClass(BoostGa);
 
 			if (BoostSpec == nullptr)
