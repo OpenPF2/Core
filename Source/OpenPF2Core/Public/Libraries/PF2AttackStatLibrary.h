@@ -130,9 +130,14 @@ public:
 	                                               const int                    RollSize  = 20);
 
 	/**
-	 * Performs a check of a value against a Difficulty Class (DC).
+	 * Determines the outcome of a check of a value against a Difficulty Class (DC).
 	 *
 	 * Given the same combination of value and DC, the returned value is always the same.
+	 *
+	 * From the Pathfinder 2E Core Rulebook, Chapter 9, page 445, "Step 4: Determine the Degree of Success and Effect":
+	 * "You critically succeed at a check when the check’s result meets or exceeds the DC by 10 or more. [...] The rules
+	 * for critical failure [...] are the same [...], but in the other direction: if you fail a check by 10 or more,
+	 * that’s a critical failure."
 	 *
 	 * @see EPF2DegreeOfSuccess
 	 *
@@ -145,7 +150,7 @@ public:
 	 *	The calculated result of the check.
 	 */
 	UFUNCTION(BlueprintPure, Category="OpenPF2|Attack Stats")
-	static EPF2DegreeOfSuccess CheckAgainstDifficultyClass(const float Value, const float DifficultyClass);
+	static EPF2DegreeOfSuccess DetermineCheckDegreeOfSuccess(const float Value, const float DifficultyClass);
 
 	/**
 	 * Upgrades a check result to one degree of success better, up to a maximum of "critical success".

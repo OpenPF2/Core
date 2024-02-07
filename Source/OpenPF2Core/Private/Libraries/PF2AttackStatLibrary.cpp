@@ -63,7 +63,7 @@ EPF2DegreeOfSuccess UPF2AttackStatLibrary::CalculateAttackRoll(const int32      
 	//
 	// Source: Pathfinder 2E Core Rulebook, Chapter 6, page 278, "Attack Rolls".
 	AttackRoll = DiceRoll + AttackAbilityModifier + WeaponProficiencyBonus + MultipleAttackPenalty;
-	Result     = CheckAgainstDifficultyClass(AttackRoll, TargetArmorClass);
+	Result     = DetermineCheckDegreeOfSuccess(AttackRoll, TargetArmorClass);
 
 	// If you rolled a 20 on the die (a “natural 20”), your result is one degree of success better than it would be by
 	// numbers alone."
@@ -144,7 +144,7 @@ int32 UPF2AttackStatLibrary::CalculateRecoveryCheck(const uint8 DyingConditionLe
 	int8                      Result;
 	const int32               DieRoll     = UPF2DiceLibrary::RollSum(1, 20),
 	                          TargetDC    = 10 + DyingConditionLevel;
-	const EPF2DegreeOfSuccess CheckResult = CheckAgainstDifficultyClass(DieRoll, TargetDC);
+	const EPF2DegreeOfSuccess CheckResult = DetermineCheckDegreeOfSuccess(DieRoll, TargetDC);
 
 	UE_LOG(
 		LogPf2CoreStats,
@@ -237,13 +237,13 @@ bool UPF2AttackStatLibrary::IsWithinRange(const float WeaponRangeIncrementCentim
 	return bInRange;
 }
 
-EPF2DegreeOfSuccess UPF2AttackStatLibrary::CheckAgainstDifficultyClass(const float Value, const float DifficultyClass)
+EPF2DegreeOfSuccess UPF2AttackStatLibrary::DetermineCheckDegreeOfSuccess(const float Value, const float DifficultyClass)
 {
 	EPF2DegreeOfSuccess Result;
 
-	// "You critically succeed at a check when the check’s result meets or exceeds the DC by 10 or more." The rules for
-	// critical failure [...] are the same [...], but in the other direction: if you fail a check by 10 or more, that’s
-	// a critical failure."
+	// "You critically succeed at a check when the check’s result meets or exceeds the DC by 10 or more. [...] The rules
+	// for critical failure [...] are the same [...], but in the other direction: if you fail a check by 10 or more,
+	// that’s a critical failure."
 	//
 	// Source: Pathfinder 2E Core Rulebook, Chapter 9, page 445, "Step 4: Determine the Degree of Success and Effect"
 	if (Value >= DifficultyClass + 10.0f)
