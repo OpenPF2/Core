@@ -18,6 +18,8 @@
 
 #include "Calculations/PF2DegreeOfSuccess.h"
 
+#include "Utilities/PF2EnumUtilities.h"
+
 #include "PF2AttackStatLibrary.generated.h"
 
 /**
@@ -161,10 +163,21 @@ public:
 	UFUNCTION(BlueprintPure, Category="OpenPF2|Attack Stats")
 	static FORCEINLINE EPF2DegreeOfSuccess IncreaseDegreeOfSuccess(const EPF2DegreeOfSuccess CheckResult)
 	{
-		const int32 MaxCheckResult   = static_cast<int32>(EPF2DegreeOfSuccess::CriticalSuccess),
-		            CheckResultValue = FMath::Min(static_cast<int32>(CheckResult) + 1, MaxCheckResult);
+		const int32 MaxAllowedResult = static_cast<int32>(EPF2DegreeOfSuccess::CriticalSuccess),
+		            NewValue         = static_cast<int32>(CheckResult) + 1,
+		            ClampedNewValue  = FMath::Min(NewValue, MaxAllowedResult);
 
-		return static_cast<EPF2DegreeOfSuccess>(CheckResultValue);
+		if (NewValue != ClampedNewValue)
+		{
+			UE_LOG(
+				LogPf2CoreStats,
+				Warning,
+				TEXT("Attempted to increment degree of success above maximum allowed value (%s)."),
+				*(PF2EnumUtilities::ToString(EPF2DegreeOfSuccess::CriticalSuccess))
+			);
+		}
+
+		return static_cast<EPF2DegreeOfSuccess>(ClampedNewValue);
 	}
 
 	/**
@@ -180,10 +193,21 @@ public:
 	 */
 	static FORCEINLINE EPF2DegreeOfSuccess DecreaseDegreeOfSuccess(const EPF2DegreeOfSuccess CheckResult)
 	{
-		const int32 MinCheckResult   = static_cast<int32>(EPF2DegreeOfSuccess::CriticalFailure),
-					CheckResultValue = FMath::Max(static_cast<int32>(CheckResult) - 1, MinCheckResult);
+		const int32 MinAllowedResult = static_cast<int32>(EPF2DegreeOfSuccess::CriticalFailure),
+		            NewValue         = static_cast<int32>(CheckResult) - 1,
+		            ClampedNewValue  = FMath::Max(NewValue, MinAllowedResult);
 
-		return static_cast<EPF2DegreeOfSuccess>(CheckResultValue);
+		if (NewValue != ClampedNewValue)
+		{
+			UE_LOG(
+				LogPf2CoreStats,
+				Warning,
+				TEXT("Attempted to decrement degree of success below minimum allowed value (%s)."),
+				*(PF2EnumUtilities::ToString(EPF2DegreeOfSuccess::CriticalFailure))
+			);
+		}
+
+		return static_cast<EPF2DegreeOfSuccess>(ClampedNewValue);
 	}
 
 	/**
