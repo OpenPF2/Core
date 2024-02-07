@@ -265,3 +265,41 @@ EPF2DegreeOfSuccess UPF2AttackStatLibrary::CheckAgainstDifficultyClass(const flo
 
 	return Result;
 }
+
+EPF2DegreeOfSuccess UPF2AttackStatLibrary::IncreaseDegreeOfSuccess(const EPF2DegreeOfSuccess Value)
+{
+	const int32 MaxAllowedResult = static_cast<int32>(EPF2DegreeOfSuccess::CriticalSuccess),
+	            NewValue         = static_cast<int32>(Value) + 1,
+	            ClampedNewValue  = FMath::Min(NewValue, MaxAllowedResult);
+
+	if (NewValue != ClampedNewValue)
+	{
+		UE_LOG(
+			LogPf2CoreStats,
+			Warning,
+			TEXT("Attempted to increment degree of success above maximum allowed value (%s)."),
+			*(PF2EnumUtilities::ToString(EPF2DegreeOfSuccess::CriticalSuccess))
+		);
+	}
+
+	return static_cast<EPF2DegreeOfSuccess>(ClampedNewValue);
+}
+
+EPF2DegreeOfSuccess UPF2AttackStatLibrary::DecreaseDegreeOfSuccess(const EPF2DegreeOfSuccess Value)
+{
+	const int32 MinAllowedResult = static_cast<int32>(EPF2DegreeOfSuccess::CriticalFailure),
+	            NewValue         = static_cast<int32>(Value) - 1,
+	            ClampedNewValue  = FMath::Max(NewValue, MinAllowedResult);
+
+	if (NewValue != ClampedNewValue)
+	{
+		UE_LOG(
+			LogPf2CoreStats,
+			Warning,
+			TEXT("Attempted to decrement degree of success below minimum allowed value (%s)."),
+			*(PF2EnumUtilities::ToString(EPF2DegreeOfSuccess::CriticalFailure))
+		);
+	}
+
+	return static_cast<EPF2DegreeOfSuccess>(ClampedNewValue);
+}

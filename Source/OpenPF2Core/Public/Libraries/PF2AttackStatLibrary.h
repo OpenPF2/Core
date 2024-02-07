@@ -18,8 +18,6 @@
 
 #include "Calculations/PF2DegreeOfSuccess.h"
 
-#include "Utilities/PF2EnumUtilities.h"
-
 #include "PF2AttackStatLibrary.generated.h"
 
 /**
@@ -152,7 +150,7 @@ public:
 	/**
 	 * Upgrades a check result to one degree of success better, up to a maximum of "critical success".
 	 *
-	 * @param CheckResult
+	 * @param Value
 	 *	The check result to upgrade.
 	 *
 	 * @return
@@ -161,29 +159,12 @@ public:
 	 *	  - If CheckResult is EPF2DegreeOfSuccess::CriticalSuccess: No change (EPF2DegreeOfSuccess::CriticalSuccess).
 	 */
 	UFUNCTION(BlueprintPure, Category="OpenPF2|Attack Stats")
-	static FORCEINLINE EPF2DegreeOfSuccess IncreaseDegreeOfSuccess(const EPF2DegreeOfSuccess CheckResult)
-	{
-		const int32 MaxAllowedResult = static_cast<int32>(EPF2DegreeOfSuccess::CriticalSuccess),
-		            NewValue         = static_cast<int32>(CheckResult) + 1,
-		            ClampedNewValue  = FMath::Min(NewValue, MaxAllowedResult);
-
-		if (NewValue != ClampedNewValue)
-		{
-			UE_LOG(
-				LogPf2CoreStats,
-				Warning,
-				TEXT("Attempted to increment degree of success above maximum allowed value (%s)."),
-				*(PF2EnumUtilities::ToString(EPF2DegreeOfSuccess::CriticalSuccess))
-			);
-		}
-
-		return static_cast<EPF2DegreeOfSuccess>(ClampedNewValue);
-	}
+	static EPF2DegreeOfSuccess IncreaseDegreeOfSuccess(const EPF2DegreeOfSuccess Value);
 
 	/**
 	 * Downgrades a check result to one degree of success worse, down to a minimum of "critical failure".
 	 *
-	 * @param CheckResult
+	 * @param Value
 	 *	The check result to upgrade.
 	 *
 	 * @return
@@ -191,24 +172,8 @@ public:
 	 *	  - If CheckResult is not EPF2DegreeOfSuccess::CriticalFailure: The next-lowest check result value.
 	 *	  - If CheckResult is EPF2DegreeOfSuccess::CriticalFailure: No change (EPF2DegreeOfSuccess::CriticalFailure).
 	 */
-	static FORCEINLINE EPF2DegreeOfSuccess DecreaseDegreeOfSuccess(const EPF2DegreeOfSuccess CheckResult)
-	{
-		const int32 MinAllowedResult = static_cast<int32>(EPF2DegreeOfSuccess::CriticalFailure),
-		            NewValue         = static_cast<int32>(CheckResult) - 1,
-		            ClampedNewValue  = FMath::Max(NewValue, MinAllowedResult);
-
-		if (NewValue != ClampedNewValue)
-		{
-			UE_LOG(
-				LogPf2CoreStats,
-				Warning,
-				TEXT("Attempted to decrement degree of success below minimum allowed value (%s)."),
-				*(PF2EnumUtilities::ToString(EPF2DegreeOfSuccess::CriticalFailure))
-			);
-		}
-
-		return static_cast<EPF2DegreeOfSuccess>(ClampedNewValue);
-	}
+	UFUNCTION(BlueprintPure, Category="OpenPF2|Attack Stats")
+	static EPF2DegreeOfSuccess DecreaseDegreeOfSuccess(const EPF2DegreeOfSuccess Value);
 
 	/**
 	 * Determines if the specified check result is a success or critical success.
