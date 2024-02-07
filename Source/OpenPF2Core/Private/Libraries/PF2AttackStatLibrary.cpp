@@ -89,6 +89,46 @@ EPF2DegreeOfSuccess UPF2AttackStatLibrary::CalculateAttackRoll(const int32      
 	return Result;
 }
 
+EPF2DegreeOfSuccess UPF2AttackStatLibrary::CalculateFlatCheck(const float DifficultyClass)
+{
+	int32 UnusedDieRoll;
+
+	return CalculateFlatCheck(DifficultyClass, UnusedDieRoll);
+}
+
+EPF2DegreeOfSuccess UPF2AttackStatLibrary::CalculateFlatCheck(const float DifficultyClass, int32& DieRoll)
+{
+	EPF2DegreeOfSuccess Result;
+
+	DieRoll = UPF2DiceLibrary::RollSum(1, 20);
+	Result  = DetermineCheckDegreeOfSuccess(DieRoll, DifficultyClass);
+
+	// "If you rolled a 20 on the die (a 'natural 20'), your result is one degree of success better than it would be by
+	// numbers alone. If you roll a 1 on the d20 (a 'natural 1'), your result is one degree worse. This means that a
+	// natural 20 usually results in a critical success and natural 1 usually results in a critical failure."
+	//
+	// Source: Pathfinder 2E Core Rulebook, Chapter 9, page 445, "Step 4: Determine the Degree of Success and Effect"
+	if ((DieRoll == 20) && (Result != EPF2DegreeOfSuccess::CriticalSuccess))
+	{
+		Result = IncreaseDegreeOfSuccess(Result);
+	}
+	else if ((DieRoll == 1) && (Result != EPF2DegreeOfSuccess::CriticalFailure))
+	{
+		Result = DecreaseDegreeOfSuccess(Result);
+	}
+
+	UE_LOG(
+		LogPf2CoreStats,
+		VeryVerbose,
+		TEXT("Flat Check Die Roll (1d20) = %d vs. DC %f: %s."),
+		DieRoll,
+		DifficultyClass,
+		*(PF2EnumUtilities::ToString(Result))
+	);
+
+	return Result;
+}
+
 EPF2DegreeOfSuccess UPF2AttackStatLibrary::DegreeOfSuccessStatToEnum(const float DegreeOfSuccessValue)
 {
 	return PF2EnumUtilities::EnumValueOf(static_cast<int8>(DegreeOfSuccessValue), EPF2DegreeOfSuccess::None);
@@ -142,16 +182,14 @@ int32 UPF2AttackStatLibrary::CalculateRecoveryCheck(const uint8 DyingConditionLe
 	//
 	// Source: Pathfinder 2E Core Rulebook, Chapter 9, page 459, "Recovery Checks".
 	int8                      Result;
-	const int32               DieRoll     = UPF2DiceLibrary::RollSum(1, 20),
-	                          TargetDC    = 10 + DyingConditionLevel;
-	const EPF2DegreeOfSuccess CheckResult = DetermineCheckDegreeOfSuccess(DieRoll, TargetDC);
+	const int32               TargetDC    = 10 + DyingConditionLevel;
+	const EPF2DegreeOfSuccess CheckResult = CalculateFlatCheck(TargetDC);
 
 	UE_LOG(
 		LogPf2CoreStats,
 		VeryVerbose,
-		TEXT("Recovery Check Die Roll (1d20) = %d vs. DC %d: %s."),
-		DieRoll,
-		TargetDC,
+		TEXT("Recovery check result against Dying condition level %d: %s."),
+		DyingConditionLevel,
 		*(PF2EnumUtilities::ToString(CheckResult))
 	);
 

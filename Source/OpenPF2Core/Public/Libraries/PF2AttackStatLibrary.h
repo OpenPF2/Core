@@ -130,6 +130,59 @@ public:
 	                                               const int                    RollSize  = 20);
 
 	/**
+	 * Calculates a flat check against a difficulty class.
+	 *
+	 * The returned result is based on a random dice roll, so there is no guarantee of getting the same return value
+	 * given the same difficulty class.
+	 *
+	 * From the Pathfinder 2E Core Rulebook, Chapter 9, page 450, "Flat Checks":
+	 * "When the chance something will happen or fail to happen is based purely on chance, you’ll attempt a flat check.
+	 * A flat check never includes any modifiers, bonuses, or penalties—you just roll a d20 and compare the result on
+	 * the die to the DC. [...] In the rare circumstance that a flat check has a DC of 1 or lower, skip rolling; you
+	 * automatically succeed. Conversely, if one ever has a DC of 21 or higher, you automatically fail."
+	 *
+	 * From the Pathfinder 2E Core Rulebook, Chapter 9, page 445, "Step 4: Determine the Degree of Success and Effect":
+	 * "If you rolled a 20 on the die (a 'natural 20'), your result is one degree of success better than it would be by
+	 * numbers alone. If you roll a 1 on the d20 (a 'natural 1'), your result is one degree worse. This means that a
+	 * natural 20 usually results in a critical success and natural 1 usually results in a critical failure."
+	 *
+	 * @param [in] DifficultyClass
+	 *	The difficulty class to check the value against.
+	 *
+	 * @return
+	 *	The calculated result of the check.
+	 */
+	static EPF2DegreeOfSuccess CalculateFlatCheck(const float DifficultyClass);
+
+	/**
+	 * Calculates a flat check against a difficulty class.
+	 *
+	 * The returned result is based on a random dice roll, so there is no guarantee of getting the same return value
+	 * given the same difficulty class.
+	 *
+	 * From the Pathfinder 2E Core Rulebook, Chapter 9, page 450, "Flat Checks":
+	 * "When the chance something will happen or fail to happen is based purely on chance, you’ll attempt a flat check.
+	 * A flat check never includes any modifiers, bonuses, or penalties—you just roll a d20 and compare the result on
+	 * the die to the DC. [...] In the rare circumstance that a flat check has a DC of 1 or lower, skip rolling; you
+	 * automatically succeed. Conversely, if one ever has a DC of 21 or higher, you automatically fail."
+	 *
+	 * From the Pathfinder 2E Core Rulebook, Chapter 9, page 445, "Step 4: Determine the Degree of Success and Effect":
+	 * "If you rolled a 20 on the die (a 'natural 20'), your result is one degree of success better than it would be by
+	 * numbers alone. If you roll a 1 on the d20 (a 'natural 1'), your result is one degree worse. This means that a
+	 * natural 20 usually results in a critical success and natural 1 usually results in a critical failure."
+	 *
+	 * @param [in] DifficultyClass
+	 *	The difficulty class to check the value against.
+	 * @param [out] DieRoll
+	 *	An optional variable to receive the raw die roll (the value before the degree of success has been calculated).
+	 *
+	 * @return
+	 *	The calculated result of the check.
+	 */
+	UFUNCTION(BlueprintPure, meta=(AutoCreateRefTerm="DieRoll"), Category="OpenPF2|Attack Stats")
+	static EPF2DegreeOfSuccess CalculateFlatCheck(const float DifficultyClass, int32& DieRoll);
+
+	/**
 	 * Determines the outcome of a check of a value against a Difficulty Class (DC).
 	 *
 	 * Given the same combination of value and DC, the returned value is always the same.
