@@ -30,6 +30,21 @@ class UPF2AttackStatLibrary final : public UBlueprintFunctionLibrary
 
 protected:
 	/**
+	 * The minimum level for a character's "dying" condition trait.
+	 *
+	 * Any value below this level signifies that the character is no longer dying.
+	 */
+	static constexpr uint8 MinDyingConditionLevel = 1;
+
+	/**
+	 * The maximum level for a character's "dying" condition trait.
+	 *
+	 * This level actually signifies that the character is dead. It is therefore synonymous with "Trait.Condition.Dead",
+	 * which is an OpenPF2 extension to "Dying 4" ("Trait.Condition.Dying.4") from the Core Rulebook.
+	 */
+	static constexpr uint8 MaxDyingConditionLevel = 4;
+
+	/**
 	 * The default maximum distance (in centimeters) at which movement to a location is considered acceptable.
 	 *
 	 * For example, if Character A is moving into range of Character B to make a melee attack on Character B, and the
@@ -373,15 +388,23 @@ public:
 	 * - Failure: Your dying value increases by 1.
 	 * - Critical Failure: Your dying value increases by 2."
 	 *
-	 * @param DyingConditionLevel
+	 * @param [in] DyingConditionLevel
 	 *	The current level of the dying condition trait.
+	 * @param [out] DyingConditionDelta
+	 *	An optional reference to a variable that receives the relative delta for the dying condition -- the effect on
+	 *	the dying value as a value in the range of -2 (inclusive) to 2 (inclusive), based on the flat check. This value
+	 *	is un-clamped, so it is possible for this to equal -1 or -2 even when given a dying condition level of 1.
 	 *
 	 * @return
-	 *	An integer offset representing the effect on the dying value, as a value in the range of -2 (inclusive) to
-	 *	2 (inclusive). This is the calculated, random result of performing the recovery check.
+	 *	The new dying condition level. This value is clamped and unsigned, so it can never be negative and cannot be
+	 *	larger than MaxDyingConditionLevel. A value of 0 signifies that the character is no longer dying, while a value
+	 *	of 4 indicates that the character is completely dead.
 	 */
-	UFUNCTION(BlueprintCallable, Category="OpenPF2|Attack Stats")
-	static int32 CalculateRecoveryCheck(const uint8 DyingConditionLevel);
+	UFUNCTION(BlueprintCallable, meta=(AutoCreateRefTerm="Dying Condition Delta"), Category="OpenPF2|Attack Stats")
+	static UPARAM(DisplayName="New Dying Condition Level") uint8 CalculateRecoveryCheck(
+		const uint8 DyingConditionLevel,
+		int32& DyingConditionDelta
+	);
 
 	/**
 	 * Calculates the penalty at the specified distance from a target for a weapon that has the given range increment.

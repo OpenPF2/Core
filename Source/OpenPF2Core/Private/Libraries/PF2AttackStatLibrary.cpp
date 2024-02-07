@@ -176,12 +176,11 @@ float UPF2AttackStatLibrary::CalculateDamageRoll(const int RollCount,
 	return DamageRoll;
 }
 
-int32 UPF2AttackStatLibrary::CalculateRecoveryCheck(const uint8 DyingConditionLevel)
+uint8 UPF2AttackStatLibrary::CalculateRecoveryCheck(const uint8 DyingConditionLevel, int32& DyingConditionDelta)
 {
 	// "... DC equal to 10 + your current dying value ..."
 	//
 	// Source: Pathfinder 2E Core Rulebook, Chapter 9, page 459, "Recovery Checks".
-	int8                      Result;
 	const int32               TargetDC    = 10 + DyingConditionLevel;
 	const EPF2DegreeOfSuccess CheckResult = CalculateFlatCheck(TargetDC);
 
@@ -203,24 +202,24 @@ int32 UPF2AttackStatLibrary::CalculateRecoveryCheck(const uint8 DyingConditionLe
 	switch (CheckResult)
 	{
 		case EPF2DegreeOfSuccess::CriticalSuccess:
-			Result = -2;
+			DyingConditionDelta = -2;
 			break;
 
 		case EPF2DegreeOfSuccess::Success:
-			Result = -1;
+			DyingConditionDelta = -1;
 			break;
 
 		default:
 		case EPF2DegreeOfSuccess::Failure:
-			Result = +1;
+			DyingConditionDelta = +1;
 			break;
 
 		case EPF2DegreeOfSuccess::CriticalFailure:
-			Result = +2;
+			DyingConditionDelta = +2;
 			break;
 	}
 
-	return Result;
+	return FMath::Clamp((DyingConditionLevel + DyingConditionDelta), 0, MaxDyingConditionLevel);
 }
 
 float UPF2AttackStatLibrary::CalculateRangePenalty(const float WeaponRangeIncrementCentimeters,
