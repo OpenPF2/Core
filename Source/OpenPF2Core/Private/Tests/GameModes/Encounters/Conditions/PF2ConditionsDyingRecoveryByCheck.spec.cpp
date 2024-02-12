@@ -14,13 +14,13 @@
 
 #include "Utilities/PF2InterfaceUtilities.h"
 
-BEGIN_DEFINE_PF_SPEC(FPF2ConditionsDyingRecovery,
-                     "OpenPF2.Conditions.DyingRecovery",
+BEGIN_DEFINE_PF_SPEC(FPF2ConditionsDyingRecoveryByCheck,
+                     "OpenPF2.Conditions.DyingRecoveryByCheck",
                      EAutomationTestFlags::ProductFilter | EAutomationTestFlags::ApplicationContextMask)
 	UPF2CharacterAttributeSet* TestCharacterAttributeSet;
-END_DEFINE_PF_SPEC(FPF2ConditionsDyingRecovery)
+END_DEFINE_PF_SPEC(FPF2ConditionsDyingRecoveryByCheck)
 
-void FPF2ConditionsDyingRecovery::Define()
+void FPF2ConditionsDyingRecoveryByCheck::Define()
 {
 	static TSubclassOf<APF2EncounterModeOfPlayRuleSetBase> BP_Encounter_RuleSet;
 	static TSubclassOf<UGameplayAbility>                   BP_ConditionCheck_Ability,
