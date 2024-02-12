@@ -65,8 +65,8 @@ public:
 	 *	The tag immediately above the tags that contain the integer condition level.
 	 *
 	 * @return
-	 *	Either the value parsed out of the suffix; or, INDEX_NONE if either a condition trait tag could not be found or
-	 *	the tag that was found did not have a suffix tag that could be parsed.
+	 *	Either the value parsed out of the suffix; or, 0 if either a condition trait tag could not be found or the tag
+	 *	that was found did not have a suffix tag that could be parsed.
 	 */
 	UFUNCTION(
 		BlueprintCallable,
@@ -89,8 +89,7 @@ public:
 	 *	The tag immediately above the tags that contain the integer condition level.
 	 *
 	 * @return
-	 *	Either the value parsed out of the suffix; or, INDEX_NONE if the tag did not have a condition level that could
-	 *	be parsed.
+	 *	Either the value parsed out of the suffix; or, 0 if the tag did not have a condition level that could be parsed.
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, meta=(AutoCreateRefTerm="ParentTag"), Category="OpenPF2|Gameplay Tags")
 	static uint8 ParseConditionLevel(const FGameplayTag& Tag,

@@ -91,17 +91,17 @@ void FPF2TagLibrarySpec::Define()
 	{
 		Describe(TEXT("when given a condition tag that is not a parent of any tags in the list"), [=, this]
 		{
-			It(TEXT("returns `INDEX_NONE`"), [=, this]
+			It(TEXT("returns `0`"), [=, this]
 			{
 				const int8 Result = UPF2TagLibrary::FindAndParseConditionLevel(TagList, DoomedTag);
 
-				TestEqual("Result", Result, INDEX_NONE);
+				TestEqual("Result", Result, 0);
 			});
 		});
 
 		Describe(TEXT("when given a condition tag that is a grandparent of a tag in the list"), [=, this]
 		{
-			It(TEXT("returns `INDEX_NONE`"), [=, this]
+			It(TEXT("returns `0`"), [=, this]
 			{
 				int8 Result;
 
@@ -113,7 +113,7 @@ void FPF2TagLibrarySpec::Define()
 
 				Result = UPF2TagLibrary::FindAndParseConditionLevel(TagList, ConditionTag);
 
-				TestEqual("Result", Result, INDEX_NONE);
+				TestEqual("Result", Result, 0);
 			});
 		});
 
@@ -150,21 +150,21 @@ void FPF2TagLibrarySpec::Define()
 	{
 		Describe(TEXT("when given a parent tag that is not actually a parent of the given condition tag"), [=, this]
 		{
-			It(TEXT("returns `INDEX_NONE`"), [=, this]
+			It(TEXT("returns `0`"), [=, this]
 			{
 				const int8 Result = UPF2TagLibrary::ParseConditionLevel(DoomedTag, WoundedParentTag);
 
-				TestEqual("Result", Result, INDEX_NONE);
+				TestEqual("Result", Result, 0);
 			});
 		});
 
 		Describe(TEXT("when given a parent tag that is a grandparent of the given condition tag"), [=, this]
 		{
-			It(TEXT("returns `INDEX_NONE`"), [=, this]
+			It(TEXT("returns `0`"), [=, this]
 			{
 				const int8 Result = UPF2TagLibrary::ParseConditionLevel(Wounded3Tag, ConditionTag);
 
-				TestEqual("Result", Result, INDEX_NONE);
+				TestEqual("Result", Result, 0);
 			});
 		});
 

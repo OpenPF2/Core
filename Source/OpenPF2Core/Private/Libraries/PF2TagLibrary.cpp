@@ -38,7 +38,7 @@ FGameplayTag UPF2TagLibrary::FindChildTag(const FGameplayTagContainer& AllTags,
 
 uint8 UPF2TagLibrary::FindAndParseConditionLevel(const FGameplayTagContainer& AllTags, const FGameplayTag& ParentTag)
 {
-	uint8              Result      = INDEX_NONE;
+	uint8              Result      = 0;
 	bool               bMatchFound = false;
 	const FGameplayTag ChildTag    = FindChildTag(AllTags, ParentTag, bMatchFound);
 
@@ -52,7 +52,7 @@ uint8 UPF2TagLibrary::FindAndParseConditionLevel(const FGameplayTagContainer& Al
 
 uint8 UPF2TagLibrary::ParseConditionLevel(const FGameplayTag& Tag, const FGameplayTag& ParentTag)
 {
-	uint8 Result = INDEX_NONE;
+	uint8 Result = 0;
 
 	if (Tag.RequestDirectParent().MatchesTagExact(ParentTag))
 	{
