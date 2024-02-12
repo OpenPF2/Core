@@ -21,10 +21,9 @@ BEGIN_DEFINE_PF_SPEC(FPF2ConditionsKnockoutAndDeath,
 	UPF2CharacterAttributeSet* TestCharacterAttributeSet;
 
 	/**
-	 * Applies a damage gameplay effect (GE) to the target character.
+	 * Applies a damage gameplay effect (GE) to the test character.
 	 *
-	 * The damage can optionally simulate the specified tags on the source, with an attack having the specified degree
-	 * of success.
+	 * The damage can optionally simulate the attack having a specific degree of success and amount.
 	 *
 	 * @param Attacker
 	 *	The character to simulate as the instigator of the damage.
