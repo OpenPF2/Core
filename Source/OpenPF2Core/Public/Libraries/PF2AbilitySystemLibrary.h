@@ -85,6 +85,20 @@ public:
 	}
 
 	/**
+	 * Determines if a gameplay event was instigated by a Gameplay Ability.
+	 *
+	 * @param EventData
+	 *	The payload provided along with the Gameplay Event.
+	 *
+	 * @return
+	 *  - true if the given event data is valid, has a valid context handle, and the context handle points to an ability
+	 *    CDO.
+	 *  - false, otherwise.
+	 */
+	UFUNCTION(BlueprintCallable, Category="OpenPF2|Gameplay Abilities")
+	static bool WasEventTriggeredByAbility(const FGameplayEventData& EventData);
+
+	/**
 	 * Extracts the effect causer that was supplied as the first optional object in a Gameplay Event payload.
 	 *
 	 * @param EventData

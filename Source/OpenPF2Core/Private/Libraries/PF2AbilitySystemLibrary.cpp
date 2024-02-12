@@ -13,6 +13,13 @@
 
 #include "Items/Weapons/PF2WeaponInterface.h"
 
+bool UPF2AbilitySystemLibrary::WasEventTriggeredByAbility(const FGameplayEventData& EventData)
+{
+	const FGameplayEffectContextHandle ContextHandle = EventData.ContextHandle;
+
+	return (ContextHandle.IsValid() && (ContextHandle.GetAbility() != nullptr));
+}
+
 TScriptInterface<IPF2CharacterInterface> UPF2AbilitySystemLibrary::GetCausingCharacterFromGameplayEventPayload(
 	const FGameplayEventData& EventData)
 {
