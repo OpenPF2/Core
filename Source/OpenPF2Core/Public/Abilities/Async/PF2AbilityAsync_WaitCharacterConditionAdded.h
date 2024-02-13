@@ -20,7 +20,7 @@ class IPF2CharacterInterface;
  * An async. task for non-ability blueprints (e.g., UMG widgets) to react to addition of a condition on characters.
  */
 UCLASS()
-class OPENPF2CORE_API UPF2AbilityAsync_WaitConditionAdded : public UPF2AbilityAsync_WaitCharacterConditionBase
+class OPENPF2CORE_API UPF2AbilityAsync_WaitCharacterConditionAdded : public UPF2AbilityAsync_WaitCharacterConditionBase
 {
 	GENERATED_BODY()
 
@@ -69,7 +69,7 @@ public:
 		DisplayName="Wait for Condition Added to Character",
 		Category="OpenPF2|Ability|Tasks"
 	)
-	static UPF2AbilityAsync_WaitConditionAdded* WaitConditionAddedToCharacter(
+	static UPF2AbilityAsync_WaitCharacterConditionAdded* WaitConditionAddedToCharacter(
 		const TScriptInterface<IPF2CharacterInterface>& Character,
 		const FGameplayTag                              ConditionParentTag,
 		const bool                                      bFireImmediatelyIfAlreadySatisfied = true,

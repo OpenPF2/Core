@@ -9,13 +9,13 @@
 
 #include "Libraries/PF2TagLibrary.h"
 
-UPF2AbilityAsync_WaitConditionAdded* UPF2AbilityAsync_WaitConditionAdded::WaitConditionAddedToCharacter(
+UPF2AbilityAsync_WaitCharacterConditionAdded* UPF2AbilityAsync_WaitCharacterConditionAdded::WaitConditionAddedToCharacter(
 	const TScriptInterface<IPF2CharacterInterface>& Character,
 	const FGameplayTag                              ConditionParentTag,
 	const bool                                      bFireImmediatelyIfAlreadySatisfied,
 	const bool                                      bOnlyTriggerOnce)
 {
-	UPF2AbilityAsync_WaitConditionAdded* Task = NewObject<UPF2AbilityAsync_WaitConditionAdded>();
+	UPF2AbilityAsync_WaitCharacterConditionAdded* Task = NewObject<UPF2AbilityAsync_WaitCharacterConditionAdded>();
 
 	if (Character == nullptr)
 	{
@@ -38,7 +38,7 @@ UPF2AbilityAsync_WaitConditionAdded* UPF2AbilityAsync_WaitConditionAdded::WaitCo
 	return Task;
 }
 
-void UPF2AbilityAsync_WaitConditionAdded::OnTagCriterionSatisfied(const FGameplayTag& ConditionTag)
+void UPF2AbilityAsync_WaitCharacterConditionAdded::OnTagCriterionSatisfied(const FGameplayTag& ConditionTag)
 {
 	uint8 ConditionLevel;
 
