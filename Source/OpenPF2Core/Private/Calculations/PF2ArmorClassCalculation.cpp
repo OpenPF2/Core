@@ -1,4 +1,4 @@
-﻿// OpenPF2 for UE Game Logic, Copyright 2021-2023, Guy Elsmore-Paddock. All Rights Reserved.
+﻿// OpenPF2 for UE Game Logic, Copyright 2021-2024, Guy Elsmore-Paddock. All Rights Reserved.
 //
 // Content from Pathfinder 2nd Edition is licensed under the Open Game License (OGL) v1.0a, subject to the following:
 //   - Open Game License v 1.0a, Copyright 2000, Wizards of the Coast, Inc.
@@ -14,7 +14,6 @@
 
 #include "OpenPF2Core.h"
 #include "Abilities/PF2TargetCharacterAttributeStatics.h"
-#include "Abilities/PF2CharacterAttributeSet.h"
 #include "Calculations/PF2TemlCalculation.h"
 
 #include "Libraries/PF2AbilitySystemLibrary.h"
