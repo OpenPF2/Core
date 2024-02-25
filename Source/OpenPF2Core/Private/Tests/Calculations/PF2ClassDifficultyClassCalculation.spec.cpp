@@ -9,7 +9,7 @@
 BEGIN_DEFINE_PF_SPEC(FPF2ClassDifficultyClassCalculationSpec,
                      "OpenPF2.ClassDifficultyClassCalculations",
                      EAutomationTestFlags::ProductFilter | EAutomationTestFlags::ApplicationContextMask)
-	const FString BlueprintPath         = TEXT("/OpenPF2Core/OpenPF2/Core/Calculations");
+	const FString BlueprintPath         = TEXT("/OpenPF2Core/OpenPF2/Core/CharacterStats");
 	const FString ClassDcGameEffectCalc = TEXT("GE_CalcClassDifficultyClass");
 
 	const FString CdcModAttributeName = TEXT("ClassDifficultyClass");

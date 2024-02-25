@@ -17,7 +17,7 @@
 BEGIN_DEFINE_PF_SPEC(FPF2AncestryFeatCapCalculationSpec,
                      "OpenPF2.AncestryFeatCapCalculations",
                      EAutomationTestFlags::ProductFilter | EAutomationTestFlags::ApplicationContextMask)
-	const FString BlueprintPath                 = TEXT("/OpenPF2Core/OpenPF2/Core/Calculations");
+	const FString BlueprintPath                 = TEXT("/OpenPF2Core/OpenPF2/Core/CharacterStats/Ancestries");
 	const FString AncestryFeatCapGameEffectCalc = TEXT("GE_CalcAncestryFeatLimit");
 
 	const FString AncestryFeatCapAttributeName = TEXT("FeAncestryFeatLimit");

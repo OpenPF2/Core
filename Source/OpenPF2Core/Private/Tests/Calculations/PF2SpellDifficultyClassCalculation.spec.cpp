@@ -9,7 +9,7 @@
 BEGIN_DEFINE_PF_SPEC(FPF2SpellDifficultyClassCalculationsSpec,
                      "OpenPF2.SpellDifficultyClassCalculations",
                      EAutomationTestFlags::ProductFilter | EAutomationTestFlags::ApplicationContextMask)
-	const FString BlueprintPath                      = TEXT("/OpenPF2Core/OpenPF2/Core/Calculations");
+	const FString BlueprintPath                      = TEXT("/OpenPF2Core/OpenPF2/Core/CharacterStats");
 	const FString SpellDifficultyClassGameEffectCalc = TEXT("GE_CalcSpellDifficultyClass");
 
 	const FString SpellDifficultyClassAttributeName = TEXT("SpellDifficultyClass");

@@ -58,43 +58,43 @@ void FPF2ConditionsKnockoutAndDeath::Define()
 	BeforeAll([&, this]
 	{
 		BP_Encounter_RuleSet = this->LoadBlueprint<APF2EncounterModeOfPlayRuleSetBase>(
-			"/OpenPF2Core/OpenPF2/Optional/ModesOfPlay/Encounters",
+			"/OpenPF2Core/OpenPF2/Optional/ModesOfPlay/Encounter",
 			"BP_MoPRS_Encounter"
 		);
 
 		BP_ConditionCheck_Ability = this->LoadBlueprint<UGameplayAbility>(
-			"/OpenPF2Core/OpenPF2/Core/Conditions",
+			"/OpenPF2Core/OpenPF2/Core",
 			"GA_ConditionCheck"
 		);
 
 		// We use the human base stats GE for this because it grants about 8 HP of health.
 		BP_InitializeBaseHealthStats = this->LoadBlueprint<UGameplayEffect>(
-			"/OpenPF2Core/OpenPF2/Optional/Ancestries/Human",
+			"/OpenPF2Core/OpenPF2/Optional/CharacterStats/Ancestries/Human",
 			"GE_Ancestry_Human_Base"
 		);
 
 		BP_BleedDamage_Effect = this->LoadBlueprint<UGameplayEffect>(
-			"/OpenPF2Core/OpenPF2/Optional/DamageTypes",
+			"/OpenPF2Core/OpenPF2/Optional/Effects/Anytime/Damage",
 			"GE_ApplyBleedDamage"
 		);
 
 		BP_Wounded1_Effect = this->LoadBlueprint<UGameplayEffect>(
-			"/OpenPF2Core/OpenPF2/Core/Conditions",
+			"/OpenPF2Core/OpenPF2/Core/Effects/Anytime",
 			"GE_Condition_Wounded_Level1"
 		);
 
 		BP_Wounded2_Effect = this->LoadBlueprint<UGameplayEffect>(
-			"/OpenPF2Core/OpenPF2/Core/Conditions",
+			"/OpenPF2Core/OpenPF2/Core/Effects/Anytime",
 			"GE_Condition_Wounded_Level2"
 		);
 
 		BP_Wounded3_Effect = this->LoadBlueprint<UGameplayEffect>(
-			"/OpenPF2Core/OpenPF2/Core/Conditions",
+			"/OpenPF2Core/OpenPF2/Core/Effects/Anytime",
 			"GE_Condition_Wounded_Level3"
 		);
 
 		BP_Wounded4_Effect = this->LoadBlueprint<UGameplayEffect>(
-			"/OpenPF2Core/OpenPF2/Core/Conditions",
+			"/OpenPF2Core/OpenPF2/Core/Effects/Anytime",
 			"GE_Condition_Wounded_Level4"
 		);
 	});

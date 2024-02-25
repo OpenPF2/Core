@@ -40,55 +40,55 @@ void FPF2ConditionsDyingRecoveryByHealing::Define()
 
 	BeforeAll([&, this]
 	{
-		this->HealEffect = this->LoadBlueprint<UGameplayEffect>("/OpenPF2Core/OpenPF2/Core", "GE_Heal");
+		this->HealEffect = this->LoadBlueprint<UGameplayEffect>("/OpenPF2Core/OpenPF2/Core/Effects/Anytime", "GE_Heal");
 
 		BP_ConditionCheck_Ability = this->LoadBlueprint<UGameplayAbility>(
-			"/OpenPF2Core/OpenPF2/Core/Conditions",
+			"/OpenPF2Core/OpenPF2/Core",
 			"GA_ConditionCheck"
 		);
 
 		BP_Unconscious_Effect = this->LoadBlueprint<UGameplayEffect>(
-			"/OpenPF2Core/OpenPF2/Core/Conditions",
+			"/OpenPF2Core/OpenPF2/Core/Effects/Anytime",
 			"GE_Condition_Unconscious"
 		);
 
 		BP_Wounded1_Effect = this->LoadBlueprint<UGameplayEffect>(
-			"/OpenPF2Core/OpenPF2/Core/Conditions",
+			"/OpenPF2Core/OpenPF2/Core/Effects/Anytime",
 			"GE_Condition_Wounded_Level1"
 		);
 
 		BP_Wounded2_Effect = this->LoadBlueprint<UGameplayEffect>(
-			"/OpenPF2Core/OpenPF2/Core/Conditions",
+			"/OpenPF2Core/OpenPF2/Core/Effects/Anytime",
 			"GE_Condition_Wounded_Level2"
 		);
 
 		BP_Wounded3_Effect = this->LoadBlueprint<UGameplayEffect>(
-			"/OpenPF2Core/OpenPF2/Core/Conditions",
+			"/OpenPF2Core/OpenPF2/Core/Effects/Anytime",
 			"GE_Condition_Wounded_Level3"
 		);
 
 		BP_Wounded4_Effect = this->LoadBlueprint<UGameplayEffect>(
-			"/OpenPF2Core/OpenPF2/Core/Conditions",
+			"/OpenPF2Core/OpenPF2/Core/Effects/Anytime",
 			"GE_Condition_Wounded_Level4"
 			);
 
 		BP_Dying1_Effect = this->LoadBlueprint<UGameplayEffect>(
-			"/OpenPF2Core/OpenPF2/Core/Conditions",
+			"/OpenPF2Core/OpenPF2/Core/Effects/Anytime",
 			"GE_Condition_Dying_Level1"
 		);
 
 		BP_Dying2_Effect = this->LoadBlueprint<UGameplayEffect>(
-			"/OpenPF2Core/OpenPF2/Core/Conditions",
+			"/OpenPF2Core/OpenPF2/Core/Effects/Anytime",
 			"GE_Condition_Dying_Level2"
 		);
 
 		BP_Dying3_Effect = this->LoadBlueprint<UGameplayEffect>(
-			"/OpenPF2Core/OpenPF2/Core/Conditions",
+			"/OpenPF2Core/OpenPF2/Core/Effects/Anytime",
 			"GE_Condition_Dying_Level3"
 		);
 
 		BP_Dying4_Effect = this->LoadBlueprint<UGameplayEffect>(
-			"/OpenPF2Core/OpenPF2/Core/Conditions",
+			"/OpenPF2Core/OpenPF2/Core/Effects/Anytime",
 			"GE_Condition_Dying_Level4"
 		);
 	});

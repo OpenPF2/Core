@@ -17,7 +17,7 @@
 BEGIN_DEFINE_PF_SPEC(FPF2AbilityModSpec,
                      "OpenPF2.AbilityMods",
                      EAutomationTestFlags::ProductFilter | EAutomationTestFlags::ApplicationContextMask)
-	const FString BlueprintPath       = TEXT("/OpenPF2Core/OpenPF2/Core/Calculations/AbilityModifiers");
+	const FString BlueprintPath       = TEXT("/OpenPF2Core/OpenPF2/Core/CharacterStats/AbilityModifiers");
 	const FString AbModGameEffectCalc = TEXT("GE_CalcAbilityModifiers");
 
 	const TArray<FString> AbModMmcNames = {

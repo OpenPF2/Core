@@ -9,7 +9,7 @@
 BEGIN_DEFINE_PF_SPEC(FPF2SkillModifierCalculationSpec,
                      "OpenPF2.SkillModifierCalculations",
                      EAutomationTestFlags::ProductFilter | EAutomationTestFlags::ApplicationContextMask)
-	const FString BlueprintPath       = TEXT("/OpenPF2Core/OpenPF2/Core/Calculations/Skills");
+	const FString BlueprintPath       = TEXT("/OpenPF2Core/OpenPF2/Core/CharacterStats/Skills");
 	const FString SkillGameEffectCalc = TEXT("GE_CalcSkillModifiers");
 
 	const TMap<float, TMap<FString, float>> ExpectedValues =

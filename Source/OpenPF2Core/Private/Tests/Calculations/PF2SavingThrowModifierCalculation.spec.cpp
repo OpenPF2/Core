@@ -9,7 +9,7 @@
 BEGIN_DEFINE_PF_SPEC(FPF2SavingThrowModifierCalculationSpec,
                      "OpenPF2.SavingThrowModifierCalculations",
                      EAutomationTestFlags::ProductFilter | EAutomationTestFlags::ApplicationContextMask)
-	const FString BlueprintPath             = TEXT("/OpenPF2Core/OpenPF2/Core/Calculations");
+	const FString BlueprintPath             = TEXT("/OpenPF2Core/OpenPF2/Core/CharacterStats");
 	const FString SavingThrowGameEffectCalc = TEXT("GE_CalcSavingThrowModifiers");
 
 	const TMap<float, TMap<FString, float>> ExpectedValues =

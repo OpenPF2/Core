@@ -23,7 +23,10 @@ const FName UPF2AbilitySystemComponent::DefaultFaceTargetAbilityTagName = FName(
 UPF2AbilitySystemComponent::UPF2AbilitySystemComponent() : Events(nullptr), bAreAbilitiesAvailable(false)
 {
 	const FString DynamicTagsGeFilename =
-		PF2CharacterConstants::GetBlueprintPath(*PF2CharacterConstants::GeDynamicTagsName);
+		PF2CharacterConstants::GetBlueprintPath(
+			*PF2CharacterConstants::GeDynamicTagsName,
+			*PF2CharacterConstants::BlueprintSubfolderCharacterStats
+		);
 
 	const ConstructorHelpers::FObjectFinder<UClass> DynamicTagsGeFinder(*DynamicTagsGeFilename);
 
@@ -36,7 +39,7 @@ UPF2AbilitySystemComponent::UPF2AbilitySystemComponent() : Events(nullptr), bAre
 		const FString Filename =
 			PF2CharacterConstants::GetBlueprintPath(
 				FName(FString::Format(*PF2CharacterConstants::GeBlueprintBoostNameFormat, {AbilityName})),
-				PF2CharacterConstants::BlueprintSubfolderBoosts
+				PF2CharacterConstants::BlueprintSubfolderAbilityBoosts
 			);
 
 		const ConstructorHelpers::FObjectFinder<UClass> BoostGeFinder(*Filename);
