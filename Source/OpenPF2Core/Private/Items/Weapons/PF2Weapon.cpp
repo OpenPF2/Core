@@ -7,10 +7,11 @@
 
 #include <GameplayEffectExecutionCalculation.h>
 
-#include "PF2EffectCauseWrapper.h"
-#include "PF2GameplayEffectContainerSpec.h"
+#include "Abilities/PF2EffectCauseWrapper.h"
 
-#include "Abilities/PF2CharacterAbilitySystemInterface.h"
+#include "CharacterStats/PF2CharacterAbilitySystemInterface.h"
+
+#include "GameplayEffects/PF2GameplayEffectContainerSpec.h"
 
 APF2EffectCauseWrapper* UPF2Weapon::ToEffectCauser(AActor* OwningActor)
 {

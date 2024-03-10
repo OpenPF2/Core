@@ -16,7 +16,7 @@
 
 #include <Kismet/BlueprintFunctionLibrary.h>
 
-#include "Calculations/PF2DegreeOfSuccess.h"
+#include "Abilities/PF2DegreeOfSuccess.h"
 
 #include "PF2AttackStatLibrary.generated.h"
 

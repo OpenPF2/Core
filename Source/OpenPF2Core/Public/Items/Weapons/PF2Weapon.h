@@ -14,7 +14,7 @@
 
 #include "PF2MonetaryValue.h"
 
-#include "Abilities/PF2CharacterAbilityScoreType.h"
+#include "CharacterStats/PF2CharacterAbilityScoreType.h"
 
 #include "Items/PF2Item.h"
 #include "Items/Weapons/PF2WeaponInterface.h"

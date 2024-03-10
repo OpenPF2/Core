@@ -12,9 +12,11 @@
 
 #include <Kismet/BlueprintFunctionLibrary.h>
 
-#include "PF2GameplayEffectContainerSpec.h"
 #include "PF2PlayerControllerInterface.h"
-#include "PF2TargetSelectionType.h"
+
+#include "Abilities/PF2TargetSelectionType.h"
+
+#include "GameplayEffects/PF2GameplayEffectContainerSpec.h"
 
 #include "Utilities/PF2InterfaceUtilities.h"
 

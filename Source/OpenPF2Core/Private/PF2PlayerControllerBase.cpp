@@ -1,4 +1,4 @@
-﻿// OpenPF2 for UE Game Logic, Copyright 2021-2023, Guy Elsmore-Paddock. All Rights Reserved.
+﻿// OpenPF2 for UE Game Logic, Copyright 2021-2024, Guy Elsmore-Paddock. All Rights Reserved.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
 // distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
@@ -13,15 +13,16 @@
 #include <GameFramework/PlayerState.h>
 
 #include "PF2CharacterInterface.h"
-#include "PF2CharacterQueueComponent.h"
-#include "PF2OwnerTrackingInterface.h"
+#include "PF2GameModeInterface.h"
 #include "PF2PartyInterface.h"
 #include "PF2PlayerStateInterface.h"
 
+#include "Actors/Components/PF2OwnerTrackingInterface.h"
+
 #include "Commands/PF2CharacterCommand.h"
 
-#include "GameModes/PF2GameModeInterface.h"
-#include "GameModes/PF2ModeOfPlayRuleSetInterface.h"
+#include "ModesOfPlay/PF2ModeOfPlayRuleSetInterface.h"
+#include "ModesOfPlay/Encounter/PF2CharacterQueueComponent.h"
 
 #include "Utilities/PF2EnumUtilities.h"
 #include "Utilities/PF2InterfaceUtilities.h"

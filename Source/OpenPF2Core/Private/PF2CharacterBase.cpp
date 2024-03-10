@@ -13,11 +13,13 @@
 
 #include <UObject/ConstructorHelpers.h>
 
-#include "PF2OwnerTrackingComponent.h"
 #include "PF2PlayerStateInterface.h"
 
-#include "Abilities/PF2AttackAttributeSet.h"
-#include "Abilities/PF2GameplayAbilityTargetData_BoostAbility.h"
+#include "Abilities/Attacks/PF2AttackAttributeSet.h"
+
+#include "Actors/Components/PF2OwnerTrackingComponent.h"
+
+#include "CharacterStats/AbilityBoosts/PF2GameplayAbilityTargetData_BoostAbility.h"
 
 #include "Commands/PF2CommandQueueComponent.h"
 

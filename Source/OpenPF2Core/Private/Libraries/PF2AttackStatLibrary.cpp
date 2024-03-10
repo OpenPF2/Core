@@ -12,7 +12,7 @@
 
 #include "Libraries/PF2AttackStatLibrary.h"
 
-#include "Calculations/PF2TemlCalculation.h"
+#include "CharacterStats/PF2TemlCalculation.h"
 
 #include "Libraries/PF2DiceLibrary.h"
 

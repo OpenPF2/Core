@@ -8,8 +8,9 @@
 #include <AbilitySystemGlobals.h>
 
 #include "PF2CharacterInterface.h"
-#include "PF2GameplayEffectContainer.h"
-#include "PF2GameplayEffectContainerSpec.h"
+
+#include "GameplayEffects/PF2GameplayEffectContainer.h"
+#include "GameplayEffects/PF2GameplayEffectContainerSpec.h"
 
 #include "Items/Weapons/PF2WeaponInterface.h"
 

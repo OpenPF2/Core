@@ -19,17 +19,19 @@
 #include <UObject/ConstructorHelpers.h>
 #include <UObject/ScriptInterface.h>
 
-#include "PF2AncestryAndHeritageGameplayEffectBase.h"
-#include "PF2BackgroundGameplayEffectBase.h"
 #include "PF2CharacterConstants.h"
 #include "PF2CharacterInterface.h"
-#include "PF2ClassGameplayEffectBase.h"
 
-#include "Abilities/PF2AbilityBoostBase.h"
-#include "Abilities/PF2AbilitySystemComponent.h"
-#include "Abilities/PF2AttackAttributeSet.h"
-#include "Abilities/PF2CharacterAttributeSet.h"
-#include "Abilities/PF2CharacterAbilityScoreType.h"
+#include "Abilities/Attacks/PF2AttackAttributeSet.h"
+
+#include "Actors/Components/PF2AbilitySystemComponent.h"
+
+#include "CharacterStats/PF2AncestryAndHeritageGameplayEffectBase.h"
+#include "CharacterStats/PF2BackgroundGameplayEffectBase.h"
+#include "CharacterStats/PF2CharacterAbilityScoreType.h"
+#include "CharacterStats/PF2CharacterAttributeSet.h"
+#include "CharacterStats/PF2ClassGameplayEffectBase.h"
+#include "CharacterStats/AbilityBoosts/PF2AbilityBoostBase.h"
 
 #include "Utilities/PF2GameplayAbilityUtilities.h"
 #include "Utilities/PF2LogIdentifiableInterface.h"

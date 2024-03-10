@@ -16,7 +16,7 @@
 
 #include <UObject/ScriptInterface.h>
 
-#include "Abilities/PF2AbilityBoostBase.h"
+#include "CharacterStats/AbilityBoosts/PF2AbilityBoostBase.h"
 
 #include "PF2CharacterInterface.generated.h"
 

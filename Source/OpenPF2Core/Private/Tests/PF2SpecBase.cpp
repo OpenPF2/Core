@@ -9,7 +9,7 @@
 
 #include <Engine/Engine.h>
 
-#include "Abilities/PF2CharacterAttributeSet.h"
+#include "CharacterStats/PF2CharacterAttributeSet.h"
 
 #include "Libraries/PF2AbilitySystemLibrary.h"
 #include "Libraries/PF2TagLibrary.h"

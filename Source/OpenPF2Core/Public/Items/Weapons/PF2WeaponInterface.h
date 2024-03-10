@@ -16,9 +16,9 @@
 
 #include <UObject/Interface.h>
 
-#include "PF2GameplayEffectContainer.h"
+#include "CharacterStats/PF2CharacterAbilityScoreType.h"
 
-#include "Abilities/PF2CharacterAbilityScoreType.h"
+#include "GameplayEffects/PF2GameplayEffectContainer.h"
 
 #include "Items/PF2ItemInterface.h"
 
