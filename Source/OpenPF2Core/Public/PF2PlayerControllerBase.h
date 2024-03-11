@@ -97,8 +97,8 @@ public:
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	virtual void Server_ExecuteAbilityAsCharacterCommand(
-		const TScriptInterface<IPF2GameplayAbilityInterface>& Ability,
-		AActor*                                               CharacterActor) override;
+		const TScriptInterface<IPF2InteractableAbilityInterface>& Ability,
+		AActor*                                                   CharacterActor) override;
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	virtual void Server_ExecuteAbilitySpecAsCharacterCommand(const FGameplayAbilitySpecHandle AbilitySpecHandle,

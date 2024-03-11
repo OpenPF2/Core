@@ -1,4 +1,4 @@
-﻿// OpenPF2 for UE Game Logic, Copyright 2022-2023, Guy Elsmore-Paddock. All Rights Reserved.
+﻿// OpenPF2 for UE Game Logic, Copyright 2022-2024, Guy Elsmore-Paddock. All Rights Reserved.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
 // distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
@@ -8,7 +8,7 @@
 #include <GameplayAbilitySpec.h>
 #include <UObject/ScriptInterface.h>
 
-#include "PF2ActorComponentInterface.h"
+#include "Actors/Components/PF2ActorComponentInterface.h"
 
 #include "PF2AbilityBindingsInterface.generated.h"
 
@@ -17,7 +17,7 @@
 // =====================================================================================================================
 class IPF2AbilityBindingsInterface;
 class IPF2CharacterInterface;
-class IPF2GameplayAbilityInterface;
+class IPF2InteractableAbilityInterface;
 class UEnhancedInputComponent;
 class UInputComponent;
 class UInputAction;
@@ -121,7 +121,7 @@ public:
 	 *	The current bindings between input and commands.
 	 */
 	UFUNCTION(BlueprintCallable, Category="OpenPF2|Components|Characters|Ability Bindings")
-	virtual TMap<UInputAction*, TScriptInterface<IPF2GameplayAbilityInterface>> GetBindingsMap() const = 0;
+	virtual TMap<UInputAction*, TScriptInterface<IPF2InteractableAbilityInterface>> GetBindingsMap() const = 0;
 
 	/**
 	 * Binds an ability to a particular input action.

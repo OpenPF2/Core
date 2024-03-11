@@ -1,4 +1,4 @@
-﻿// OpenPF2 for UE Game Logic, Copyright 2021-2023, Guy Elsmore-Paddock. All Rights Reserved.
+﻿// OpenPF2 for UE Game Logic, Copyright 2021-2024, Guy Elsmore-Paddock. All Rights Reserved.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
 // distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
@@ -13,15 +13,16 @@
 #include <GameFramework/PlayerState.h>
 
 #include "PF2CharacterInterface.h"
-#include "PF2CharacterQueueComponent.h"
-#include "PF2OwnerTrackingInterface.h"
+#include "PF2GameModeInterface.h"
 #include "PF2PartyInterface.h"
 #include "PF2PlayerStateInterface.h"
 
+#include "Actors/Components/PF2OwnerTrackingInterface.h"
+
 #include "Commands/PF2CharacterCommand.h"
 
-#include "GameModes/PF2GameModeInterface.h"
-#include "GameModes/PF2ModeOfPlayRuleSetInterface.h"
+#include "ModesOfPlay/PF2ModeOfPlayRuleSetInterface.h"
+#include "ModesOfPlay/Encounter/PF2CharacterQueueComponent.h"
 
 #include "Utilities/PF2EnumUtilities.h"
 #include "Utilities/PF2InterfaceUtilities.h"
@@ -217,8 +218,8 @@ void APF2PlayerControllerBase::ReleaseCharacter(const TScriptInterface<IPF2Chara
 }
 
 bool APF2PlayerControllerBase::Server_ExecuteAbilityAsCharacterCommand_Validate(
-	const TScriptInterface<IPF2GameplayAbilityInterface>& Ability,
-	AActor*                                               CharacterActor)
+	const TScriptInterface<IPF2InteractableAbilityInterface>& Ability,
+	AActor*                                                   CharacterActor)
 {
 	bool bIsValid = false;
 
@@ -240,8 +241,8 @@ bool APF2PlayerControllerBase::Server_ExecuteAbilityAsCharacterCommand_Validate(
 }
 
 void APF2PlayerControllerBase::Server_ExecuteAbilityAsCharacterCommand_Implementation(
-	const TScriptInterface<IPF2GameplayAbilityInterface>& Ability,
-	AActor*                                               CharacterActor)
+	const TScriptInterface<IPF2InteractableAbilityInterface>& Ability,
+	AActor*                                                   CharacterActor)
 {
 	IPF2CharacterInterface*    TargetCharacterIntf = Cast<IPF2CharacterInterface>(CharacterActor);
 	FGameplayAbilitySpecHandle AbilitySpecHandle;
@@ -388,7 +389,7 @@ bool APF2PlayerControllerBase::Server_CancelCharacterCommand_Validate(AInfo* Com
 	}
 	else
 	{
-		const TScriptInterface<IPF2CharacterInterface> TargetCharacter = CommandIntf->GetTargetCharacter();
+		const TScriptInterface<IPF2CharacterInterface> TargetCharacter = CommandIntf->GetOwningCharacter();
 
 		if (TargetCharacter.GetInterface() == nullptr)
 		{

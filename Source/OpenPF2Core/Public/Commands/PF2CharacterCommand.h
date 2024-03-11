@@ -1,21 +1,22 @@
-﻿// OpenPF2 for UE Game Logic, Copyright 2022-2023, Guy Elsmore-Paddock. All Rights Reserved.
+﻿// OpenPF2 for UE Game Logic, Copyright 2022-2024, Guy Elsmore-Paddock. All Rights Reserved.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
 // distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 #pragma once
 
+#include <GameplayAbilitySpec.h>
+
 #include <GameFramework/Info.h>
 
-#include "GameplayAbilitySpec.h"
-#include "PF2CharacterCommandInterface.h"
 #include "PF2CharacterInterface.h"
-#include "PF2CommandQueuePosition.h"
 
-#include "Abilities/PF2GameplayAbilityInterface.h"
+#include "Abilities/PF2InteractableAbilityInterface.h"
 
+#include "Commands/PF2CharacterCommandInterface.h"
 #include "Commands/PF2CommandExecuteImmediatelyResult.h"
 #include "Commands/PF2CommandExecuteOrQueueResult.h"
+#include "Commands/PF2CommandQueuePosition.h"
 
 #include "Utilities/PF2InterfaceUtilities.h"
 
@@ -50,7 +51,7 @@ protected:
 	 * The character who would be issued this command.
 	 */
 	UPROPERTY(Replicated)
-	AActor* TargetCharacter;
+	AActor* OwningCharacter;
 
 	/**
 	 * The handle of the ability that this command will trigger when it is executed.
@@ -167,7 +168,9 @@ public:
 	 *
 	 * The given actor must implement IPF2CharacterInterface.
 	 *
-	 * @param CharacterActor
+	 * This method is necessary because actors cannot be passed parameters through a constructor at spawn time.
+	 *
+	 * @param OwningCharacterActor
 	 *	The character (as an actor) who would be issued the command.
 	 * @param AbilitySpecHandle
 	 *	The handle of the ability that the command will trigger when it is executed.
@@ -181,7 +184,7 @@ public:
 	 *	The new command.
 	 */
 	static IPF2CharacterCommandInterface* Create(
-		AActor*                          CharacterActor,
+		AActor*                          OwningCharacterActor,
 		const FGameplayAbilitySpecHandle AbilitySpecHandle,
 		const FGameplayEventData&        AbilityPayload          = FGameplayEventData(),
 		const EPF2CommandQueuePosition   QueuePositionPreference = EPF2CommandQueuePosition::EndOfQueue);
@@ -191,7 +194,7 @@ protected:
 	// Protected Constructors
 	// =================================================================================================================
 	explicit APF2CharacterCommand() :
-		TargetCharacter(nullptr),
+		OwningCharacter(nullptr),
 		QueuePositionPreference(EPF2CommandQueuePosition::EndOfQueue),
 		CachedAbility(nullptr)
 	{
@@ -207,7 +210,7 @@ public:
 	// =================================================================================================================
 	// Public Methods - IPF2CharacterCommandInterface Implementation
 	// =================================================================================================================
-	virtual TScriptInterface<IPF2CharacterInterface> GetTargetCharacter() const override;
+	virtual TScriptInterface<IPF2CharacterInterface> GetOwningCharacter() const override;
 
 	virtual UTexture2D* GetCommandIcon() const override;
 
@@ -293,9 +296,9 @@ protected:
 	 *	The gameplay ability, as an OpenPF2 interface; or nullptr if the character no longer has an ability that
 	 *	corresponds to the specification of this command.
 	 */
-	FORCEINLINE IPF2GameplayAbilityInterface* GetAbilityIntf() const
+	FORCEINLINE IPF2InteractableAbilityInterface* GetAbilityIntf() const
 	{
-		IPF2GameplayAbilityInterface* Ability = Cast<IPF2GameplayAbilityInterface>(this->GetAbility());
+		IPF2InteractableAbilityInterface* Ability = Cast<IPF2InteractableAbilityInterface>(this->GetAbility());
 
 		return Ability;
 	}
@@ -305,7 +308,7 @@ protected:
 	 *
 	 * This can only be called during spawning and must not be called after the command has already been spawned.
 	 *
-	 * @param InTargetCharacter
+	 * @param InOwningCharacter
 	 *	The character who would be issued this command.
 	 * @param InAbilitySpecHandle
 	 *	The handle of the ability that this command will trigger when it is executed.
@@ -314,7 +317,7 @@ protected:
 	 * @param InQueuePositionPreference
 	 *	The preference for where in a command queue this command should be placed, if this command gets queued.
 	 */
-	void FinalizeConstruction(AActor*                          InTargetCharacter,
+	void FinalizeConstruction(AActor*                          InOwningCharacter,
 	                          const FGameplayAbilitySpecHandle InAbilitySpecHandle,
 	                          const FGameplayEventData&        InAbilityPayload,
 	                          const EPF2CommandQueuePosition   InQueuePositionPreference);

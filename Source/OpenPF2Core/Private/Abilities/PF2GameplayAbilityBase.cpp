@@ -1,32 +1,26 @@
-﻿// OpenPF2 for UE Game Logic, Copyright 2022-2023, Guy Elsmore-Paddock. All Rights Reserved.
+﻿// OpenPF2 for UE Game Logic, Copyright 2022-2024, Guy Elsmore-Paddock. All Rights Reserved.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
 // distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 #include "Abilities/PF2GameplayAbilityBase.h"
 
+#include <AbilitySystemGlobals.h>
+
 #include "PF2CharacterInterface.h"
+
+#include "GameplayEffects/PF2GameplayEffectContainer.h"
+#include "GameplayEffects/PF2GameplayEffectContainerSpec.h"
+
+#include "Items/Weapons/PF2WeaponInterface.h"
+
+#include "Libraries/PF2AbilitySystemLibrary.h"
 
 #include "Utilities/PF2InterfaceUtilities.h"
 
 FString UPF2GameplayAbilityBase::GetIdForLogs() const
 {
 	return this->GetName();
-}
-
-UTexture2D* UPF2GameplayAbilityBase::GetAbilityIcon() const
-{
-	return this->Icon;
-}
-
-FText UPF2GameplayAbilityBase::GetAbilityLabel() const
-{
-	return this->Label;
-}
-
-FText UPF2GameplayAbilityBase::GetAbilityDescription() const
-{
-	return this->Description;
 }
 
 UGameplayAbility* UPF2GameplayAbilityBase::ToGameplayAbility()
@@ -113,4 +107,261 @@ TScriptInterface<IPF2CharacterInterface> UPF2GameplayAbilityBase::GetOwningChara
 	}
 
 	return Result;
+}
+
+FPF2GameplayEffectContainerSpec UPF2GameplayAbilityBase::MakeEffectContainerSpecFromContainer(
+	const FPF2GameplayEffectContainer& Container) const
+{
+	FPF2GameplayEffectContainerSpec Result;
+
+	for (const TSubclassOf<UGameplayEffect>& EffectClass : Container.GameplayEffectsToApply)
+	{
+		Result.AddGameplayEffectSpec(this->MakeOutgoingGameplayEffectSpec(EffectClass));
+	}
+
+	return Result;
+}
+
+void UPF2GameplayAbilityBase::MakeEffectContainerSpecsFromWeapon(
+	const TScriptInterface<IPF2WeaponInterface> Weapon,
+	FPF2GameplayEffectContainerSpec&            SourceEffectsSpec,
+	FPF2GameplayEffectContainerSpec&            TargetEffectsSpec,
+	const float                                 Level) const
+{
+	PF2_ENSURE_ABILITY_IS_INSTANTIATED_OR_RETURN(
+		this,
+		MakeEffectContainerSpecsFromWeapon,
+		/* void */
+	);
+	{
+		const TScriptInterface<IPF2CharacterInterface> Character = this->GetOwningCharacterFromActorInfo();
+
+		if (Character == nullptr)
+		{
+			UE_LOG(
+				LogPf2CoreAbilities,
+				Error,
+				TEXT("The owner of this gameplay ability ('%s') is not an OpenPF2-compatible character."),
+				*(this->GetIdForLogs())
+			);
+		}
+		else
+		{
+			const FPF2GameplayEffectContainer& SourceEffectsContainer = Weapon->GetSourceGameplayEffects();
+			const FPF2GameplayEffectContainer& TargetEffectsContainer = Weapon->GetTargetGameplayEffects();
+
+			check(this->CurrentSpecHandle.IsValid());
+			check(this->CurrentActorInfo != nullptr);
+
+			for (const TSubclassOf<UGameplayEffect>& EffectClass : SourceEffectsContainer.GameplayEffectsToApply)
+			{
+				SourceEffectsSpec.AddGameplayEffectSpec(
+					this->MakeOutgoingGameplayEffectSpecForWeapon(EffectClass, Weapon, Level)
+				);
+			}
+
+			Weapon->OnSourceGameplayEffectsContainerSpecGenerated(
+				Character->GetCharacterAbilitySystemComponent(),
+				this,
+				SourceEffectsSpec
+			);
+
+			for (const TSubclassOf<UGameplayEffect>& EffectClass : TargetEffectsContainer.GameplayEffectsToApply)
+			{
+				TargetEffectsSpec.AddGameplayEffectSpec(
+					this->MakeOutgoingGameplayEffectSpecForWeapon(EffectClass, Weapon, Level)
+				);
+			}
+
+			Weapon->OnTargetGameplayEffectsContainerSpecGenerated(
+				Character->GetCharacterAbilitySystemComponent(),
+				this,
+				TargetEffectsSpec
+			);
+		}
+	}
+}
+
+FPF2GameplayEffectContainerSpec UPF2GameplayAbilityBase::MakeEffectContainerSpecFromContainerAndCauser(
+	const FPF2GameplayEffectContainer& Container,
+	AActor*                            EffectCauser,
+	const float                        Level) const
+{
+	FPF2GameplayEffectContainerSpec Result;
+
+	for (const TSubclassOf<UGameplayEffect>& EffectClass : Container.GameplayEffectsToApply)
+	{
+		Result.AddGameplayEffectSpec(
+			this->MakeOutgoingGameplayEffectSpecForCauser(EffectClass, EffectCauser, Level)
+		);
+	}
+
+	return Result;
+}
+
+TArray<FActiveGameplayEffectHandle> UPF2GameplayAbilityBase::ApplyEffectContainerSpecToOwner(
+	const FPF2GameplayEffectContainerSpec& ContainerSpec) const
+{
+	PF2_ENSURE_ABILITY_IS_INSTANTIATED_OR_RETURN(
+		this,
+		ApplyEffectContainerSpecToOwner,
+		TArray<FActiveGameplayEffectHandle>()
+	);
+	{
+		TArray<FActiveGameplayEffectHandle> AppliedEffects;
+		TArray<FGameplayEffectSpecHandle>   SpecsToApply   = ContainerSpec.GameplayEffectSpecsToApply;
+
+		check(this->CurrentSpecHandle.IsValid());
+		check(this->CurrentActorInfo != nullptr);
+
+		AppliedEffects.Reserve(SpecsToApply.Num());
+
+		for (const FGameplayEffectSpecHandle& SpecHandle : SpecsToApply)
+		{
+			AppliedEffects.Add(
+				ApplyGameplayEffectSpecToOwner(
+					this->CurrentSpecHandle,
+					this->CurrentActorInfo,
+					this->CurrentActivationInfo,
+					SpecHandle
+				)
+			);
+		}
+
+		return AppliedEffects;
+	}
+}
+
+TArray<FActiveGameplayEffectHandle> UPF2GameplayAbilityBase::ApplyEffectContainerSpecToTargets(
+	const FPF2GameplayEffectContainerSpec& ContainerSpec) const
+{
+	PF2_ENSURE_ABILITY_IS_INSTANTIATED_OR_RETURN(
+		this,
+		ApplyEffectContainerSpecToTargets,
+		TArray<FActiveGameplayEffectHandle>()
+	);
+	{
+		TArray<FActiveGameplayEffectHandle> AppliedEffects;
+		TArray<FGameplayEffectSpecHandle>   SpecsToApply   = ContainerSpec.GameplayEffectSpecsToApply;
+
+		check(this->CurrentSpecHandle.IsValid());
+		check(this->CurrentActorInfo != nullptr);
+
+		AppliedEffects.Reserve(SpecsToApply.Num());
+
+		for (const FGameplayEffectSpecHandle& SpecHandle : SpecsToApply)
+		{
+			AppliedEffects.Append(
+				ApplyGameplayEffectSpecToTarget(
+					this->CurrentSpecHandle,
+					this->CurrentActorInfo,
+					this->CurrentActivationInfo,
+					SpecHandle,
+					ContainerSpec.TargetData
+				)
+			);
+		}
+
+		return AppliedEffects;
+	}
+}
+
+FGameplayEffectSpecHandle UPF2GameplayAbilityBase::MakeOutgoingGameplayEffectSpecForWeapon(
+	const TSubclassOf<UGameplayEffect>          GameplayEffectClass,
+	const TScriptInterface<IPF2WeaponInterface> Weapon,
+	const float                                 Level) const
+{
+	PF2_ENSURE_ABILITY_IS_INSTANTIATED_OR_RETURN(
+		this,
+		MakeOutgoingGameplayEffectSpecForWeapon,
+		FGameplayEffectSpecHandle()
+	);
+	{
+		check(this->CurrentActorInfo != nullptr);
+		check(this->CurrentActorInfo->AbilitySystemComponent.IsValid());
+
+		return UPF2AbilitySystemLibrary::MakeGameplayEffectSpecForWeaponAttack(
+			this,
+			GameplayEffectClass,
+			Weapon,
+			Level
+		);
+	}
+}
+
+FGameplayEffectSpecHandle UPF2GameplayAbilityBase::MakeOutgoingGameplayEffectSpecForCauser(
+	const TSubclassOf<UGameplayEffect> GameplayEffectClass,
+	AActor*                            EffectCauser,
+	const float                        Level) const
+{
+	PF2_ENSURE_ABILITY_IS_INSTANTIATED_OR_RETURN(
+		this,
+		MakeOutgoingGameplayEffectSpecForCauser,
+		FGameplayEffectSpecHandle()
+	);
+	{
+		check(this->CurrentActorInfo != nullptr);
+		check(this->CurrentActorInfo->AbilitySystemComponent.IsValid());
+
+		return UPF2AbilitySystemLibrary::MakeGameplayEffectSpecFromAbilityForCauser(
+			this,
+			GameplayEffectClass,
+			EffectCauser,
+			Level
+		);
+	}
+}
+
+FGameplayEffectSpecHandle UPF2GameplayAbilityBase::MakeOutgoingGameplayEffectSpecForInstigatorAndCauser(
+	const TSubclassOf<UGameplayEffect> GameplayEffectClass,
+	AActor*                            Instigator,
+	AActor*                            EffectCauser,
+	const float                        Level) const
+{
+	PF2_ENSURE_ABILITY_IS_INSTANTIATED_OR_RETURN(
+		this,
+		MakeOutgoingGameplayEffectSpecForInstigatorAndCauser,
+		FGameplayEffectSpecHandle()
+	);
+	{
+		check(this->CurrentActorInfo != nullptr);
+		check(this->CurrentActorInfo->AbilitySystemComponent.IsValid());
+
+		return UPF2AbilitySystemLibrary::MakeGameplayEffectSpecFromAbilityForInstigatorAndCauser(
+			this,
+			GameplayEffectClass,
+			Instigator,
+			EffectCauser,
+			Level
+		);
+	}
+}
+
+FActiveGameplayEffectHandle UPF2GameplayAbilityBase::ApplyGameplayEffectToSelfWithForwardedGameplayEventContext(
+	const TSubclassOf<UGameplayEffect> GameplayEffectClass,
+	const FGameplayEventData&          EventData) const
+{
+	const FGameplayEffectSpecHandle EffectSpecHandle =
+		UPF2AbilitySystemLibrary::MakeGameplayEffectSpecFromGameplayEventContext(GameplayEffectClass, EventData);
+
+	if (EffectSpecHandle.IsValid())
+	{
+		return this->ApplyGameplayEffectSpecToOwner(
+			this->CurrentSpecHandle,
+			this->CurrentActorInfo,
+			this->CurrentActivationInfo,
+			EffectSpecHandle
+		);
+	}
+	else
+	{
+		UE_LOG(
+			LogPf2CoreAbilities,
+			Error,
+			TEXT("Failed to make GE spec from Gameplay Event context received by ability ('%s'); there was insufficient context available in the event payload."),
+			*(this->GetIdForLogs())
+		);
+
+		return FActiveGameplayEffectHandle();
+	}
 }

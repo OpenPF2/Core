@@ -1,4 +1,4 @@
-// OpenPF2 for UE Game Logic, Copyright 2021-2023, Guy Elsmore-Paddock. All Rights Reserved.
+// OpenPF2 for UE Game Logic, Copyright 2021-2024, Guy Elsmore-Paddock. All Rights Reserved.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
 // distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
@@ -61,34 +61,39 @@ namespace PF2CharacterConstants
 	}
 
 	/**
-	 * The path to the folder that contains GE blueprints.
+	 * The path to the top-level folder for GE blueprints that are core to the plug-in.
 	 */
-	static const FString BlueprintBasePath = TEXT("/OpenPF2Core/OpenPF2/Core/");
+	static const FString CoreBlueprintBasePath = TEXT("/OpenPF2Core/OpenPF2/Core/");
 
 	/**
-	 * The top-most sub-folder underneath the root blueprint base path.
+	 * The top-most path under the core blueprint base path.
 	 */
-	static const FString BlueprintSubfolderRoot = "";
+	static const FString BlueprintSubfolderRoot = TEXT("");
 
 	/**
-	 * The path under the blueprint base path that contains calculation blueprints.
+	 * The path under the base path that contains character-stat-related blueprints.
 	 */
-	static const FString BlueprintSubfolderCalculations = TEXT("Calculations/");
+	static const FString BlueprintSubfolderCharacterStats = TEXT("CharacterStats/");
 
 	/**
-	 * The path under the blueprint base path that contains Ability Boost blueprints.
+	 * The path under the base path that contains ability-modifier-related blueprints.
 	 */
-	static const FString BlueprintSubfolderBoosts = TEXT("AbilityBoosts/");
+	static const FString BlueprintSubfolderAbilityModifiers = TEXT("CharacterStats/AbilityModifiers/");
 
 	/**
-	 * The path under the blueprint base path that contains ability modifier calculation blueprints.
+	 * The path under the base path that contains ability-boost-related blueprints.
 	 */
-	static const FString BlueprintSubfolderAbilityModCalculations = TEXT("Calculations/AbilityModifiers/");
+	static const FString BlueprintSubfolderAbilityBoosts = TEXT("CharacterStats/AbilityBoosts/");
 
 	/**
-	 * The path under the blueprint base path that contains skill calculation blueprints.
+	 * The path under the base path that contains ancestry-related blueprints.
 	 */
-	static const FString BlueprintSubfolderSkillCalculations = TEXT("Calculations/Skills/");
+	static const FString BlueprintSubfolderAncestries = TEXT("CharacterStats/Ancestries/");
+
+	/**
+	 * The path under the blueprint base path that contains skill-related blueprints.
+	 */
+	static const FString BlueprintSubfolderSkillCalculations = TEXT("CharacterStats/Skills/");
 
 	/**
 	 * Format string for the name of the Gameplay Effect blueprint that boosts abilities.
@@ -117,21 +122,21 @@ namespace PF2CharacterConstants
 	 * TODO: Consider whether we want to move this list into a Blueprint UPROPERTY, so that it's not hard-coded.
 	 */
 	static const TMultiMap<FString, FName> GeCoreCharacterBlueprintPaths = {
-		// Initialize base stats.
-		{BlueprintSubfolderRoot,                   TEXT("GE_ApplyBaseCharacterStats")     },
-		{BlueprintSubfolderRoot,                   TEXT("GE_GrantCharacterBaseAbilities") },
-		{BlueprintSubfolderCalculations,           TEXT("GE_CalcKeyAbilityBoost")         },
+		// // Initialize base stats.
+		{BlueprintSubfolderCharacterStats,    TEXT("GE_ApplyBaseCharacterStats")     },
+		{BlueprintSubfolderCharacterStats,    TEXT("GE_GrantCharacterBaseAbilities") },
+		{BlueprintSubfolderCharacterStats,    TEXT("GE_CalcKeyAbilityBoost")         },
 
 		// Finalize stats.
-		{BlueprintSubfolderAbilityModCalculations, TEXT("GE_CalcAbilityModifiers")        },
-		{BlueprintSubfolderCalculations,           TEXT("GE_CalcClassDifficultyClass")    },
-		{BlueprintSubfolderCalculations,           TEXT("GE_CalcArmorClass")              },
-		{BlueprintSubfolderCalculations,           TEXT("GE_CalcPerceptionModifier")      },
-		{BlueprintSubfolderCalculations,           TEXT("GE_CalcSavingThrowModifiers")    },
-		{BlueprintSubfolderCalculations,           TEXT("GE_CalcSpellAttackRoll")         },
-		{BlueprintSubfolderCalculations,           TEXT("GE_CalcSpellDifficultyClass")    },
-		{BlueprintSubfolderSkillCalculations,      TEXT("GE_CalcSkillModifiers")          },
-		{BlueprintSubfolderCalculations,           TEXT("GE_CalcAncestryFeatLimit")       },
+		{BlueprintSubfolderAbilityModifiers,  TEXT("GE_CalcAbilityModifiers")        },
+		{BlueprintSubfolderCharacterStats,    TEXT("GE_CalcClassDifficultyClass")    },
+		{BlueprintSubfolderCharacterStats,    TEXT("GE_CalcArmorClass")              },
+		{BlueprintSubfolderCharacterStats,    TEXT("GE_CalcPerceptionModifier")      },
+		{BlueprintSubfolderCharacterStats,    TEXT("GE_CalcSavingThrowModifiers")    },
+		{BlueprintSubfolderCharacterStats,    TEXT("GE_CalcSpellAttackRoll")         },
+		{BlueprintSubfolderCharacterStats,    TEXT("GE_CalcSpellDifficultyClass")    },
+		{BlueprintSubfolderSkillCalculations, TEXT("GE_CalcSkillModifiers")          },
+		{BlueprintSubfolderAncestries,        TEXT("GE_CalcAncestryFeatLimit")       },
 	};
 
 	/**
@@ -141,13 +146,13 @@ namespace PF2CharacterConstants
 	 *	The name of the blueprint for which a path is desired.
 	 * @param Subfolder
 	 *	Optionally, the name of the folder in the base path where the blueprint is expected to be found. Defaults to
-	 *	BlueprintSubfolderRoot, indicating the blueprint will be found at the root of the blueprint base path.
+	 *	BlueprintSubfolderRoot, indicating the blueprint will be found at the root of the core blueprint base path.
 	 *
 	 * @return
 	 *	The path to the blueprint.
 	 */
-	FORCEINLINE static FString GetBlueprintPath(const FName Name, const FString Subfolder = BlueprintSubfolderRoot)
+	FORCEINLINE static FString GetBlueprintPath(const FName Name, const FString& Subfolder = BlueprintSubfolderRoot)
 	{
-		return FString::Format(TEXT("{0}{1}{2}.{2}_C"), { BlueprintBasePath, Subfolder, Name.ToString() });
+		return FString::Format(TEXT("{0}{1}{2}.{2}_C"), { CoreBlueprintBasePath, Subfolder, Name.ToString() });
 	}
 }

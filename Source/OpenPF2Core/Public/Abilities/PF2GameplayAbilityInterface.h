@@ -5,6 +5,10 @@
 
 #pragma once
 
+#include <GameplayAbilitySpec.h>
+
+#include <UObject/ScriptInterface.h>
+
 #include "Utilities/PF2LogIdentifiableInterface.h"
 
 #include "PF2GameplayAbilityInterface.generated.h"
@@ -13,8 +17,6 @@
 // Forward Declarations (to minimize header dependencies)
 // =====================================================================================================================
 class IPF2CharacterInterface;
-class UInputAction;
-class UTexture2D;
 
 // =====================================================================================================================
 // Normal Declarations
@@ -36,33 +38,6 @@ public:
 	// =================================================================================================================
 	// Public Methods
 	// =================================================================================================================
-	/**
-	 * Gets an icon to represent this ability, for whenever it is displayed to players/users.
-	 *
-	 * @return
-	 *	A graphical representation of this ability.
-	 */
-	UFUNCTION(BlueprintCallable, Category="OpenPF2|Gameplay Abilities")
-	virtual UTexture2D* GetAbilityIcon() const = 0;
-
-	/**
-	 * Gets the name of this ability, for whenever it is displayed to players/users.
-	 *
-	 * @return
-	 *	A short textual description of this ability.
-	 */
-	UFUNCTION(BlueprintCallable, Category="OpenPF2|Gameplay Abilities")
-	virtual FText GetAbilityLabel() const = 0;
-
-	/**
-	 * Gets the description of this ability, for whenever it is displayed to players/users.
-	 *
-	 * @return
-	 *	A long textual description of this ability.
-	 */
-	UFUNCTION(BlueprintCallable, Category="OpenPF2|Gameplay Abilities")
-	virtual FText GetAbilityDescription() const = 0;
-
 	/**
 	 * Gets the gameplay ability that is implementing this interface.
 	 *

@@ -63,10 +63,12 @@ public:
 	 * In development builds, an assertion error is raised if more than one component matches the given interface type.
 	 * In shipping builds, only the first matching component is returned.
 	 *
-	 * @param Character
+	 * @param [in]  Character
 	 *	The character for which a component is desired.
-	 * @param Interface
+	 * @param [in]  Interface
 	 *	The type of interface to locate.
+	 * @param [out] bWasFound
+	 *	A reference to an output variable to receive the status of whether the component was found.
 	 *
 	 * @return
 	 *	Either the component that matches the given interface; or, nullptr if there is no such component.
@@ -74,5 +76,6 @@ public:
 	UFUNCTION(BlueprintPure, Category = "OpenPF2|Characters|Components", meta = (DeterminesOutputType = "Interface"))
 	static TScriptInterface<IInterface> GetComponentByInterface(
 		const TScriptInterface<IPF2CharacterInterface>& Character,
-		const TSubclassOf<UInterface>                   Interface);
+		const TSubclassOf<UInterface>                   Interface,
+		bool&                                           bWasFound);
 };

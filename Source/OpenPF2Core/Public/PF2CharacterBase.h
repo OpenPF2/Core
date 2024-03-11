@@ -1,4 +1,4 @@
-// OpenPF2 for UE Game Logic, Copyright 2021-2023, Guy Elsmore-Paddock. All Rights Reserved.
+// OpenPF2 for UE Game Logic, Copyright 2021-2024, Guy Elsmore-Paddock. All Rights Reserved.
 //
 // Content from Pathfinder 2nd Edition is licensed under the Open Game License (OGL) v1.0a, subject to the following:
 //   - Open Game License v 1.0a, Copyright 2000, Wizards of the Coast, Inc.
@@ -19,16 +19,19 @@
 #include <UObject/ConstructorHelpers.h>
 #include <UObject/ScriptInterface.h>
 
-#include "PF2AncestryAndHeritageGameplayEffectBase.h"
-#include "PF2BackgroundGameplayEffectBase.h"
 #include "PF2CharacterConstants.h"
 #include "PF2CharacterInterface.h"
-#include "PF2ClassGameplayEffectBase.h"
 
-#include "Abilities/PF2AbilityBoostBase.h"
-#include "Abilities/PF2AbilitySystemComponent.h"
-#include "Abilities/PF2AttributeSet.h"
-#include "Abilities/PF2CharacterAbilityScoreType.h"
+#include "Abilities/Attacks/PF2AttackAttributeSet.h"
+
+#include "Actors/Components/PF2AbilitySystemComponent.h"
+
+#include "CharacterStats/PF2AncestryAndHeritageGameplayEffectBase.h"
+#include "CharacterStats/PF2BackgroundGameplayEffectBase.h"
+#include "CharacterStats/PF2CharacterAbilityScoreType.h"
+#include "CharacterStats/PF2CharacterAttributeSet.h"
+#include "CharacterStats/PF2ClassGameplayEffectBase.h"
+#include "CharacterStats/AbilityBoosts/PF2AbilityBoostBase.h"
 
 #include "Utilities/PF2GameplayAbilityUtilities.h"
 #include "Utilities/PF2LogIdentifiableInterface.h"
@@ -41,7 +44,7 @@
 class IPF2CharacterInterface;
 class IPF2CharacterCommandInterface;
 
-template<class AscType, class CommandQueueType, class OwnerTrackerType, class AttributeSetType>
+template<class AscType, class CommandQueueType, class OwnerTrackerType, class AttributeSetType, class AttackAttributeSetType>
 class TPF2CharacterComponentFactory;
 
 // =====================================================================================================================
@@ -141,7 +144,13 @@ protected:
 	 * The attributes of this character.
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	UPF2AttributeSet* AttributeSet;
+	UPF2CharacterAttributeSet* AttributeSet;
+
+	/**
+	 * The transient attack stats of this character.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPF2AttackAttributeSet* AttackAttributeSet;
 
 	UPROPERTY()
 	bool bAreAbilitiesInitialized;
@@ -189,19 +198,19 @@ protected:
 	 * For playable characters, this may come from the player themselves unless the story dictates that the character
 	 * has a specific name because it is important for the plot.
 	 */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category="Character")
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category="OpenPF2 - Character")
 	FText CharacterName;
 
 	/**
 	 * The visual portrait of this character, to represent them in the UI to players/users.
 	 */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category="Character")
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category="OpenPF2 - Character")
 	UTexture2D* CharacterPortrait;
 
 	/**
 	 * The current level of this character.
 	 */
-	UPROPERTY(EditAnywhere, Replicated, meta=(ClampMin=1), Category="Character")
+	UPROPERTY(EditAnywhere, Replicated, meta=(ClampMin=1), Category="OpenPF2 - Character")
 	int32 CharacterLevel;
 
 	/**
@@ -219,7 +228,7 @@ protected:
 	 * change it later. A heritage is not the same as a culture or ethnicity, though some cultures or ethnicities might
 	 * have more or fewer members from a particular heritage."
 	 */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category="Character")
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category="OpenPF2 - Character")
 	TSubclassOf<UPF2AncestryAndHeritageGameplayEffectBase> AncestryAndHeritage;
 
 	/**
@@ -229,7 +238,7 @@ protected:
 	 * "Backgrounds ... describe training or environments your character experienced before becoming an adventurer. Your
 	 * character’s background provides ability boosts, skill training, and a skill feat."
 	 */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category="Character")
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category="OpenPF2 - Character")
 	TSubclassOf<UPF2BackgroundGameplayEffectBase> Background;
 
 	/**
@@ -243,7 +252,7 @@ protected:
 	 * combat-oriented character, a stealthy character, and someone with command over magic—so you may wish to discuss
 	 * options with your group before deciding."
 	 */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category="Character")
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category="OpenPF2 - Character")
 	TSubclassOf<UPF2ClassGameplayEffectBase> Class;
 
 	/**
@@ -260,7 +269,7 @@ protected:
 	 * alignment is a complicated subject, and even acts that might be considered good can be used for nefarious
 	 * purposes, and vice versa."
 	 */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, meta=(Categories="CreatureAlignment"), Category="Character")
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, meta=(Categories="CreatureAlignment"), Category="OpenPF2 - Character")
 	FGameplayTag Alignment;
 
 	/**
@@ -268,13 +277,13 @@ protected:
 	 *
 	 * Languages granted by ancestry do not need to be duplicated here.
 	 */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, meta=(Categories="Language"), Category="Character")
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, meta=(Categories="Language"), Category="OpenPF2 - Character")
 	FGameplayTagContainer AdditionalLanguages;
 
 	/**
 	 * The name(s) of lore sub-categories that this character is knowledgeable about.
 	 */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category="Skills")
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category="OpenPF2 - Skills")
 	TArray<FString> LoreNames;
 
 	/**
@@ -284,7 +293,7 @@ protected:
 	 * skill, you only need to select "Skill.Survival.Master", and do not need to also select the lower proficiency tags
 	 * of "Skill.Survival.Trained" and "Skill.Survival.Untrained".
 	 */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, meta=(Categories="Skill"), Category="Skills")
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, meta=(Categories="Skill"), Category="OpenPF2 - Skills")
 	FGameplayTagContainer AdditionalSkillProficiencies;
 
 	/**
@@ -298,7 +307,7 @@ protected:
 	 * Core GEs that initialize base character stats are evaluated before these additional GEs, while Core GEs that
 	 * depend on ability scores (e.g. ability modifier calculation) are evaluated after these additional GEs.
 	 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Character")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="OpenPF2 - Character")
 	TArray<TSubclassOf<UGameplayEffect>> AdditionalPassiveGameplayEffects;
 
 	/**
@@ -308,7 +317,7 @@ protected:
 	 * heritage, or skills. You should only grant custom abilities here that are needed for story or special character
 	 * interactions; otherwise, abilities should only be granted through the aforementioned, more standard means.
 	 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Character")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="OpenPF2 - Character")
 	TArray<TSubclassOf<UGameplayAbility>> AdditionalGameplayAbilities;
 
 	/**
@@ -346,7 +355,7 @@ protected:
 	 * applied to any ability score of your choice. However, when you gain multiple ability boosts at the same time,
 	 * you must apply each one to a different score."
 	 */
-	UPROPERTY(EditAnywhere, Category="Ability Boosts")
+	UPROPERTY(EditAnywhere, Category="OpenPF2 - Ability Boosts")
 	TArray<FPF2CharacterAbilityBoostSelection> AbilityBoostSelections;
 
 	/**
@@ -386,12 +395,12 @@ protected:
 	 *	The class type to use for the owner tracking component.
 	 * @tparam AttributeSetType
 	 *	The class type to use for the character attribute set.
+	 * @tparam AttackAttributeSetType
+	 *	The class type to use for the transient attack attribute set.
 	 */
-	template<class AscType, class CommandQueueType, class OwnerTrackerType, class AttributeSetType>
-	explicit APF2CharacterBase(TPF2CharacterComponentFactory<AscType,
-	                                                         CommandQueueType,
-	                                                         OwnerTrackerType,
-	                                                         AttributeSetType> ComponentFactory) :
+	template<class AscType, class CommandQueueType, class OwnerTrackerType, class AttributeSetType, class AttackAttributeSetType>
+	explicit APF2CharacterBase(
+		TPF2CharacterComponentFactory<AscType, CommandQueueType, OwnerTrackerType, AttributeSetType, AttackAttributeSetType> ComponentFactory) :
 		Events(nullptr),
 		bAreAbilitiesInitialized(false),
 		bManagedPassiveEffectsGenerated(false),
@@ -402,6 +411,7 @@ protected:
 		this->CommandQueue           = ComponentFactory.CreateCommandQueue(this);
 		this->OwnerTracker           = ComponentFactory.CreateOwnerTracker(this);
 		this->AttributeSet           = ComponentFactory.CreateAttributeSet(this);
+		this->AttackAttributeSet	 = ComponentFactory.CreateAttackAttributeSet(this);
 
 		for (const TTuple<FString, FName>& EffectInfo : PF2CharacterConstants::GeCoreCharacterBlueprintPaths)
 		{
@@ -504,16 +514,16 @@ public:
 	virtual void Native_OnDamageReceived(const float                         Damage,
 	                                     IPF2CharacterInterface*             InstigatorCharacter,
 	                                     AActor*                             DamageSource,
-	                                     const struct FGameplayTagContainer* EventTags,
+	                                     const struct FGameplayTagContainer* SourceTags,
 	                                     const FHitResult                    HitInfo) override;
 
 	virtual void Native_OnHitPointsChanged(const float                  Delta,
 	                                       const float                  NewValue,
-	                                       const FGameplayTagContainer* EventTags) override;
+	                                       const FGameplayTagContainer* SourceTags) override;
 
 	virtual void Native_OnSpeedChanged(const float                  Delta,
 	                                   const float                  NewValue,
-	                                   const FGameplayTagContainer* EventTags) override;
+	                                   const FGameplayTagContainer* SourceTags) override;
 
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void Multicast_OnEncounterTurnStarted() override;
@@ -660,9 +670,9 @@ protected:
 	 *	environment.
 	 * @param DamageSource
 	 *	The actor that directly inflicted the damage, such as a weapon or projectile.
-	 * @param EventTags
-	 *	Tags passed along with the damage Gameplay Event. This is typically set by an attack montage to indicate the
-	 *	nature of the attack that was performed.
+	 * @param SourceTags
+	 *	Tags passed along with the damage Gameplay Event that were captured from the source ability and source
+	 *	character.
 	 * @param HitInfo
 	 *	Hit result information, including who was hit and where the damage was inflicted.
 	 */
@@ -674,7 +684,7 @@ protected:
 	void BP_OnDamageReceived(const float                                     Damage,
 	                         const TScriptInterface<IPF2CharacterInterface>& InstigatorCharacter,
 	                         AActor*                                         DamageSource,
-	                         const FGameplayTagContainer&                    EventTags,
+	                         const FGameplayTagContainer&                    SourceTags,
 	                         const FHitResult                                HitInfo);
 
 	/**
@@ -684,8 +694,9 @@ protected:
 	 *	The amount that the character's hit points have changed.
 	 * @param NewValue
 	 *	The new amount of hit points after the change.
-	 * @param EventTags
-	 *	Tags passed along with the Gameplay Event as metadata about the cause of the change to hit points.
+	 * @param SourceTags
+	 *	Tags passed along with the Gameplay Event that were captured from the source ability and source character as
+	 *	metadata about the cause of the change to hit points.
 	 */
 	UFUNCTION(
 		BlueprintImplementableEvent,
@@ -694,7 +705,7 @@ protected:
 	)
 	void BP_OnHitPointsChanged(const float                         Delta,
 	                           const float                         NewValue,
-	                           const struct FGameplayTagContainer& EventTags);
+	                           const struct FGameplayTagContainer& SourceTags);
 
 	/**
 	 * BP event invoked when this character's speed (i.e., how fast it can move during a stride) has changed.
@@ -703,8 +714,9 @@ protected:
 	 *	The amount that the character's speed has changed.
 	 * @param NewValue
 	 *	The new amount of speed after the change.
-	 * @param EventTags
-	 *	Tags passed along with the Gameplay Event as metadata about the cause of the change to speed.
+	 * @param SourceTags
+	 *	Tags passed along with the Gameplay Event that were captured from the source ability and source character as
+	 *	metadata about the cause of the change to speed.
 	 */
 	UFUNCTION(
 		BlueprintImplementableEvent,
@@ -713,7 +725,7 @@ protected:
 	)
 	void BP_OnSpeedChanged(const float                  Delta,
 	                       const float                  NewValue,
-	                       const FGameplayTagContainer& EventTags);
+	                       const FGameplayTagContainer& SourceTags);
 };
 
 /**
@@ -738,9 +750,11 @@ protected:
  * @tparam OwnerTrackerType
  *	The class type to use for the owner tracking component.
  * @tparam AttributeSetType
- *	The class type to use for the character attribute set.
+*	The class type to use for the character attribute set.
+ * @tparam AttackAttributeSetType
+ *	The class type to use for the transient attack attribute set.
  */
-template<class AscType, class CommandQueueType, class OwnerTrackerType, class AttributeSetType>
+template<class AscType, class CommandQueueType, class OwnerTrackerType, class AttributeSetType, class AttackAttributeSetType>
 class TPF2CharacterComponentFactory
 {
 public:
@@ -800,7 +814,7 @@ public:
 	}
 
 	/**
-	 * Creates an Attribute Set for a character.
+	 * Creates the primary attribute set for a character.
 	 *
 	 * The attribute set is automatically created as a default sub-object of the character, with the name
 	 * "AttributeSet".
@@ -814,5 +828,22 @@ public:
 	static AttributeSetType* CreateAttributeSet(APF2CharacterBase* Character)
 	{
 		return Character->CreateDefaultSubobject<AttributeSetType>(TEXT("AttributeSet"));
+	}
+
+	/**
+	 * Creates the transient attack attribute set for a character.
+	 *
+	 * The attribute set is automatically created as a default sub-object of the character, with the name
+	 * "AttackAttributeSet".
+	 *
+	 * @param Character
+	 *	The character for which the attribute set will be created.
+	 *
+	 * @return
+	 *	The new attribute set.
+	 */
+	static AttackAttributeSetType* CreateAttackAttributeSet(APF2CharacterBase* Character)
+	{
+		return Character->CreateDefaultSubobject<AttackAttributeSetType>(TEXT("AttackAttributeSet"));
 	}
 };

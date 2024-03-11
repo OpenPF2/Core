@@ -1,4 +1,4 @@
-﻿// OpenPF2 for UE Game Logic, Copyright 2022-2023, Guy Elsmore-Paddock. All Rights Reserved.
+﻿// OpenPF2 for UE Game Logic, Copyright 2022-2024, Guy Elsmore-Paddock. All Rights Reserved.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
 // distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
@@ -11,30 +11,30 @@
 
 #include <Net/UnrealNetwork.h>
 
+#include "PF2GameModeInterface.h"
 #include "PF2PlayerControllerInterface.h"
 
-#include "Abilities/PF2AbilitySystemInterface.h"
-#include "Abilities/PF2GameplayAbilityInterface.h"
+#include "Abilities/PF2InteractableAbilityInterface.h"
 
-#include "GameModes/PF2GameModeInterface.h"
+#include "Actors/Components/PF2AbilitySystemInterface.h"
 
 #include "Utilities/PF2EnumUtilities.h"
 #include "Utilities/PF2InterfaceUtilities.h"
 #include "Utilities/PF2LogUtilities.h"
 
-IPF2CharacterCommandInterface* APF2CharacterCommand::Create(AActor*                          CharacterActor,
+IPF2CharacterCommandInterface* APF2CharacterCommand::Create(AActor*                          OwningCharacterActor,
                                                             const FGameplayAbilitySpecHandle AbilitySpecHandle,
                                                             const FGameplayEventData&        AbilityPayload,
                                                             const EPF2CommandQueuePosition   QueuePositionPreference)
 {
-	UWorld*               World   = CharacterActor->GetWorld();
+	UWorld*               World   = OwningCharacterActor->GetWorld();
 	APF2CharacterCommand* Command;
 
-	check(CharacterActor->Implements<UPF2CharacterInterface>());
+	check(OwningCharacterActor->Implements<UPF2CharacterInterface>());
 
-	Command = World->SpawnActorDeferred<APF2CharacterCommand>(StaticClass(), FTransform(), CharacterActor);
+	Command = World->SpawnActorDeferred<APF2CharacterCommand>(StaticClass(), FTransform(), OwningCharacterActor);
 
-	Command->FinalizeConstruction(CharacterActor, AbilitySpecHandle, AbilityPayload, QueuePositionPreference);
+	Command->FinalizeConstruction(OwningCharacterActor, AbilitySpecHandle, AbilityPayload, QueuePositionPreference);
 
 	return Command;
 }
@@ -43,23 +43,24 @@ void APF2CharacterCommand::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(APF2CharacterCommand, TargetCharacter);
+	DOREPLIFETIME(APF2CharacterCommand, OwningCharacter);
 	DOREPLIFETIME(APF2CharacterCommand, AbilitySpecHandle);
 	DOREPLIFETIME(APF2CharacterCommand, AbilityPayload);
+	DOREPLIFETIME(APF2CharacterCommand, QueuePositionPreference);
 }
 
-TScriptInterface<IPF2CharacterInterface> APF2CharacterCommand::GetTargetCharacter() const
+TScriptInterface<IPF2CharacterInterface> APF2CharacterCommand::GetOwningCharacter() const
 {
-	check(this->TargetCharacter);
-	check(this->TargetCharacter->Implements<UPF2CharacterInterface>());
+	check(this->OwningCharacter);
+	check(this->OwningCharacter->Implements<UPF2CharacterInterface>());
 
-	return TScriptInterface<IPF2CharacterInterface>(this->TargetCharacter);
+	return TScriptInterface<IPF2CharacterInterface>(this->OwningCharacter);
 }
 
 UTexture2D* APF2CharacterCommand::GetCommandIcon() const
 {
-	UTexture2D*                         CommandIcon = nullptr;
-	const IPF2GameplayAbilityInterface* AbilityIntf = this->GetAbilityIntf();
+	UTexture2D*                             CommandIcon = nullptr;
+	const IPF2InteractableAbilityInterface* AbilityIntf = this->GetAbilityIntf();
 
 	if (AbilityIntf != nullptr)
 	{
@@ -71,8 +72,8 @@ UTexture2D* APF2CharacterCommand::GetCommandIcon() const
 
 FText APF2CharacterCommand::GetCommandLabel() const
 {
-	FText                               CommandLabel;
-	const IPF2GameplayAbilityInterface* AbilityIntf  = this->GetAbilityIntf();
+	FText                                   CommandLabel;
+	const IPF2InteractableAbilityInterface* AbilityIntf = this->GetAbilityIntf();
 
 	if (AbilityIntf == nullptr)
 	{
@@ -88,8 +89,8 @@ FText APF2CharacterCommand::GetCommandLabel() const
 
 FText APF2CharacterCommand::GetCommandDescription() const
 {
-	FText                               CommandDescription;
-	const IPF2GameplayAbilityInterface* AbilityIntf        = this->GetAbilityIntf();
+	FText                                   CommandDescription;
+	const IPF2InteractableAbilityInterface* AbilityIntf = this->GetAbilityIntf();
 
 	if (AbilityIntf == nullptr)
 	{
@@ -174,7 +175,21 @@ EPF2CommandExecuteImmediatelyResult APF2CharacterCommand::AttemptExecuteImmediat
 			*(this->GetIdForLogs())
 		);
 
-		if (AscIntf->TriggerAbilityWithPayload(this->GetAbilitySpecHandle(), this->GetAbilityPayload()))
+		FGameplayEventData Payload = this->GetAbilityPayload();
+
+		// Ensure there is a source for the attack if none was supplied by the command itself.
+		if (!IsValid(Payload.Instigator))
+		{
+			const TScriptInterface<IPF2CharacterInterface> InstigatorCharacter = this->GetOwningCharacter();
+			FGameplayTagContainer                          InstigatorTags;
+
+			InstigatorCharacter->GetAbilitySystemComponent()->GetOwnedGameplayTags(InstigatorTags);
+
+			Payload.Instigator = InstigatorCharacter->ToActor();
+			Payload.InstigatorTags.AppendTags(InstigatorTags);
+		}
+
+		if (AscIntf->TriggerAbilityWithPayload(this->GetAbilitySpecHandle(), Payload))
 		{
 			Result = EPF2CommandExecuteImmediatelyResult::Activated;
 		}
@@ -247,12 +262,12 @@ bool APF2CharacterCommand::AttemptQueue()
 	return bWasQueued;
 }
 
-void APF2CharacterCommand::FinalizeConstruction(AActor*                          InTargetCharacter,
+void APF2CharacterCommand::FinalizeConstruction(AActor*                          InOwningCharacter,
                                                 const FGameplayAbilitySpecHandle InAbilitySpecHandle,
                                                 const FGameplayEventData&        InAbilityPayload,
                                                 const EPF2CommandQueuePosition   InQueuePositionPreference)
 {
-	this->TargetCharacter         = InTargetCharacter;
+	this->OwningCharacter         = InOwningCharacter;
 	this->AbilitySpecHandle       = InAbilitySpecHandle;
 	this->AbilityPayload          = InAbilityPayload;
 	this->QueuePositionPreference = InQueuePositionPreference;
@@ -262,7 +277,7 @@ void APF2CharacterCommand::FinalizeConstruction(AActor*                         
 
 void APF2CharacterCommand::Cancel_WithRemoteServer()
 {
-	const TScriptInterface<IPF2CharacterInterface>        Character        = this->GetTargetCharacter();
+	const TScriptInterface<IPF2CharacterInterface>        Character        = this->GetOwningCharacter();
 	const TScriptInterface<IPF2PlayerControllerInterface> PlayerController = Character->GetPlayerController();
 
 	if (PlayerController.GetInterface() == nullptr)
@@ -283,7 +298,7 @@ void APF2CharacterCommand::Cancel_WithRemoteServer()
 
 void APF2CharacterCommand::Cancel_WithLocalServer()
 {
-	const TScriptInterface<IPF2CharacterInterface> Character    = this->GetTargetCharacter();
+	const TScriptInterface<IPF2CharacterInterface> Character    = this->GetOwningCharacter();
 	AGameModeBase*                                 GameMode     = this->GetWorld()->GetAuthGameMode();
 	IPF2GameModeInterface*                         GameModeIntf = Cast<IPF2GameModeInterface>(GameMode);
 
@@ -350,7 +365,7 @@ FGameplayAbilitySpec* APF2CharacterCommand::GetAbilitySpec() const
 
 	if (AscIntf != nullptr)
 	{
-		UAbilitySystemComponent*         Asc          = AscIntf->ToAbilitySystemComponent();
+		const UAbilitySystemComponent*   Asc          = AscIntf->ToAbilitySystemComponent();
 		const FGameplayAbilitySpecHandle TargetHandle = this->GetAbilitySpecHandle();
 		const FString                    HostNetId    = PF2LogUtilities::GetHostNetId(this->GetWorld()),
 		                                 AscId        = GetFullNameSafe(Asc),
@@ -393,7 +408,7 @@ FGameplayAbilitySpec* APF2CharacterCommand::GetAbilitySpec() const
 
 IPF2AbilitySystemInterface* APF2CharacterCommand::GetAbilitySystemComponent() const
 {
-	const TScriptInterface<IPF2CharacterInterface> CharacterIntf = this->GetTargetCharacter();
+	const TScriptInterface<IPF2CharacterInterface> CharacterIntf = this->GetOwningCharacter();
 	UAbilitySystemComponent*                       Asc           = CharacterIntf->GetAbilitySystemComponent();
 	IPF2AbilitySystemInterface*                    AscIntf       = Cast<IPF2AbilitySystemInterface>(Asc);
 

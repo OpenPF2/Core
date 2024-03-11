@@ -46,13 +46,13 @@ protected:
 	/**
 	 * The player-readable name of this party.
 	 */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated, Category="OpenPF2 Party")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated, Category="OpenPF2 - Party")
 	FText PartyName;
 
 	/**
 	 * The index of this party.
 	 */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated, Category="OpenPF2 Party")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated, Category="OpenPF2 - Party")
 	int32 PartyIndex;
 
 	/**
@@ -96,27 +96,16 @@ public:
 	// Public Methods - IPF2PartyInterface Implementation
 	// =================================================================================================================
 	virtual UPF2PartyInterfaceEvents* GetEvents() const override;
-
 	virtual FText GetPartyName() const override;
-
 	virtual int32 GetPartyIndex() const override;
-
 	virtual void SetPartyIndex(int32 NewPartyIndex) override;
-
 	virtual TArray<TScriptInterface<IPF2PlayerControllerInterface>> GetMemberControllers() const override;
-
 	virtual TArray<TScriptInterface<IPF2PlayerStateInterface>> GetMemberStates() const override;
-
 	virtual TArray<TScriptInterface<IPF2CharacterInterface>> GetMemberCharacters() const override;
-
 	virtual void GetBounds(FVector& CenterPoint, FVector& BoxExtent) override;
-
 	virtual void AddPlayerToPartyByController(const TScriptInterface<IPF2PlayerControllerInterface>& Controller) override;
-
 	virtual void AddPlayerToPartyByState(const TScriptInterface<IPF2PlayerStateInterface>& PlayerState) override;
-
 	virtual void RemovePlayerFromPartyByController(const TScriptInterface<IPF2PlayerControllerInterface>& Controller) override;
-
 	virtual void RemovePlayerFromPartyByState(const TScriptInterface<IPF2PlayerStateInterface>& PlayerState) override;
 
 	// =================================================================================================================

@@ -93,7 +93,7 @@ public:
 		const EPF2LogVerbosityLevel                          Verbosity = VeryVerbose);
 
 	/**
-	 * Logs to the category for character-initiative-management logic evaluated by OpenPF2, usually during encounters.
+	 * Logs to the category for character-initiative management logic evaluated by OpenPF2, usually during encounters.
 	 *
 	 * @param Text
 	 *	The text to log.
@@ -105,6 +105,23 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category="OpenPF2|Utility|Logging", DisplayName="Log to OpenPF2 Core Initiative")
 	static void LogToOpenPf2CoreInitiative(
+		const FText                                          Text,
+		const TScriptInterface<IPF2LogIdentifiableInterface> Subject,
+		const EPF2LogVerbosityLevel                          Verbosity = VeryVerbose);
+
+	/**
+	 * Logs to the category for inventory management logic evaluated by OpenPF2.
+	 *
+	 * @param Text
+	 *	The text to log.
+	 * @param Subject
+	 *	An optional parameter to provide an ID that will be prefixed to the log message. If omitted, no prefix will be
+	 *	added.
+	 * @param Verbosity
+	 *	The verbosity level at which to log.
+	 */
+	UFUNCTION(BlueprintCallable, Category="OpenPF2|Utility|Logging", DisplayName="Log to OpenPF2 Core Inventory")
+	static void LogToOpenPf2CoreInventory(
 		const FText                                          Text,
 		const TScriptInterface<IPF2LogIdentifiableInterface> Subject,
 		const EPF2LogVerbosityLevel                          Verbosity = VeryVerbose);

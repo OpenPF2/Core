@@ -14,7 +14,7 @@
 // =====================================================================================================================
 class IPF2AbilitySystemInterface;
 class IPF2CharacterAbilitySystemInterface;
-class IPF2GameplayAbilityInterface;
+class IPF2InteractableAbilityInterface;
 class UAbilitySystemComponent;
 
 // =====================================================================================================================
@@ -30,6 +30,9 @@ class OPENPF2CORE_API UPF2AbilityTaskBase : public UAbilityTask
 	GENERATED_BODY()
 
 protected:
+	// =================================================================================================================
+	// Protected Methods
+	// =================================================================================================================
 	/**
 	 * Gets whether this ability task has a valid ability.
 	 *
@@ -62,8 +65,8 @@ protected:
 	 *	The ability as a PF2 ability script interface instance. If the ability is unset or not OpenPF2-compatible, the
 	 *	script interface wraps nullptr.
 	 */
-	UFUNCTION(BlueprintCallable, Category="OpenPF2|Abilities")
-	TScriptInterface<IPF2GameplayAbilityInterface> GetAbility() const;
+	UFUNCTION(BlueprintCallable, Category="OpenPF2|Gameplay Abilities")
+	TScriptInterface<IPF2InteractableAbilityInterface> GetAbility() const;
 
 	/**
 	 * Gets whether this ability task has a valid Ability System Component.
@@ -96,7 +99,7 @@ protected:
 	 *	The ASC as a PF2 ASC script interface instance. If the ASC is unset or not OpenPF2-compatible, the script
 	 *	interface wraps nullptr.
 	 */
-	UFUNCTION(BlueprintCallable, Category="OpenPF2|Abilities")
+	UFUNCTION(BlueprintCallable, Category="OpenPF2|Gameplay Abilities")
 	TScriptInterface<IPF2AbilitySystemInterface> GetAbilitySystemComponent() const;
 
 	/**
@@ -106,6 +109,6 @@ protected:
 	 *	The ASC as a PF2 character ASC script interface instance. If the ASC is unset or not an OpenPF2 character ASC,
 	 *	the script interface wraps nullptr.
 	 */
-	UFUNCTION(BlueprintCallable, Category="OpenPF2|Abilities")
+	UFUNCTION(BlueprintCallable, Category="OpenPF2|Gameplay Abilities")
 	TScriptInterface<IPF2CharacterAbilitySystemInterface> GetCharacterAbilitySystemComponent() const;
 };

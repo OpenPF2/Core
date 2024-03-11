@@ -1,9 +1,11 @@
-﻿// OpenPF2 for UE Game Logic, Copyright 2021-2022, Guy Elsmore-Paddock. All Rights Reserved.
+﻿// OpenPF2 for UE Game Logic, Copyright 2021-2023, Guy Elsmore-Paddock. All Rights Reserved.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
 // distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 #pragma once
+
+#include <Containers/Set.h>
 
 /**
  * Various utilities for functional programming with sets and similar structures.
@@ -32,7 +34,7 @@ namespace PF2SetUtilities
 	 *	The set of values that resulted from applying the transformation to every value of the source set.
 	 */
 	template <typename Out, typename In, typename Func>
-	OPENPF2CORE_API TSet<Out> Map(const TSet<In> Elements, const Func Callable)
+	TSet<Out> Map(const TSet<In> Elements, const Func Callable)
 	{
 		TSet<Out> Result;
 
@@ -68,7 +70,7 @@ namespace PF2SetUtilities
 	 * @param Elements
 	 *	The set of values to reduce.
 	 * @param StartingValue
-	 *	The value passed-in to the Callable along side the first value of the set. If the set is empty, this will be the
+	 *	The value passed in to the Callable along side the first value of the set. If the set is empty, this will be the
 	 *	value returned.
 	 * @param Callable
 	 *	The transformation function/lambda invoked to combine each element with the result of flattening/reducing the
@@ -81,7 +83,7 @@ namespace PF2SetUtilities
 	 *	The result of reducing the values of the set.
 	 */
 	template <typename Out, typename In, typename Func>
-	OPENPF2CORE_API Out Reduce(const TSet<In> Elements, const Out StartingValue, const Func Callable)
+	Out Reduce(const TSet<In> Elements, const Out StartingValue, const Func Callable)
 	{
 		Out PreviousValue = StartingValue;
 
@@ -108,7 +110,7 @@ namespace PF2SetUtilities
 	 *	A new set containing all the values of the original set that were not null.
 	 */
 	template <typename T>
-	OPENPF2CORE_API TSet<T> Filter(const TSet<T> Elements)
+	TSet<T> Filter(const TSet<T> Elements)
 	{
 		return Filter<T>(
 			Elements,
@@ -140,7 +142,7 @@ namespace PF2SetUtilities
 	 *	A new set containing all the values of the original set for which the callable returned "true".
 	 */
 	template <typename T, typename Func>
-	OPENPF2CORE_API TSet<T> Filter(const TSet<T> Elements, const Func Callable)
+	TSet<T> Filter(const TSet<T> Elements, const Func Callable)
 	{
 		return Elements.FilterByPredicate(Callable);
 	}

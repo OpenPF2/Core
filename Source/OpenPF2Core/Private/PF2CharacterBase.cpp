@@ -1,4 +1,4 @@
-// OpenPF2 for UE Game Logic, Copyright 2021-2023, Guy Elsmore-Paddock. All Rights Reserved.
+// OpenPF2 for UE Game Logic, Copyright 2021-2024, Guy Elsmore-Paddock. All Rights Reserved.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
 // distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
@@ -10,13 +10,19 @@
 #include <GameFramework/CharacterMovementComponent.h>
 
 #include <Net/UnrealNetwork.h>
+
 #include <UObject/ConstructorHelpers.h>
 
-#include "PF2OwnerTrackingComponent.h"
 #include "PF2PlayerStateInterface.h"
 
-#include "Abilities/PF2GameplayAbilityTargetData_BoostAbility.h"
+#include "Abilities/Attacks/PF2AttackAttributeSet.h"
+
+#include "Actors/Components/PF2OwnerTrackingComponent.h"
+
+#include "CharacterStats/AbilityBoosts/PF2GameplayAbilityTargetData_BoostAbility.h"
+
 #include "Commands/PF2CommandQueueComponent.h"
+
 #include "Utilities/PF2InterfaceUtilities.h"
 #include "Utilities/PF2LogUtilities.h"
 
@@ -24,7 +30,8 @@ APF2CharacterBase::APF2CharacterBase() :
 	APF2CharacterBase(TPF2CharacterComponentFactory<UPF2AbilitySystemComponent,
 	                                                UPF2CommandQueueComponent,
 	                                                UPF2OwnerTrackingComponent,
-	                                                UPF2AttributeSet>())
+	                                                UPF2CharacterAttributeSet,
+	                                                UPF2AttackAttributeSet>())
 {
 }
 
@@ -266,7 +273,7 @@ void APF2CharacterBase::ApplyAbilityBoostSelections()
 		for (const auto& AbilityBoostSelection : this->AbilityBoostSelections)
 		{
 			TSubclassOf<UPF2AbilityBoostBase> BoostGa   = AbilityBoostSelection.BoostGameplayAbility;
-			UAbilitySystemComponent*          Asc       = this->GetAbilitySystemComponent();
+			const UAbilitySystemComponent*    Asc       = this->GetAbilitySystemComponent();
 			FGameplayAbilitySpec*             BoostSpec = Asc->FindAbilitySpecFromClass(BoostGa);
 
 			if (BoostSpec == nullptr)

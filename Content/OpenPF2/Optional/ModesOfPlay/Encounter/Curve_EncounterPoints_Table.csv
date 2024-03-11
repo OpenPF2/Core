@@ -1,0 +1,17 @@
+Stat,Value
+TurnStartActionPoints,3
+TurnStartReactionPoints,1
+TurnStartMultipleAttackPenalty,0
+ReactionActionPointCost,0
+ReactionReactionPointCost,1
+FreeActionActionPointCost,0
+FreeActionReactionPointCost,0
+SingleActionActionPointCost,1
+SingleActionReactionPointCost,0
+TwoActionActivityActionPointCost,2
+TwoActionActivityReactionPointCost,0
+ThreeActionActivityActionPointCost,3
+ThreeActionActivityReactionPointCost,0
+MultipleAttackPenaltyPerAttack,-5
+MaxMultipleAttackPenalty,-10
+RoundDurationSeconds,6

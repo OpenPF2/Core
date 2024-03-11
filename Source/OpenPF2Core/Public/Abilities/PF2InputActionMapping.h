@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <Templates/SubclassOf.h>
+
 #include "PF2InputActionMapping.generated.h"
 
 // =====================================================================================================================

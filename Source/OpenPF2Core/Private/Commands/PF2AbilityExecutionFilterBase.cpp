@@ -7,6 +7,9 @@
 
 #include <Engine/World.h>
 
+// ReSharper disable once CppUnusedIncludeDirective
+#include <GameFramework/GameStateBase.h>
+
 #include "PF2GameStateInterface.h"
 
 #include "Utilities/PF2InterfaceUtilities.h"

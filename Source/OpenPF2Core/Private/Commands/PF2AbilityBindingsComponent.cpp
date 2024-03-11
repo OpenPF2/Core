@@ -12,7 +12,7 @@
 #include "PF2CharacterInterface.h"
 #include "PF2PlayerControllerInterface.h"
 
-#include "Abilities/PF2GameplayAbilityInterface.h"
+#include "Abilities/PF2InteractableAbilityInterface.h"
 
 #include "Commands/PF2AbilityExecutionFilterContext.h"
 #include "Commands/PF2AbilityExecutionFilterInterface.h"
@@ -46,7 +46,7 @@ UPF2AbilityBindingsInterfaceEvents* UPF2AbilityBindingsComponent::GetEvents() co
 	return this->Events;
 }
 
-TMap<UInputAction*, TScriptInterface<IPF2GameplayAbilityInterface>> UPF2AbilityBindingsComponent::GetBindingsMap() const
+TMap<UInputAction*, TScriptInterface<IPF2InteractableAbilityInterface>> UPF2AbilityBindingsComponent::GetBindingsMap() const
 {
 	UAbilitySystemComponent*         Asc         = this->GetOwningCharacter()->GetAbilitySystemComponent();
 	TArray<UPF2AbilityInputBinding*> AllBindings;
@@ -55,21 +55,22 @@ TMap<UInputAction*, TScriptInterface<IPF2GameplayAbilityInterface>> UPF2AbilityB
 
 	return PF2ArrayUtilities::Reduce(
 		AllBindings,
-		TMap<UInputAction*, TScriptInterface<IPF2GameplayAbilityInterface>>(),
-		[Asc](TMap<UInputAction*, TScriptInterface<IPF2GameplayAbilityInterface>> ResultMap,
-		      const UPF2AbilityInputBinding*                                      CurrentBinding)
+		TMap<UInputAction*, TScriptInterface<IPF2InteractableAbilityInterface>>(),
+		[Asc](TMap<UInputAction*, TScriptInterface<IPF2InteractableAbilityInterface>> ResultMap,
+		      const UPF2AbilityInputBinding*                                          CurrentBinding)
 		{
 			const FGameplayAbilitySpec* AbilitySpec = Asc->FindAbilitySpecFromHandle(CurrentBinding->AbilitySpecHandle);
 
 			if (AbilitySpec != nullptr)
 			{
-				IPF2GameplayAbilityInterface* Ability = Cast<IPF2GameplayAbilityInterface>(AbilitySpec->Ability);
+				IPF2InteractableAbilityInterface* Ability =
+					Cast<IPF2InteractableAbilityInterface>(AbilitySpec->Ability);
 
 				if (Ability != nullptr)
 				{
 					ResultMap.Add(
 						CurrentBinding->Action,
-						PF2InterfaceUtilities::ToScriptInterface<IPF2GameplayAbilityInterface>(Ability)
+						PF2InterfaceUtilities::ToScriptInterface<IPF2InteractableAbilityInterface>(Ability)
 					);
 				}
 			}
@@ -143,14 +144,14 @@ void UPF2AbilityBindingsComponent::LoadAbilitiesFromCharacter()
 
 			if (TargetAbility == Ability)
 			{
-				const IPF2GameplayAbilityInterface* AbilityIntf = Cast<IPF2GameplayAbilityInterface>(Ability);
+				const IPF2InteractableAbilityInterface* AbilityIntf = Cast<IPF2InteractableAbilityInterface>(Ability);
 
 				if (AbilityIntf == nullptr)
 				{
 					UE_LOG(
 						LogPf2CoreInput,
 						Warning,
-						TEXT("[%s] Ability ('%s') does not implement IPF2GameplayAbilityInterface."),
+						TEXT("[%s] Ability ('%s') does not implement IPF2InteractableAbilityInterface."),
 						*(PF2LogUtilities::GetHostNetId(this->GetWorld())),
 						*(GetNameSafe(Ability))
 					);
@@ -268,18 +269,6 @@ void UPF2AbilityBindingsComponent::ExecuteBoundAbility(const UInputAction*      
 UActorComponent* UPF2AbilityBindingsComponent::ToActorComponent()
 {
 	return this;
-}
-
-FString UPF2AbilityBindingsComponent::GetIdForLogs() const
-{
-	// ReSharper disable CppRedundantParentheses
-	return FString::Format(
-		TEXT("{0}.{1}"),
-		{
-			*(GetNameSafe(this->GetOwner())),
-			*(this->GetName())
-		}
-	);
 }
 
 IPF2CharacterInterface* UPF2AbilityBindingsComponent::GetOwningCharacter() const

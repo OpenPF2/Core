@@ -1,4 +1,4 @@
-﻿// OpenPF2 for UE Game Logic, Copyright 2022-2023, Guy Elsmore-Paddock. All Rights Reserved.
+﻿// OpenPF2 for UE Game Logic, Copyright 2022-2024, Guy Elsmore-Paddock. All Rights Reserved.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
 // distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
@@ -9,10 +9,12 @@
 
 #include <GameFramework/Info.h>
 
-#include "PF2CommandQueueInterface.h"
 #include "PF2EventEmitterInterface.h"
 
+#include "Actors/Components/PF2ActorComponentBase.h"
+
 #include "Commands/PF2CharacterCommandInterface.h"
+#include "Commands/PF2CommandQueueInterface.h"
 
 #include "PF2CommandQueueComponent.generated.h"
 
@@ -29,7 +31,7 @@
 UCLASS(ClassGroup="OpenPF2-Characters", meta=(BlueprintSpawnableComponent))
 // ReSharper disable once CppClassCanBeFinal
 class OPENPF2CORE_API UPF2CommandQueueComponent :
-	public UActorComponent,
+	public UPF2ActorComponentBase,
 	public IPF2EventEmitterInterface,
 	public IPF2CommandQueueInterface
 {
@@ -66,7 +68,7 @@ protected:
 	 * Once the queue reaches this size, no additional commands will be accepted until at least one command already in
 	 * the queue has been executed or removed.
 	 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="OpenPF2 - Command Queue")
 	uint8 SizeLimit;
 
 public:
@@ -122,7 +124,10 @@ public:
 	// =================================================================================================================
 	// Public Methods - IPF2LogIdentifiableInterface Implementation
 	// =================================================================================================================
-	virtual FString GetIdForLogs() const override;
+	virtual FString GetIdForLogs() const override
+	{
+		return Super::GetIdForLogs();
+	}
 
 protected:
 	// =================================================================================================================

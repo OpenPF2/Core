@@ -1,4 +1,4 @@
-﻿// OpenPF2 for UE Game Logic, Copyright 2021-2023, Guy Elsmore-Paddock. All Rights Reserved.
+﻿// OpenPF2 for UE Game Logic, Copyright 2021-2024, Guy Elsmore-Paddock. All Rights Reserved.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
 // distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
@@ -7,11 +7,9 @@
 
 #include <GameplayAbilitySpec.h>
 
-#include <Abilities/GameplayAbilityTypes.h>
-
 #include <GameFramework/Info.h>
 
-#include "GameModes/PF2ModeOfPlayType.h"
+#include "ModesOfPlay/PF2ModeOfPlayType.h"
 
 #include "Utilities/PF2LogIdentifiableInterface.h"
 
@@ -21,7 +19,7 @@
 // Forward Declarations (to minimize header dependencies)
 // =====================================================================================================================
 class IPF2CharacterInterface;
-class IPF2GameplayAbilityInterface;
+class IPF2InteractableAbilityInterface;
 class IPF2ModeOfPlayRuleSetInterface;
 class IPF2PlayerStateInterface;
 
@@ -158,8 +156,8 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Server, Reliable, Category="OpenPF2|Player Controllers")
 	virtual void Server_ExecuteAbilityAsCharacterCommand(
-		const TScriptInterface<IPF2GameplayAbilityInterface>& Ability,
-		AActor*                                               CharacterActor) = 0;
+		const TScriptInterface<IPF2InteractableAbilityInterface>& Ability,
+		AActor*                                                   CharacterActor) = 0;
 
 	/**
 	 * Builds and executes a command on the server for one of the characters this player controller can control.

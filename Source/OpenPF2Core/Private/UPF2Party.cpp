@@ -21,7 +21,7 @@
 #include "Utilities/PF2ArrayUtilities.h"
 #include "Utilities/PF2InterfaceUtilities.h"
 
-APF2Party::APF2Party()
+APF2Party::APF2Party() : Events(nullptr), PartyIndex(-1)
 {
 	this->bReplicates        = true;
 	this->bAlwaysRelevant    = true;

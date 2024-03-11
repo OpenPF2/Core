@@ -25,7 +25,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
 );
 
 /**
- * A task to combine both the PlayMontageAndWait and WaitForEvent tasks into one.
+ * A task that combines both the PlayMontageAndWait and WaitForEvent tasks into one.
  *
  * This allows the same montage to trigger one of any number of tag-based events (for example, as part of a complex
  * combat or action sequence where multiple types of damage are possible).
@@ -91,88 +91,9 @@ public:
 		const bool                  bStopWhenAbilityEnds           = true,
 		const float                 AnimRootMotionTranslationScale = 1.0f);
 
-private:
+protected:
 	// =================================================================================================================
-	// Private Fields
-	// =================================================================================================================
-	/**
-	 * Delegate invoked when the animation system signals that the montage is starting to blend out.
-	 */
-	FOnMontageBlendingOutStarted BlendingOutDelegate;
-
-	/**
-	 * Delegate invoked when the animation system signals that a montage has finished playing.
-	 */
-	FOnMontageEnded MontageEndedDelegate;
-
-	/**
-	 * Handle to the multi-cast cancellation delegate, so we can clean it up when the task is destroyed.
-	 */
-	FDelegateHandle CancelledHandle;
-
-	/**
-	 * Handle to the multi-cast tag event delegate, so we can clean it up when the task is destroyed.
-	 */
-	FDelegateHandle EventHandle;
-
-	// =================================================================================================================
-	// Private Fields
-	// =================================================================================================================
-	/**
-	 * The name of the montage to play.
-	 */
-	UPROPERTY()
-	UAnimMontage* MontageToPlay;
-
-	/**
-	 * The list of one or more tags that, if present in an event from the montage, will activate the EventReceived
-	 * callback.
-	 *
-	 * If empty, any event the ability receives during the montage will trigger the callback.
-	 */
-	UPROPERTY()
-	FGameplayTagContainer EventTags;
-
-	/**
-	 * The speed at which to play the montage, in case the montage should play faster or slower. This is a speed
-	 * multiplier, so 1.0f is normal speed.
-	 */
-	UPROPERTY()
-	float Rate;
-
-	/**
-	 * The name of the montage section from which to start playback.
-	 */
-	UPROPERTY()
-	FName StartSection;
-
-	/**
-	 * Amount to scale up root motion during montage playback. Set to 0 to block root motion entirely.
-	 */
-	UPROPERTY()
-	float AnimRootMotionTranslationScale;
-
-	/**
-	 * If true, the montage will be aborted if the ability ends normally.
-	 */
-	UPROPERTY()
-	bool bStopWhenAbilityEnds;
-
-	// =================================================================================================================
-	// Constructors
-	// =================================================================================================================
-	explicit UPF2AbilityTask_PlayMontageAndWaitForEvent(const FObjectInitializer& ObjectInitializer);
-
-	// =================================================================================================================
-	// Public Methods - UAbilityTask Overrides
-	// =================================================================================================================
-	virtual void Activate() override;
-	virtual void ExternalCancel() override;
-	virtual void OnDestroy(bool bAbilityEnded) override;
-	virtual FString GetDebugString() const override;
-
-	// =================================================================================================================
-	// Public Delegates/Execution Pins
+	// Protected Delegates/Execution Pins
 	// =================================================================================================================
 	/**
 	 * Execution pin fired if a gameplay event with one of the tags of interest has been received.
@@ -208,8 +129,85 @@ private:
 	UPROPERTY(BlueprintAssignable)
 	FPF2PlayMontageAndWaitForEventDelegate OnCancelled;
 
+private:
 	// =================================================================================================================
-	// Private Methods
+	// Private Fields
+	// =================================================================================================================
+	/**
+	 * Delegate invoked when the animation system signals that the montage is starting to blend out.
+	 */
+	FOnMontageBlendingOutStarted BlendingOutDelegate;
+
+	/**
+	 * Delegate invoked when the animation system signals that a montage has finished playing.
+	 */
+	FOnMontageEnded MontageEndedDelegate;
+
+	/**
+	 * Handle to the multi-cast cancellation delegate, so we can clean it up when the task is destroyed.
+	 */
+	FDelegateHandle CancelledHandle;
+
+	/**
+	 * Handle to the multi-cast tag event delegate, so we can clean it up when the task is destroyed.
+	 */
+	FDelegateHandle EventHandle;
+
+	/**
+	 * The name of the montage to play.
+	 */
+	UPROPERTY()
+	UAnimMontage* MontageToPlay;
+
+	/**
+	 * The list of one or more tags that, if present in an event from the montage, will activate the EventReceived
+	 * callback.
+	 *
+	 * If empty, any event the ability receives during the montage will trigger the callback.
+	 */
+	FGameplayTagContainer EventTags;
+
+	/**
+	 * The speed at which to play the montage, in case the montage should play faster or slower. This is a speed
+	 * multiplier, so 1.0f is normal speed.
+	 */
+	float Rate;
+
+	/**
+	 * The name of the montage section from which to start playback.
+	 */
+	FName StartSection;
+
+	/**
+	 * Amount to scale up root motion during montage playback. Set to 0 to block root motion entirely.
+	 */
+	float AnimRootMotionTranslationScale;
+
+	/**
+	 * If true, the montage will be aborted if the ability ends normally.
+	 */
+	bool bStopWhenAbilityEnds;
+
+	// =================================================================================================================
+	// Constructors
+	// =================================================================================================================
+	explicit UPF2AbilityTask_PlayMontageAndWaitForEvent(const FObjectInitializer& ObjectInitializer);
+
+	// =================================================================================================================
+	// Public Methods - UAbilityTask Overrides
+	// =================================================================================================================
+	virtual void ExternalCancel() override;
+	virtual FString GetDebugString() const override;
+
+protected:
+	// =================================================================================================================
+	// Protected Methods - UAbilityTask Overrides
+	// =================================================================================================================
+	virtual void Activate() override;
+	virtual void OnDestroy(bool bAbilityEnded) override;
+
+	// =================================================================================================================
+	// Protected Methods
 	// =================================================================================================================
 	/**
 	 * Gets the Ability System Component that owns the ability this task is running under.
@@ -217,7 +215,12 @@ private:
 	 * @return
 	 *	The ASC for the owning ability.
 	 */
-	FORCEINLINE UAbilitySystemComponent* GetTargetAsc() const;
+	FORCEINLINE UAbilitySystemComponent* GetTargetAsc() const
+	{
+		check(this->AbilitySystemComponent.IsValid());
+
+		return this->AbilitySystemComponent.Get();
+	}
 
 	/**
 	 * Stops playing the montage, if it is playing.

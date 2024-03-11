@@ -1,12 +1,15 @@
-﻿// OpenPF2 for UE Game Logic, Copyright 2021-2022, Guy Elsmore-Paddock. All Rights Reserved.
+﻿// OpenPF2 for UE Game Logic, Copyright 2021-2024, Guy Elsmore-Paddock. All Rights Reserved.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
 // distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 #pragma once
 
-#include "Internationalization/Regex.h"
-#include "Kismet/BlueprintFunctionLibrary.h"
+#include <Internationalization/Regex.h>
+
+#include <Kismet/BlueprintFunctionLibrary.h>
+
+#include <Math/RandomStream.h>
 
 #include "PF2DiceLibrary.generated.h"
 
@@ -29,12 +32,28 @@ class OPENPF2CORE_API UPF2DiceLibrary final : public UBlueprintFunctionLibrary {
 	GENERATED_BODY()
 
 protected:
+	// =================================================================================================================
+	// Protected Constants
+	// =================================================================================================================
 	/**
 	 * Regular expression pattern used to parse dice rolling expressions.
 	 */
 	static const FRegexPattern DiceRollPattern;
 
+	// =================================================================================================================
+	// Protected Static Fields
+	// =================================================================================================================
+	/**
+	 * The random number generator (RNG) used for dice rolls.
+	 *
+	 * This is a random stream so that dice rolls can be seeded deterministically during tests.
+	 */
+	static FRandomStream DiceRng;
+
 public:
+	// =================================================================================================================
+	// Public Static Methods
+	// =================================================================================================================
 	/**
 	 * Returns the sum of a dice roll for the given dice roll expression string.
 	 *
@@ -48,7 +67,7 @@ public:
 	* @return
 	 *	The sum of the dice roll(s).
 	 */
-	UFUNCTION(BlueprintPure, Category="OpenPF2|Dice")
+	UFUNCTION(BlueprintPure=false, Category="OpenPF2|Dice", DisplayName="Roll Dice (Roll Expression) and Sum")
 	static int32 RollStringSum(const FName RollExpression);
 
 	/**
@@ -62,7 +81,7 @@ public:
 	 * @return
 	 *	The sum of the dice roll(s).
 	 */
-	UFUNCTION(BlueprintPure, Category="OpenPF2|Dice")
+	UFUNCTION(BlueprintPure=false, Category="OpenPF2|Dice", DisplayName="Roll Dice and Sum")
 	static int32 RollSum(const int32 RollCount, const int32 DieSize);
 
 	/**
@@ -78,7 +97,7 @@ public:
 	* @return
 	 *	The result of each dice roll.
 	 */
-	UFUNCTION(BlueprintPure, Category="OpenPF2|Dice")
+	UFUNCTION(BlueprintPure=false, Category="OpenPF2|Dice", DisplayName="Roll Dice (Roll Expression)")
 	static TArray<int32> RollString(const FName RollExpression);
 
 	/**
@@ -92,7 +111,7 @@ public:
 	 * @return
 	 *	The result of each dice roll.
 	 */
-	UFUNCTION(BlueprintPure, Category="OpenPF2|Dice")
+	UFUNCTION(BlueprintPure=false, Category="OpenPF2|Dice", DisplayName="Roll Dice")
 	static TArray<int32> Roll(const int32 RollCount, const int32 DieSize);
 
 	/**
@@ -107,7 +126,7 @@ public:
 	 *	A roll expression for the next size up (for example, given "1d6" this would return "1d8"; given "2d4", this
 	 *	would return "2d6").
 	 */
-	UFUNCTION(BlueprintPure, Category="OpenPF2|Dice")
+	UFUNCTION(BlueprintPure=false, Category="OpenPF2|Dice", DisplayName="Next Die Size (Roll Expression)")
 	static FName NextSizeString(const FName RollExpression);
 
 	/**
@@ -119,17 +138,66 @@ public:
 	 * @return
 	 *	The number of sides on the die of the next size up.
 	 */
-	UFUNCTION(BlueprintPure, Category="OpenPF2|Dice")
+	UFUNCTION(BlueprintPure=false, Category="OpenPF2|Dice", DisplayName="Next Die Size")
 	static int32 NextSize(const int32 DieSize);
 
 	/**
-	 * Gets a regular expression matcher for the given roll expression.
+	 * Parses the string description of a roll into distinct roll count and die size components.
 	 *
 	 * @param RollExpression
-	 *	The expression to parse/match with a regex.
+	 *	The description of the roll, in "CdS" format, where "C" represents the count or number of dice to roll, and "S"
+	 *	represents the number of sides of each die (the die size). For example, "1d6" represents a single roll of a
+	 *	six-sided die, while "2d4" represents rolling two dice having four sides each.
+	 * @param [out] RollCount
+	 *	A reference to the variable to receive the number of dice to roll.
+	 * @param [out] DieSize
+	 *	A reference to the variable to receive the number of sides of each die.
 	 *
 	 * @return
-	 *	The matcher for parsing the expression.
+	 *	Whether the roll expression could be parsed or not.
 	 */
-	static FRegexMatcher GetRollExpressionMatcher(FName RollExpression);
+	UFUNCTION(BlueprintPure=false, Category="OpenPF2|Dice")
+	static UPARAM(DisplayName="Was Parsed") bool ParseRollExpression(const FName RollExpression,
+	                                                                 int32&      RollCount,
+	                                                                 int32&      DieSize);
+
+	/**
+	 * Gets the random seed of the random number generator (RNG) being used to generate dice rolls.
+	 *
+	 * @return
+	 *	The current random seed.
+	 */
+	UFUNCTION(BlueprintPure, Category="OpenPF2|Dice")
+	static int32 GetRandomSeed();
+
+	/**
+	 * Sets the random seed of the random number generator (RNG) being used to generate dice rolls.
+	 *
+	 * This is intended for tests to use to manipulate dice rolls to create reproducible test cases. As such, you only
+	 * need to call this method if you intend to manipulate the random seed; otherwise, the dice library will
+	 * automatically generate a random seed based on the current system time during the first dice roll of the current
+	 * session.
+	 *
+	 * @param Seed
+	 *	The random seed to set.
+	 */
+	UFUNCTION(BlueprintPure=false, Category="OpenPF2|Dice")
+	static void SetRandomSeed(const int32 Seed);
+
+protected:
+	// =================================================================================================================
+	// Protected Static Methods
+	// =================================================================================================================
+	/**
+	 * Returns a reference to the RNG for dice rolls.
+	 *
+	 * @return
+	 *	The pre-initialized RNG for dice rolls.
+	 */
+	[[nodiscard]] FORCEINLINE static FRandomStream& GetDiceRng()
+	{
+		check(DiceRng.GetInitialSeed() != 0);
+
+		return DiceRng;
+	}
 };

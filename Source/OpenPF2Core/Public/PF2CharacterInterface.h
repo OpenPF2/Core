@@ -1,4 +1,4 @@
-﻿// OpenPF2 for UE Game Logic, Copyright 2021-2023, Guy Elsmore-Paddock. All Rights Reserved.
+﻿// OpenPF2 for UE Game Logic, Copyright 2021-2024, Guy Elsmore-Paddock. All Rights Reserved.
 //
 // Content from Pathfinder 2nd Edition is licensed under the Open Game License (OGL) v1.0a, subject to the following:
 //   - Open Game License v 1.0a, Copyright 2000, Wizards of the Coast, Inc.
@@ -16,7 +16,7 @@
 
 #include <UObject/ScriptInterface.h>
 
-#include "Abilities/PF2AbilityBoostBase.h"
+#include "CharacterStats/AbilityBoosts/PF2AbilityBoostBase.h"
 
 #include "PF2CharacterInterface.generated.h"
 
@@ -320,16 +320,16 @@ public:
 	 *	environment.
 	 * @param DamageSource
 	 *	The actor that directly inflicted the damage, such as a weapon or projectile.
-	 * @param EventTags
-	 *	Tags passed along with the damage Gameplay Event. This is typically set by an attack montage to indicate the
-	 *	nature of the attack that was performed.
+	 * @param SourceTags
+	 *	Tags passed along with the damage Gameplay Event that were captured from the source ability and source
+	 *	character.
 	 * @param HitInfo
 	 *	Hit result information, including who was hit and where the damage was inflicted.
 	 */
 	virtual void Native_OnDamageReceived(const float                  Damage,
 	                                     IPF2CharacterInterface*      InstigatorCharacter,
 	                                     AActor*                      DamageSource,
-	                                     const FGameplayTagContainer* EventTags,
+	                                     const FGameplayTagContainer* SourceTags,
 	                                     const FHitResult             HitInfo) = 0;
 
 	/**
@@ -341,13 +341,14 @@ public:
 	 * @param Delta
 	 *	The amount that the character's hit points have changed.
 	 * @param NewValue
-	 *	The new amount of hit points after the change.
-	 * @param EventTags
-	 *	Tags passed along with the Gameplay Event as metadata about the cause of the change to hit points.
+	*	The new amount of hit points after the change.
+	 * @param SourceTags
+	 *	Tags passed along with the Gameplay Event that were captured from the source ability and source character as
+	 *	metadata about the cause of the change to hit points.
 	 */
 	virtual void Native_OnHitPointsChanged(const float                  Delta,
 	                                       const float                  NewValue,
-	                                       const FGameplayTagContainer* EventTags) = 0;
+	                                       const FGameplayTagContainer* SourceTags) = 0;
 
 	/**
 	 * Notifies this character that its speed (i.e., how fast it can move during a stride) has changed.
@@ -358,13 +359,14 @@ public:
 	 * @param Delta
 	 *	The amount that the character's speed has changed.
 	 * @param NewValue
-	 *	The new amount of speed after the change.
-	 * @param EventTags
-	 *	Tags passed along with the Gameplay Event as metadata about the cause of the change to hit points.
+	*	The new amount of speed after the change.
+	 * @param SourceTags
+	 *	Tags passed along with the Gameplay Event that were captured from the source ability and source character as
+	 *	metadata about the cause of the change to speed.
 	 */
 	virtual void Native_OnSpeedChanged(const float                  Delta,
 	                                   const float                  NewValue,
-	                                   const FGameplayTagContainer* EventTags) = 0;
+	                                   const FGameplayTagContainer* SourceTags) = 0;
 
 	// =================================================================================================================
 	// Public Event Notifications from Mode of Play Rule Sets (MoPRS)

@@ -1,4 +1,4 @@
-﻿// OpenPF2 for UE Game Logic, Copyright 2022-2023, Guy Elsmore-Paddock. All Rights Reserved.
+﻿// OpenPF2 for UE Game Logic, Copyright 2022-2024, Guy Elsmore-Paddock. All Rights Reserved.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
 // distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
@@ -9,12 +9,15 @@
 
 #include <Containers/Map.h>
 
-#include "PF2AbilityBindingsInterface.h"
-#include "PF2AbilityInputBinding.h"
 #include "PF2CharacterInterface.h"
 #include "PF2EventEmitterInterface.h"
 
 #include "Abilities/PF2InputActionMapping.h"
+
+#include "Actors/Components/PF2ActorComponentBase.h"
+
+#include "Commands/PF2AbilityBindingsInterface.h"
+#include "Commands/PF2AbilityInputBinding.h"
 
 #include "PF2AbilityBindingsComponent.generated.h"
 
@@ -40,7 +43,7 @@ class UPF2AbilityExecutionFilterBase;
 UCLASS(ClassGroup="OpenPF2-Characters", meta=(BlueprintSpawnableComponent))
 // ReSharper disable once CppClassCanBeFinal
 class OPENPF2CORE_API UPF2AbilityBindingsComponent :
-	public UActorComponent,
+	public UPF2ActorComponentBase,
 	public IPF2EventEmitterInterface,
 	public IPF2AbilityBindingsInterface
 {
@@ -59,7 +62,7 @@ public:
 	 */
 	UPROPERTY(
 		EditDefaultsOnly,
-		Category="OpenPF2 Command Bindings",
+		Category="OpenPF2 - Command Bindings",
 		meta=(TitleProperty=InputAction)
 	)
 	TArray<FPF2InputActionMapping> DefaultAbilityMappings;
@@ -80,7 +83,7 @@ public:
 		EditDefaultsOnly,
 		meta=(MustImplement="/Script/OpenPF2Core.PF2AbilityExecutionFilterInterface"),
 		DisplayName="Ability Execution Filters",
-		Category="OpenPF2 Command Bindings"
+		Category="OpenPF2 - Command Bindings"
 	)
 	TArray<TSubclassOf<UObject>> Filters;
 
@@ -131,7 +134,7 @@ public:
 	// =================================================================================================================
 	virtual UPF2AbilityBindingsInterfaceEvents* GetEvents() const override;
 
-	virtual TMap<UInputAction*, TScriptInterface<IPF2GameplayAbilityInterface>> GetBindingsMap() const override;
+	virtual TMap<UInputAction*, TScriptInterface<IPF2InteractableAbilityInterface>> GetBindingsMap() const override;
 
 	virtual void SetBinding(UInputAction* Action, const FGameplayAbilitySpec& AbilitySpec) override;
 
@@ -156,7 +159,10 @@ public:
 	// =================================================================================================================
 	// Public Methods - IPF2LogIdentifiableInterface Implementation
 	// =================================================================================================================
-	virtual FString GetIdForLogs() const override;
+	virtual FString GetIdForLogs() const override
+	{
+		return Super::GetIdForLogs();
+	}
 
 protected:
 	// =================================================================================================================
